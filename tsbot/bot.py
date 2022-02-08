@@ -4,7 +4,8 @@ import asyncio
 import logging
 
 from tsbot.connection import TSConnection
-from tsbot.types_ import TSEvent, TSResponse
+from tsbot.plugin import TSPlugin
+from tsbot.types_ import TSCommand, TSEvent, TSEventHandler, TSResponse
 from tsbot.util import parse_response_error
 
 
@@ -14,13 +15,26 @@ logger = logging.getLogger(__name__)
 class TSBotBase:
     SKIP_WELCOME_MESSAGE: int = 2
 
-    def __init__(self, username: str, password: str, address: str, port: int = 10022, server_id: int = 1) -> None:
+    def __init__(
+        self,
+        username: str,
+        password: str,
+        address: str,
+        port: int = 10022,
+        server_id: int = 1,
+        invoker: str = "!",
+    ) -> None:
         self.username = username
         self.password = password
         self.address = address
         self.port = port
-
         self.server_id = server_id
+
+        self.invoker = invoker
+
+        self.commands: dict[str, TSCommand] = {}
+        self.event_handlers: dict[str, list[TSEventHandler]] = {}
+        self.plugins: dict[str, TSPlugin] = {}
 
         self.connection = TSConnection()
 
@@ -36,7 +50,7 @@ class TSBotBase:
     async def run(self):
         await self.connection.connect(self.username, self.password, self.address, self.port)
 
-        asyncio.create_task(self.read_task())
+        asyncio.create_task(self._reader_task())
 
         await self._select_server()
         await self._register_notifies()
@@ -50,7 +64,8 @@ class TSBotBase:
 
         await self.connection.writer.wait_closed()
 
-    async def read_task(self):
+    async def _reader_task(self):
+        """Task to read messages from the server"""
 
         async for data in self.connection.read_lines(self.SKIP_WELCOME_MESSAGE):
             pass
@@ -84,19 +99,6 @@ class TSBotBase:
         await self.send(f"use {self.server_id}")
         self.is_ready.set()
         await self.event_queue.put(TSEvent(event="ready"))
-
-    async def _keep_alive_task(self):
-        # TODO: make this smart. if no self.send called for X amount of time, only then send keep-alive
-        await self.is_ready.wait()
-        logger.debug("Keep-alive task started")
-
-        try:
-            while self.is_connected.is_set():
-                await asyncio.sleep(60)
-                await self.send("version")
-
-        except asyncio.CancelledError:
-            pass
 
     async def send(self, command: str) -> TSResponse:
         """
@@ -137,8 +139,22 @@ class TSBotBase:
                 event = await self.event_queue.get()
 
                 # TODO: insert event handling code here
+                # make it run in asyncio.wait_for() for timing out coroutines
 
                 self.event_queue.task_done()
+
+    async def _keep_alive_task(self):
+        # TODO: make this smart. if no self.send called for X amount of time, only then send keep-alive
+        await self.is_ready.wait()
+        logger.debug("Keep-alive task started")
+
+        try:
+            while self.is_connected.is_set():
+                await asyncio.sleep(60)
+                await self.send("version")
+
+        except asyncio.CancelledError:
+            pass
 
     async def close(self):
         await self.event_queue.put(TSEvent(event="close"))
@@ -151,4 +167,15 @@ class TSBotBase:
 
 
 class TSBot(TSBotBase):
-    pass
+    def __init__(
+        self,
+        username: str,
+        password: str,
+        address: str,
+        port: int = 10022,
+        server_id: int = 1,
+        invoker: str = "!",
+        owner: str = "",
+    ) -> None:
+        super().__init__(username, password, address, port, server_id, invoker)
+        self.owner = owner
