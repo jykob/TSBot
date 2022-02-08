@@ -47,22 +47,16 @@ class TSBotBase:
         self.response: asyncio.Future[TSResponse]
         self.response_lock = asyncio.Lock()
 
-    async def run(self):
-        await self.connection.connect(self.username, self.password, self.address, self.port)
+    async def _select_server(self):
+        await self.is_connected.wait()
+        await self.send(f"use {self.server_id}")
+        self.is_ready.set()
+        await self.event_queue.put(TSEvent(event="ready"))
 
-        asyncio.create_task(self._reader_task())
-
-        await self._select_server()
-        await self._register_notifies()
-
-        self.background_tasks.extend(
-            (
-                asyncio.create_task(self._keep_alive_task()),
-                asyncio.create_task(self._handle_events_task()),
-            )
-        )
-
-        await self.connection.writer.wait_closed()
+    async def _register_notifies(self):
+        for event in ("server", "textserver", "textchannel", "textprivate"):
+            await self.send(f"servernotifyregister event={event}")
+        await self.send(f"servernotifyregister event=channel id=0")
 
     async def _reader_task(self):
         """Task to read messages from the server"""
@@ -93,34 +87,6 @@ class TSBotBase:
                 response_buffer.append(data)
 
         self.is_connected.clear()
-
-    async def _select_server(self):
-        await self.is_connected.wait()
-        await self.send(f"use {self.server_id}")
-        self.is_ready.set()
-        await self.event_queue.put(TSEvent(event="ready"))
-
-    async def send(self, command: str) -> TSResponse:
-        """
-        Sends commands to the server, assuring only one of them gets sent at a time
-        """
-        async with self.response_lock:
-            logger.debug(f"Sending command: {command!r}")
-
-            self.response = asyncio.get_running_loop().create_future()
-            await self.connection.write(command)
-            response: TSResponse = await self.response
-
-            logger.debug(f"Got a response: {response}")
-
-        # TODO: check Response error code, if non-zero, raise msg in exception
-
-        return response
-
-    async def _register_notifies(self):
-        for event in ("server", "textserver", "textchannel", "textprivate"):
-            await self.send(f"servernotifyregister event={event}")
-        await self.send(f"servernotifyregister event=channel id=0")
 
     async def _handle_events_task(self):
         try:
@@ -156,6 +122,23 @@ class TSBotBase:
         except asyncio.CancelledError:
             pass
 
+    async def send(self, command: str) -> TSResponse:
+        """
+        Sends commands to the server, assuring only one of them gets sent at a time
+        """
+        async with self.response_lock:
+            logger.debug(f"Sending command: {command!r}")
+
+            self.response = asyncio.get_running_loop().create_future()
+            await self.connection.write(command)
+            response: TSResponse = await self.response
+
+            logger.debug(f"Got a response: {response}")
+
+        # TODO: check Response error code, if non-zero, raise msg in exception
+
+        return response
+
     async def close(self):
         await self.event_queue.put(TSEvent(event="close"))
 
@@ -164,6 +147,23 @@ class TSBotBase:
             await task
 
         await self.connection.close()
+
+    async def run(self):
+        await self.connection.connect(self.username, self.password, self.address, self.port)
+
+        asyncio.create_task(self._reader_task())
+
+        await self._select_server()
+        await self._register_notifies()
+
+        self.background_tasks.extend(
+            (
+                asyncio.create_task(self._keep_alive_task()),
+                asyncio.create_task(self._handle_events_task()),
+            )
+        )
+
+        await self.connection.writer.wait_closed()
 
 
 class TSBot(TSBotBase):
