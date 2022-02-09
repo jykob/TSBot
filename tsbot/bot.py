@@ -108,6 +108,13 @@ class TSBotBase:
             asyncio.create_task(self._run_event_handler(event_handlers.handler, event, timeout))
 
     async def _handle_events_task(self):
+        """
+        Task to run events put into the self._event_queue
+
+        if task is cancelled, it will try to run all the events
+        still in the queue with a timeout
+        """
+
         try:
             while self._is_connected.is_set():
                 event = await self._event_queue.get()
@@ -126,6 +133,13 @@ class TSBotBase:
                 self._event_queue.task_done()
 
     async def _keep_alive_task(self):
+        """
+        Task to keep connection alive with the TeamSpeak server
+
+        Normally TeamSpeak server cuts the connection to the query client
+        after 5 minutes of inactivity. If the bot doesn't send any commands
+        to the server, this task a command to keep connection alive.
+        """
         logger.debug("Keep-alive task started")
 
         try:
@@ -190,6 +204,12 @@ class TSBotBase:
         return response
 
     async def close(self):
+        """
+        Coroutine to handle closing the bot
+
+        Will emit TSEvent(event="close") to notify client closing, cancel background tasks
+        and wait for the connection to be closed
+        """
         self.emit(TSEvent(event="close"))
 
         for task in self._background_tasks:
@@ -199,6 +219,14 @@ class TSBotBase:
         await self.connection.close()
 
     async def run(self):
+        """
+        Run the bot.
+
+        Connects to the server, registers the server to send events to the bot and schedules
+        background tasks.
+
+        Awaits until the bot disconnects
+        """
         await self.connection.connect(self.username, self.password, self.address, self.port)
 
         reader = asyncio.create_task(self._reader_task())
