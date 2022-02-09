@@ -49,16 +49,16 @@ class TSBotBase:
         self._response: asyncio.Future[TSResponse]
         self._response_lock = asyncio.Lock()
 
-    async def _select_server(self):
+    async def _select_server(self) -> None:
         await self.send(f"use {self.server_id}")
         self.emit(TSEvent(event="ready"))
 
-    async def _register_notifies(self):
+    async def _register_notifies(self) -> None:
         for event in ("server", "textserver", "textchannel", "textprivate"):
             await self.send(f"servernotifyregister event={event}")
         await self.send(f"servernotifyregister event=channel id=0")
 
-    async def _reader_task(self):
+    async def _reader_task(self) -> None:
         """Task to read messages from the server"""
 
         async for data in self.connection.read_lines(self.SKIP_WELCOME_MESSAGE):
@@ -88,8 +88,8 @@ class TSBotBase:
 
         self._reader_ready_event.clear()
 
-    @staticmethod
-    async def _run_event_handler(handler: T_EventHandler, event: TSEvent, timeout: int | float | None = None):
+    def _handle_event(self, event: TSEvent, timeout: int | float | None = None):
+        async def _run_event_handler(handler: T_EventHandler) -> None:
         try:
             await asyncio.wait_for(handler(event), timeout=timeout)
         except asyncio.TimeoutError:
@@ -97,16 +97,15 @@ class TSBotBase:
         except Exception:
             logger.exception("Exception happend in event handler")
 
-    def _handle_event(self, event: TSEvent, timeout: int | float | None = None):
         event_handlers = self.event_handlers.get(event.event)
 
         if not event_handlers:
             return
 
         for event_handlers in event_handlers:
-            asyncio.create_task(self._run_event_handler(event_handlers.handler, event, timeout))
+            asyncio.create_task(_run_event_handler(event_handlers.handler))
 
-    async def _handle_events_task(self):
+    async def _handle_events_task(self) -> None:
         """
         Task to run events put into the self._event_queue
 
@@ -131,7 +130,7 @@ class TSBotBase:
 
                 self._event_queue.task_done()
 
-    async def _keep_alive_task(self):
+    async def _keep_alive_task(self) -> None:
         """
         Task to keep connection alive with the TeamSpeak server
 
@@ -167,13 +166,13 @@ class TSBotBase:
 
         return event_decorator
 
-    def emit(self, event: TSEvent):
+    def emit(self, event: TSEvent) -> None:
         """
         Emits an event to be handled
         """
         self._event_queue.put_nowait(event)
 
-    def _register_event_handler(self, event_handler: TSEventHandler):
+    def _register_event_handler(self, event_handler: TSEventHandler) -> None:
         """
         Registers event handlers that will be called when given event happens
         """
@@ -202,7 +201,7 @@ class TSBotBase:
 
         return response
 
-    async def close(self):
+    async def close(self) -> None:
         """
         Coroutine to handle closing the bot
 
@@ -217,7 +216,7 @@ class TSBotBase:
 
         await self.connection.close()
 
-    async def run(self):
+    async def run(self) -> None:
         """
         Run the bot.
 
