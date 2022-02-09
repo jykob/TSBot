@@ -24,11 +24,14 @@ class TSEvent:
     ctx: dict[str, Any] | None = None
 
 
+T_CommandHandler = Callable[..., Coroutine[dict[str, Any], Any, None]]
+
+
 @dataclass
 class TSCommand:
-    cmds: tuple[str]
-    handler: Callable[..., Coroutine[Any, Any, None]]  # TODO: update typehint
-    plugin: TSPlugin
+    commands: tuple[str, ...]
+    handler: T_CommandHandler
+    plugin: TSPlugin | None = None
 
 
 T_EventHandler = Callable[..., Coroutine[TSEvent, None, None]]

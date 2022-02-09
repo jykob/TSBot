@@ -6,7 +6,7 @@ from collections import defaultdict
 
 from tsbot.connection import TSConnection
 from tsbot.plugin import TSPlugin
-from tsbot.types_ import TSCommand, TSEvent, TSEventHandler, T_EventHandler, TSResponse
+from tsbot.types_ import TSCommand, T_CommandHandler, TSEvent, TSEventHandler, T_EventHandler, TSResponse
 from tsbot.util import parse_response_error
 
 
@@ -90,12 +90,12 @@ class TSBotBase:
 
     def _handle_event(self, event: TSEvent, timeout: int | float | None = None):
         async def _run_event_handler(handler: T_EventHandler) -> None:
-        try:
-            await asyncio.wait_for(handler(event), timeout=timeout)
-        except asyncio.TimeoutError:
-            pass
-        except Exception:
-            logger.exception("Exception happend in event handler")
+            try:
+                await asyncio.wait_for(handler(event), timeout=timeout)
+            except asyncio.TimeoutError:
+                pass
+            except Exception:
+                logger.exception("Exception happend in event handler")
 
         event_handlers = self.event_handlers.get(event.event)
 
@@ -154,10 +154,9 @@ class TSBotBase:
         except asyncio.CancelledError:
             pass
 
-    # TODO: Fix decorator hints
     def on(self, event_type: str) -> T_EventHandler:
         """
-        Decorator to register coroutines to fire on specific events
+        Decorator to register coroutines on events
         """
 
         def event_decorator(func: T_EventHandler) -> T_EventHandler:
@@ -181,6 +180,40 @@ class TSBotBase:
             f"Registered {event_handler.event!r} event to execute {event_handler.handler.__name__}"
             f"""{f" from '{event_handler.plugin}'" if event_handler.plugin else ''}"""
         )
+
+    def command(self, *commands: str) -> T_CommandHandler:
+        """
+        Decorator to register coroutines on command
+        """
+
+        def command_decorator(func: T_CommandHandler) -> T_CommandHandler:
+            self._register_command(TSCommand(commands, func))
+            return func
+
+        return command_decorator
+
+    def _register_command(self, command: TSCommand):
+
+        # Check if no commands have been registered, register command handler as event handler
+        if not self.commands:
+            event_handler = TSEventHandler("textmessage", self._handle_command_event)
+            self._register_event_handler(event_handler)
+
+        for command_name in command.commands:
+            self.commands[command_name] = command
+
+        logger.debug(
+            f"Registered '{', '.join(command.commands)}' command"
+            f"""{f" from '{command.plugin}'" if command.plugin else ''}"""
+        )
+
+    async def _handle_command_event(self, event: TSEvent) -> None:
+        """
+        Logic to handle commands
+        """
+        # TODO: WRITE
+
+        logger.info("HANDLE COMMAND")
 
     async def send(self, command: str) -> TSResponse:
         """
