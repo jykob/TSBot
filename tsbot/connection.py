@@ -20,12 +20,16 @@ class TSConnection:
     async def read_lines(self, number_of_lines: int = 1):
         try:
             lines_read: int = 0
-            async for data in self.reader:
+
+            while not self.reader.at_eof():
+                data = await self.reader.readuntil("\n\r")
+                data = data.strip()
+
                 if not data:
-                    break
+                    return
 
                 lines_read += 1
-                yield data.strip()
+                yield data
 
                 if lines_read >= number_of_lines:
                     return
@@ -35,11 +39,14 @@ class TSConnection:
 
     async def read(self):
         try:
-            async for data in self.reader:
+            while not self.reader.at_eof():
+                data = await self.reader.readuntil("\n\r")
+                data = data.strip()
+
                 if not data:
                     break
 
-                yield data.strip()
+                yield data
 
         except (ConnectionResetError, asyncssh.misc.ConnectionLost, asyncssh.misc.DisconnectError):
             logger.error("Connection closed")
