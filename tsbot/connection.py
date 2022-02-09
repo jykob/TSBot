@@ -35,7 +35,7 @@ class TSConnection:
                     return
 
         except (ConnectionResetError, asyncssh.misc.ConnectionLost, asyncssh.misc.DisconnectError):
-            logger.error("Connection closed")
+            logger.warning("Connection closed")
 
     async def read(self):
         try:
@@ -49,7 +49,7 @@ class TSConnection:
                 yield data
 
         except (ConnectionResetError, asyncssh.misc.ConnectionLost, asyncssh.misc.DisconnectError):
-            logger.error("Connection closed")
+            logger.warning("Connection closed")
 
         finally:
             await self.close()
