@@ -40,7 +40,7 @@ class TSBotBase:
 
         self.connection = TSConnection()
 
-        self._is_connected = asyncio.Event()
+        self._reader_ready_event = asyncio.Event()
         self._keep_alive_event = asyncio.Event()
 
         self._event_queue: asyncio.Queue[TSEvent] = asyncio.Queue()
@@ -50,7 +50,6 @@ class TSBotBase:
         self._response_lock = asyncio.Lock()
 
     async def _select_server(self):
-        await self._is_connected.wait()
         await self.send(f"use {self.server_id}")
         self.emit(TSEvent(event="ready"))
 
@@ -66,7 +65,7 @@ class TSBotBase:
             pass
         logger.debug("Skipped welcome message")
 
-        self._is_connected.set()
+        self._reader_ready_event.set()
 
         response_buffer: list[str] = []
 
@@ -87,7 +86,7 @@ class TSBotBase:
             else:
                 response_buffer.append(data)
 
-        self._is_connected.clear()
+        self._reader_ready_event.clear()
 
     @staticmethod
     async def _run_event_handler(handler: T_EventHandler, event: TSEvent, timeout: int | float | None = None):
@@ -116,7 +115,7 @@ class TSBotBase:
         """
 
         try:
-            while self._is_connected.is_set():
+            while True:
                 event = await self._event_queue.get()
 
                 logger.debug(f"Got event: {event}")
@@ -230,6 +229,7 @@ class TSBotBase:
         await self.connection.connect(self.username, self.password, self.address, self.port)
 
         reader = asyncio.create_task(self._reader_task())
+        await self._reader_ready_event.wait()
 
         await self._select_server()
         await self._register_notifies()
