@@ -235,8 +235,8 @@ class TSBotBase:
 
         self._background_tasks.extend(
             (
-                asyncio.create_task(self._keep_alive_task()),
-                asyncio.create_task(self._handle_events_task()),
+                asyncio.create_task(self._keep_alive_task(), name="KeepAlive-Task"),
+                asyncio.create_task(self._handle_events_task(), name="HandleEvent-Task"),
             )
         )
 
