@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any, Callable, Coroutine
 
 from tsbot.plugin import TSPlugin
 
@@ -11,6 +11,10 @@ class TSResponse:
     raw_data: str
     error: int
     msg: str
+
+
+class TSResponseError(Exception):
+    pass
 
 
 @dataclass
@@ -23,24 +27,15 @@ class TSEvent:
 @dataclass
 class TSCommand:
     cmds: tuple[str]
-    handler: Callable[..., None]
+    handler: Callable[..., Coroutine[Any, Any, None]]  # TODO: update typehint
     plugin: TSPlugin
 
-    def __name__(self):
-        return self.handler.__name__
 
-    def __call__(self, *args: tuple[str, ...], **kwargs: dict[str, str]):
-        return self.handler(*args, **kwargs)
+T_EventHandler = Callable[..., Coroutine[TSEvent, None, None]]
 
 
 @dataclass
 class TSEventHandler:
     event: str
-    handler: Callable[..., None]
-    plugin: TSPlugin
-
-    def __name__(self):
-        return self.handler.__name__
-
-    def __call__(self, *args: tuple[str, ...], **kwargs: dict[str, str]):
-        return self.handler(*args, **kwargs)
+    handler: T_EventHandler
+    plugin: TSPlugin | None = None
