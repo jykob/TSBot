@@ -115,8 +115,14 @@ class TSBotBase:
         logger.debug("Keep-alive task started")
 
         try:
-            while self.is_connected.is_set():
-                await asyncio.sleep(60)
+            while True:
+                self._keep_alive_event.clear()
+                try:
+                    await asyncio.wait_for(
+                        asyncio.shield(self._keep_alive_event.wait()),
+                        timeout=self.KEEP_ALIVE_INTERVAL,
+                    )
+                except asyncio.TimeoutError:
                 await self.send("version")
 
         except asyncio.CancelledError:
@@ -128,6 +134,8 @@ class TSBotBase:
         """
         async with self.response_lock:
             logger.debug(f"Sending command: {command!r}")
+            # tell _keep_alive_task that command has been sent
+            self._keep_alive_event.set()
 
             self.response = asyncio.get_running_loop().create_future()
             await self.connection.write(command)
