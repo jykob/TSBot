@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections import defaultdict
 
 from tsbot.connection import TSConnection
 from tsbot.plugin import TSPlugin
-from tsbot.types_ import TSCommand, TSEvent, TSEventHandler, TSResponse
+from tsbot.types_ import TSCommand, TSEvent, TSEventHandler, T_EventHandler, TSResponse
 from tsbot.util import parse_response_error
 
 
@@ -14,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 class TSBotBase:
     SKIP_WELCOME_MESSAGE: int = 2
+    KEEP_ALIVE_INTERVAL: int | float = 240  # 4 minutes
 
     def __init__(
         self,
@@ -33,25 +35,24 @@ class TSBotBase:
         self.invoker = invoker
 
         self.commands: dict[str, TSCommand] = {}
-        self.event_handlers: dict[str, list[TSEventHandler]] = {}
+        self.event_handlers: defaultdict[str, list[TSEventHandler]] = defaultdict(list)
         self.plugins: dict[str, TSPlugin] = {}
 
         self.connection = TSConnection()
 
-        self.is_connected = asyncio.Event()
-        self.is_ready = asyncio.Event()
+        self._is_connected = asyncio.Event()
+        self._keep_alive_event = asyncio.Event()
 
-        self.event_queue: asyncio.Queue[TSEvent] = asyncio.Queue()
-        self.background_tasks: list[asyncio.Task[None]] = []
+        self._event_queue: asyncio.Queue[TSEvent] = asyncio.Queue()
+        self._background_tasks: list[asyncio.Task[None]] = []
 
-        self.response: asyncio.Future[TSResponse]
-        self.response_lock = asyncio.Lock()
+        self._response: asyncio.Future[TSResponse]
+        self._response_lock = asyncio.Lock()
 
     async def _select_server(self):
-        await self.is_connected.wait()
+        await self._is_connected.wait()
         await self.send(f"use {self.server_id}")
-        self.is_ready.set()
-        await self.event_queue.put(TSEvent(event="ready"))
+        self.emit(TSEvent(event="ready"))
 
     async def _register_notifies(self):
         for event in ("server", "textserver", "textchannel", "textprivate"):
@@ -65,7 +66,7 @@ class TSBotBase:
             pass
         logger.debug("Skipped welcome message")
 
-        self.is_connected.set()
+        self._is_connected.set()
 
         response_buffer: list[str] = []
 
@@ -76,42 +77,55 @@ class TSBotBase:
                 # TODO Parse data into TSEvent:
                 #         - get event name from data
                 #         - parse ctx
-                await self.event_queue.put(TSEvent(data.removeprefix("notify")))
+                await self._event_queue.put(TSEvent(data.removeprefix("notify").split(" ")[0]))
 
             elif data.startswith("error"):
                 error_id, msg = parse_response_error(data)
-                self.response.set_result(TSResponse("".join(response_buffer), error_id, msg))
+                self._response.set_result(TSResponse("".join(response_buffer), error_id, msg))
                 response_buffer.clear()
 
             else:
                 response_buffer.append(data)
 
-        self.is_connected.clear()
+        self._is_connected.clear()
+
+    @staticmethod
+    async def _run_event_handler(handler: T_EventHandler, event: TSEvent, timeout: int | float | None = None):
+        try:
+            await asyncio.wait_for(handler(event), timeout=timeout)
+        except asyncio.TimeoutError:
+            pass
+        except Exception:
+            logger.exception("Exception happend in event handler")
+
+    def _handle_event(self, event: TSEvent, timeout: int | float | None = None):
+        event_handlers = self.event_handlers.get(event.event)
+
+        if not event_handlers:
+            return
+
+        for event_handlers in event_handlers:
+            asyncio.create_task(self._run_event_handler(event_handlers.handler, event, timeout))
 
     async def _handle_events_task(self):
         try:
-            while self.is_connected.is_set():
-                event = await self.event_queue.get()
+            while self._is_connected.is_set():
+                event = await self._event_queue.get()
 
-                # TODO: Handle events
-                #          - fire all the coroutines on given event
                 logger.debug(f"Got event: {event}")
+                self._handle_event(event)
 
-                self.event_queue.task_done()
+                self._event_queue.task_done()
 
         except asyncio.CancelledError:
-            # TODO: handle all the events before cancelling
-            while not self.event_queue.empty():
-                event = await self.event_queue.get()
+            while not self._event_queue.empty():
+                event = await self._event_queue.get()
 
-                # TODO: insert event handling code here
-                # make it run in asyncio.wait_for() for timing out coroutines
+                self._handle_event(event, timeout=1.0)
 
-                self.event_queue.task_done()
+                self._event_queue.task_done()
 
     async def _keep_alive_task(self):
-        # TODO: make this smart. if no self.send called for X amount of time, only then send keep-alive
-        await self.is_ready.wait()
         logger.debug("Keep-alive task started")
 
         try:
@@ -123,23 +137,51 @@ class TSBotBase:
                         timeout=self.KEEP_ALIVE_INTERVAL,
                     )
                 except asyncio.TimeoutError:
-                await self.send("version")
+                    await self.send("version")
 
         except asyncio.CancelledError:
             pass
+
+    # TODO: Fix decorator hints
+    def on(self, event_type: str) -> T_EventHandler:
+        """
+        Decorator to register coroutines to fire on specific events
+        """
+
+        def event_decorator(func: T_EventHandler) -> T_EventHandler:
+            self._register_event_handler(TSEventHandler(event_type, func))
+            return func
+
+        return event_decorator
+
+    def emit(self, event: TSEvent):
+        """
+        Emits an event to be handled
+        """
+        self._event_queue.put_nowait(event)
+
+    def _register_event_handler(self, event_handler: TSEventHandler):
+        """
+        Registers event handlers that will be called when given event happens
+        """
+        self.event_handlers[event_handler.event].append(event_handler)
+        logger.debug(
+            f"Registered {event_handler.event!r} event to execute {event_handler.handler.__name__}"
+            f"""{f" from '{event_handler.plugin}'" if event_handler.plugin else ''}"""
+        )
 
     async def send(self, command: str) -> TSResponse:
         """
         Sends commands to the server, assuring only one of them gets sent at a time
         """
-        async with self.response_lock:
+        async with self._response_lock:
             logger.debug(f"Sending command: {command!r}")
             # tell _keep_alive_task that command has been sent
             self._keep_alive_event.set()
 
-            self.response = asyncio.get_running_loop().create_future()
+            self._response = asyncio.Future()
             await self.connection.write(command)
-            response: TSResponse = await self.response
+            response: TSResponse = await self._response
 
             logger.debug(f"Got a response: {response}")
 
@@ -148,9 +190,9 @@ class TSBotBase:
         return response
 
     async def close(self):
-        await self.event_queue.put(TSEvent(event="close"))
+        self.emit(TSEvent(event="close"))
 
-        for task in self.background_tasks:
+        for task in self._background_tasks:
             task.cancel()
             await task
 
@@ -159,19 +201,19 @@ class TSBotBase:
     async def run(self):
         await self.connection.connect(self.username, self.password, self.address, self.port)
 
-        asyncio.create_task(self._reader_task())
+        reader = asyncio.create_task(self._reader_task())
 
         await self._select_server()
         await self._register_notifies()
 
-        self.background_tasks.extend(
+        self._background_tasks.extend(
             (
                 asyncio.create_task(self._keep_alive_task()),
                 asyncio.create_task(self._handle_events_task()),
             )
         )
 
-        await self.connection.writer.wait_closed()
+        await reader
 
 
 class TSBot(TSBotBase):
