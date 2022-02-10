@@ -50,16 +50,13 @@ class TSBotBase:
         self._response_lock = asyncio.Lock()
 
     async def _select_server(self) -> None:
-        """
-        set current virtual server
-        """
+        """Set current virtual server"""
         await self.send(TSQuery("use").params(sid=self.server_id))
         self.emit(TSEvent(event="ready"))
 
     async def _register_notifies(self) -> None:
-        """
-        Coroutine to register server to send events to the bot
-        """
+        """Coroutine to register server to send events to the bot"""
+
         await self.send(TSQuery("servernotifyregister").params(event="channel", id=0))
         for event in ("server", "textserver", "textchannel", "textprivate"):
             await self.send(TSQuery("servernotifyregister").params(event=event, id=0))
@@ -99,7 +96,7 @@ class TSBotBase:
 
         Normally TeamSpeak server cuts the connection to the query client
         after 5 minutes of inactivity. If the bot doesn't send any commands
-        to the server, this task a command to keep connection alive.
+        to the server, this task sends a command to keep connection alive.
         """
         logger.debug("Keep-alive task started")
 
@@ -118,9 +115,7 @@ class TSBotBase:
             pass
 
     def on(self, event_type: str) -> T_EventHandler:
-        """
-        Decorator to register coroutines on events
-        """
+        """Decorator to register coroutines on events"""
 
         def event_decorator(func: T_EventHandler) -> T_EventHandler:
             self.register_event_handler(event_type, func)
@@ -129,18 +124,15 @@ class TSBotBase:
         return event_decorator
 
     def register_event_handler(self, event_type: str, handler: T_EventHandler) -> None:
+        """Register Coroutines to be ran on specific event"""
         self._event_handler.register_event_handler(TSEventHandler(event_type, handler))
 
     def emit(self, event: TSEvent) -> None:
-        """
-        Emits an event to be handled
-        """
+        """Emits an event to be handled"""
         self._event_handler.event_queue.put_nowait(event)
 
     def command(self, *commands: str) -> T_CommandHandler:
-        """
-        Decorator to register coroutines on command
-        """
+        """Decorator to register coroutines on command"""
 
         def command_decorator(func: T_CommandHandler) -> T_CommandHandler:
             self.register_command(commands, func)
@@ -149,6 +141,7 @@ class TSBotBase:
         return command_decorator
 
     def register_command(self, commands: tuple[str, ...], handler: T_CommandHandler) -> None:
+        """Register Coroutines to be ran on specific command"""
         self._command_handler.register_command(TSCommand(commands, handler))
 
     async def send(self, query: TSQuery):
@@ -165,7 +158,7 @@ class TSBotBase:
         Send raw commands to the server
 
         Not recommended to use this if you don't know what you are doing.
-        Use send() method instead
+        Use send() method instead.
         """
         async with self._response_lock:
             logger.debug(f"Sending command: {command}")
@@ -187,7 +180,7 @@ class TSBotBase:
         Coroutine to handle closing the bot
 
         Will emit TSEvent(event="close") to notify client closing, cancel background tasks
-        and wait for the connection to be closed
+        and wait for the connection to be closed.
         """
         self.emit(TSEvent(event="close"))
 
@@ -204,7 +197,7 @@ class TSBotBase:
         Connects to the server, registers the server to send events to the bot and schedules
         background tasks.
 
-        Awaits until the bot disconnects
+        Awaits until the bot disconnects.
         """
         await self.connection.connect()
 
