@@ -2,19 +2,19 @@ from typing import Any
 
 
 class TSResponse:
-    def __init__(self, data: dict[str, Any], error: int, msg: str) -> None:
+    def __init__(self, data: dict[str, Any], error_id: int, msg: str) -> None:
         self.data = data
-        self.error = error
+        self.error_id = error_id
         self.msg = msg
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(data={self.data!r}, error={self.error!r}, msg={self.msg!r})"
+        return f"{self.__class__.__name__}(data={self.data!r}, error_id={self.error_id!r}, msg={self.msg!r})"
 
     @classmethod
     def from_server_response(cls, raw_data: list[str]):
-        error, msg = parse_response_error(raw_data.pop())
+        error_id, msg = parse_response_error(raw_data.pop())
         data = {}  # TODO: parse response
-        return cls(data=data, error=error, msg=msg)
+        return cls(data=data, error_id=error_id, msg=msg)
 
 
 class TSResponseError(Exception):
