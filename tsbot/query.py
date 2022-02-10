@@ -11,6 +11,9 @@ T_Stringable = Union[str, int, float, bytes]
 
 class TSQuery:
     def __init__(self, command: str) -> None:
+        if not command:
+            raise ValueError("command cannot be empty")
+
         self.command = command
         self._options: list[str] = []
         self._parameters: dict[str, str] = {}
