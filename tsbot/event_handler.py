@@ -8,12 +8,12 @@ from typing import TYPE_CHECKING, Callable, Coroutine, TypeAlias
 
 
 from tsbot.extension import Extension
-from tsbot.plugin import TSPlugin
 from tsbot.utils import parse_line
 
 
 if TYPE_CHECKING:
     from tsbot.bot import TSBotBase
+    from tsbot.plugin import TSPlugin
 
 
 logger = logging.getLogger(__name__)

@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING, Any, Callable, Coroutine
 
 from tsbot.event_handler import TSEvent
 from tsbot.extension import Extension
-from tsbot.plugin import TSPlugin
 
 if TYPE_CHECKING:
     from tsbot.bot import TSBotBase
+    from tsbot.plugin import TSPlugin
 
 
 logger = logging.getLogger(__name__)
