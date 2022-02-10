@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tsbot.utils import parse_data, unescape
+from tsbot.utils import parse_data, parse_line, unescape
 
 
 class TSResponse:
@@ -20,6 +20,5 @@ class TSResponse:
 
 
 def parse_error_line(input_str: str) -> tuple[int, str]:
-    _, error_id, msg = input_str.split(" ")
-
-    return int(error_id.split("=")[-1]), msg.split("=")[-1]
+    data = parse_line(input_str)
+    return int(data["id"]), data["msg"]
