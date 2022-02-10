@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from tsbot.utils import parse_data, unescape
 
 
