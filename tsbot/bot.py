@@ -5,6 +5,7 @@ import logging
 
 from tsbot.connection import TSConnection
 from tsbot.plugin import TSPlugin
+from tsbot.query import TSQuery
 from tsbot.response import TSResponse
 from tsbot.extensions.event_handler import EventHanlder, TSEvent, TSEventHandler, T_EventHandler
 from tsbot.extensions.command_handler import CommandHandler, TSCommand, T_CommandHandler
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 class TSBotBase:
     SKIP_WELCOME_MESSAGE: int = 2
     KEEP_ALIVE_INTERVAL: int | float = 4 * 60  # 4 minutes
-    KEEP_ALIVE_COMMAND: str = "bindinglist"
+    KEEP_ALIVE_COMMAND: str = TSQuery("bindinglist").compile()
 
     def __init__(
         self,
@@ -52,16 +53,16 @@ class TSBotBase:
         """
         set current virtual server
         """
-        await self.send(f"use {self.server_id}")  # TODO: change static command to TSCommand version
+        await self.send(TSQuery("use").parameter(sid=self.server_id))
         self.emit(TSEvent(event="ready"))
 
     async def _register_notifies(self) -> None:
         """
         Coroutine to register server to send events to the bot
         """
+        await self.send(TSQuery("servernotifyregister").parameter(event="channel", id=0))
         for event in ("server", "textserver", "textchannel", "textprivate"):
-            await self.send(f"servernotifyregister event={event}")
-        await self.send(f"servernotifyregister event=channel id=0")
+            await self.send(TSQuery("servernotifyregister").parameter(event=event, id=0))
 
     async def _reader_task(self) -> None:
         """Task to read messages from the server"""
@@ -111,7 +112,7 @@ class TSBotBase:
                         timeout=self.KEEP_ALIVE_INTERVAL,
                     )
                 except asyncio.TimeoutError:
-                    await self.send(self.KEEP_ALIVE_COMMAND)
+                    await self.send_raw(self.KEEP_ALIVE_COMMAND)
 
         except asyncio.CancelledError:
             pass
@@ -150,15 +151,24 @@ class TSBotBase:
     def register_command(self, commands: tuple[str, ...], handler: T_CommandHandler) -> None:
         self._command_handler.register_command(TSCommand(commands, handler))
 
-    async def send(self, command: str) -> TSResponse:
+    async def send(self, query: TSQuery):
         """
-        Sends commands to the server, assuring only one of them gets sent at a time
+        Sends queries to the server, assuring only one of them gets sent at a time
 
         Because theres no way to distinguish between requests/responses,
         you have to send requests to the server one at a time.
         """
+        return await self.send_raw(query.compile())
+
+    async def send_raw(self, command: str) -> TSResponse:
+        """
+        Send raw commands to the server
+
+        Not recommended to use this if you don't know what you are doing.
+        Use send() method instead
+        """
         async with self._response_lock:
-            logger.debug(f"Sending command: {command!r}")
+            logger.debug(f"Sending command: {command}")
             # tell _keep_alive_task that command has been sent
             self._keep_alive_event.set()
 
