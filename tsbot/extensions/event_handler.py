@@ -56,24 +56,10 @@ class TSEventHandler:
         )
 
     async def run(self, event: TSEvent) -> None:
-            if self.plugin_instance:
+        if self.plugin_instance:
             await self.handler(self.plugin_instance, event)
-            else:
+        else:
             await self.handler(event)
-
-
-async def _run_event_handler(
-    event: TSEvent,
-    handler: T_EventHandler,
-    timeout: float | None = None,
-) -> None:
-    try:
-        await asyncio.wait_for(handler(event), timeout=timeout)
-    except asyncio.TimeoutError:
-        pass  # TODO: Add warning from warning module. tell that coro ran out of time
-    except Exception as e:
-        logger.exception(f"{e.__class__.__name__} happend in event handler")
-        # raise TSEventException(e) from None  # TODO: send only current stackframe (_run_event_handler)
 
 
 class EventHanlder(Extension):
@@ -83,14 +69,26 @@ class EventHanlder(Extension):
 
         self.event_queue: asyncio.Queue[TSEvent] = asyncio.Queue()
 
+    async def _run_event_handler(
+        self,
+        event: TSEvent,
+        handler: T_EventHandler,
+        timeout: float | None = None,
+    ) -> None:
+        try:
+            await asyncio.wait_for(handler(event), timeout=timeout)
+        except asyncio.TimeoutError:
+            pass  # TODO: Add warning from warning module. tell that coro ran out of time
+        except Exception as e:
+            logger.exception(f"{e.__class__.__name__} happend in event handler")
+            self.parent.emit(TSEvent(event="exception", msg=f"Error: {str(e)}", ctx=event.ctx))
+            # raise TSEventException(e) from None  # TODO: Send only current stackframe (_run_event_handler)
+
     def _handle_event(self, event: TSEvent, timeout: float | None = None):
-        event_handlers = self.event_handlers.get(event.event)
+        event_handlers = self.event_handlers.get(event.event, [])
 
-        if not event_handlers:
-            return
-
-        for event_handlers in event_handlers:
-            asyncio.create_task(_run_event_handler(event, event_handlers.run, timeout))
+        for event_handler in event_handlers:
+            asyncio.create_task(self._run_event_handler(event, event_handler.run, timeout))
 
     async def handle_events_task(self) -> None:
         """
