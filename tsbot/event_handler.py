@@ -4,18 +4,33 @@ import asyncio
 import logging
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Any, Callable, Coroutine, TypeAlias
+from typing import Callable, Coroutine, TypeAlias
 
 from tsbot.plugin import TSPlugin
+from tsbot.utils import parse_line
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
+class TSEventException(Exception):
+    pass
+
+
 class TSEvent:
-    event: str
-    msg: str | None = None
-    ctx: dict[str, Any] | None = None
+    __slots__ = ["event", "msg", "ctx"]
+
+    def __init__(self, event: str, msg: str | None = None, ctx: dict[str, str] | None = None) -> None:
+        self.event = event
+        self.msg = msg
+        self.ctx = ctx
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(event={self.event!r}, msg={self.msg!r}, ctx={self.ctx!r})"
+
+    @classmethod
+    def from_server_response(cls, raw_data: str):
+        event, data = raw_data.split(" ", maxsplit=1)
+        return cls(event=event.removeprefix("notify"), msg=None, ctx=parse_line(data))
 
 
 T_EventHandler: TypeAlias = Callable[..., Coroutine[TSEvent, None, None]]
@@ -40,9 +55,9 @@ class EventHanlder:
                 await asyncio.wait_for(handler(event), timeout=timeout)
             except asyncio.TimeoutError:
                 pass
-            except Exception:
+            except Exception as e:
                 logger.exception("Exception happend in event handler")
-                raise
+                raise TSEventException(e) from None  # TODO: send only current stackframe (_run_event_handler)
 
         event_handlers = self.event_handlers.get(event.event)
 
