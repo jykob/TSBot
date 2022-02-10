@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import asyncio
 import logging
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Any, Callable, Coroutine
+from typing import Any, Callable, Coroutine, TypeAlias
 
 from tsbot.plugin import TSPlugin
 
@@ -16,7 +18,7 @@ class TSEvent:
     ctx: dict[str, Any] | None = None
 
 
-T_EventHandler = Callable[..., Coroutine[TSEvent, None, None]]
+T_EventHandler: TypeAlias = Callable[..., Coroutine[TSEvent, None, None]]
 
 
 @dataclass
