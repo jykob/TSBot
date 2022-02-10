@@ -4,10 +4,17 @@ import asyncio
 import logging
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Callable, Coroutine, TypeAlias
+from typing import TYPE_CHECKING, Callable, Coroutine, TypeAlias
 
+
+from tsbot.extension import Extension
 from tsbot.plugin import TSPlugin
 from tsbot.utils import parse_line
+
+
+if TYPE_CHECKING:
+    from tsbot.bot import TSBotBase
+
 
 logger = logging.getLogger(__name__)
 
@@ -43,8 +50,9 @@ class TSEventHandler:
     plugin: TSPlugin | None = None
 
 
-class EventHanlder:
-    def __init__(self) -> None:
+class EventHanlder(Extension):
+    def __init__(self, parent: TSBotBase) -> None:
+        super().__init__(parent)
         self.event_handlers: defaultdict[str, list[TSEventHandler]] = defaultdict(list)
 
         self.event_queue: asyncio.Queue[TSEvent] = asyncio.Queue()

@@ -2,10 +2,15 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Callable, Coroutine
+from typing import TYPE_CHECKING, Any, Callable, Coroutine
 
-from tsbot.event_handler import EventHanlder, TSEvent, TSEventHandler
+from tsbot.event_handler import TSEvent
+from tsbot.extension import Extension
 from tsbot.plugin import TSPlugin
+
+if TYPE_CHECKING:
+    from tsbot.bot import TSBotBase
+
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +25,9 @@ class TSCommand:
     plugin: TSPlugin | None = None
 
 
-class CommandHandler:
-    def __init__(self, event_handler: EventHanlder, invoker: str = "!") -> None:
-        self.event_handler = event_handler
+class CommandHandler(Extension):
+    def __init__(self, parent: TSBotBase, invoker: str = "!") -> None:
+        super().__init__(parent)
 
         self.invoker = invoker
 
@@ -32,8 +37,7 @@ class CommandHandler:
 
         # Check if no commands have been registered, register command handler as event handler
         if not self.commands:
-            event_handler = TSEventHandler("textmessage", self._handle_command_event)
-            self.event_handler.register_event_handler(event_handler)
+            self.parent.register_event_handler("textmessage", self._handle_command_event)
 
         for command_name in command.commands:
             self.commands[command_name] = command

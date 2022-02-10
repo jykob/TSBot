@@ -38,8 +38,8 @@ class TSBotBase:
             address=address,
             port=port,
         )
-        self._event_handler = EventHanlder()
-        self._command_handler = CommandHandler(self._event_handler, invoker=invoker)
+        self._event_handler = EventHanlder(self)
+        self._command_handler = CommandHandler(self, invoker=invoker)
 
         self._reader_ready_event = asyncio.Event()
         self._keep_alive_event = asyncio.Event()
@@ -123,10 +123,13 @@ class TSBotBase:
         """
 
         def event_decorator(func: T_EventHandler) -> T_EventHandler:
-            self._event_handler.register_event_handler(TSEventHandler(event_type, func))
+            self.register_event_handler(event_type, func)
             return func
 
         return event_decorator
+
+    def register_event_handler(self, event_type: str, handler: T_EventHandler) -> None:
+        self._event_handler.register_event_handler(TSEventHandler(event_type, handler))
 
     def emit(self, event: TSEvent) -> None:
         """
@@ -140,10 +143,13 @@ class TSBotBase:
         """
 
         def command_decorator(func: T_CommandHandler) -> T_CommandHandler:
-            self._command_handler.register_command(TSCommand(commands, func))
+            self.register_command(commands, func)
             return func
 
         return command_decorator
+
+    def register_command(self, commands: tuple[str, ...], handler: T_CommandHandler) -> None:
+        self._command_handler.register_command(TSCommand(commands, handler))
 
     async def send(self, command: str) -> TSResponse:
         """
