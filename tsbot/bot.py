@@ -49,10 +49,16 @@ class TSBotBase:
         self._response_lock = asyncio.Lock()
 
     async def _select_server(self) -> None:
-        await self.send(f"use {self.server_id}")
+        """
+        set current virtual server
+        """
+        await self.send(f"use {self.server_id}")  # TODO: change static command to TSCommand version
         self.emit(TSEvent(event="ready"))
 
     async def _register_notifies(self) -> None:
+        """
+        Coroutine to register server to send events to the bot
+        """
         for event in ("server", "textserver", "textchannel", "textprivate"):
             await self.send(f"servernotifyregister event={event}")
         await self.send(f"servernotifyregister event=channel id=0")
@@ -142,6 +148,9 @@ class TSBotBase:
     async def send(self, command: str) -> TSResponse:
         """
         Sends commands to the server, assuring only one of them gets sent at a time
+
+        Because theres no way to distinguish between requests/responses,
+        you have to send requests to the server one at a time.
         """
         async with self._response_lock:
             logger.debug(f"Sending command: {command!r}")
