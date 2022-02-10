@@ -79,14 +79,13 @@ class TSBotBase:
             logger.debug(f"Got data: {data!r}")
 
             if data.startswith("notify"):
-                # TODO Parse data into TSEvent:
-                #         - get event name from data
-                #         - parse ctx
-                await self._event_handler.event_queue.put(TSEvent(data.removeprefix("notify").split(" ")[0]))
+                event = TSEvent.from_server_response(data)
+                await self._event_handler.event_queue.put(event)
 
             elif data.startswith("error"):
                 response_buffer.append(data)
-                self._response.set_result(TSResponse.from_server_response(response_buffer))
+                response = TSResponse.from_server_response(response_buffer)
+                self._response.set_result(response)
                 response_buffer.clear()
 
             else:
