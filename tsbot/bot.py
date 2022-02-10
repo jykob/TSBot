@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from tsbot.command_handler import CommandHandler
 
 from tsbot.connection import TSConnection
 from tsbot.plugin import TSPlugin
-from tsbot.types_ import TSCommand, T_CommandHandler, TSResponse
+from tsbot.response import TSResponse
 from tsbot.event_handler import EventHanlder, TSEvent, TSEventHandler, T_EventHandler
+from tsbot.command_handler import TSCommand, T_CommandHandler
 from tsbot.util import parse_response_error
 
 
@@ -15,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class TSBotBase:
     SKIP_WELCOME_MESSAGE: int = 2
-    KEEP_ALIVE_INTERVAL: int | float = 240  # 4 minutes
+    KEEP_ALIVE_INTERVAL: int | float = 4 * 60  # 4 minutes
 
     def __init__(
         self,
@@ -28,9 +30,6 @@ class TSBotBase:
     ) -> None:
         self.server_id = server_id
 
-        self.invoker = invoker
-
-        self.commands: dict[str, TSCommand] = {}
         self.plugins: dict[str, TSPlugin] = {}
 
         self.connection = TSConnection(
@@ -40,6 +39,7 @@ class TSBotBase:
             port=port,
         )
         self._event_handler = EventHanlder()
+        self._command_handler = CommandHandler(self._event_handler, invoker=invoker)
 
         self._reader_ready_event = asyncio.Event()
         self._keep_alive_event = asyncio.Event()
@@ -135,33 +135,10 @@ class TSBotBase:
         """
 
         def command_decorator(func: T_CommandHandler) -> T_CommandHandler:
-            self._register_command(TSCommand(commands, func))
+            self._command_handler.register_command(TSCommand(commands, func))
             return func
 
         return command_decorator
-
-    def _register_command(self, command: TSCommand):
-
-        # Check if no commands have been registered, register command handler as event handler
-        if not self.commands:
-            event_handler = TSEventHandler("textmessage", self._handle_command_event)
-            self._event_handler.register_event_handler(event_handler)
-
-        for command_name in command.commands:
-            self.commands[command_name] = command
-
-        logger.debug(
-            f"Registered '{', '.join(command.commands)}' command"
-            f"""{f" from '{command.plugin}'" if command.plugin else ''}"""
-        )
-
-    async def _handle_command_event(self, event: TSEvent) -> None:
-        """
-        Logic to handle commands
-        """
-        # TODO: WRITE
-
-        logger.info("HANDLE COMMAND")
 
     async def send(self, command: str) -> TSResponse:
         """
