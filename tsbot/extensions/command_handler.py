@@ -3,6 +3,9 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any, Callable, Coroutine
 
+
+from tsbot.enums import TextMessageTargetMode
+from tsbot.exceptions import TSCommandException, TSPermissionError
 from tsbot.extensions.event_handler import TSEvent
 from tsbot.extensions.extension import Extension
 
@@ -35,9 +38,9 @@ class TSCommand:
         )
 
     async def run(self, ctx: dict[str, str], *args: Any, **kwargs: Any) -> None:
-            if self.plugin_instance:
-                await self.handler(self.plugin_instance, ctx, args, kwargs)
-            else:
+        if self.plugin_instance:
+            await self.handler(self.plugin_instance, ctx, args, kwargs)
+        else:
             await self.handler(ctx, args, kwargs)
 
 
@@ -67,14 +70,14 @@ class CommandHandler(Extension):
         """
         Logic to handle commands
         """
-        # TODO: WRITE
 
+        # TODO: Check that message wasn't sent by the bot
         # If sender is the bot, return:
-        if event.ctx.get("invokeruid") in (None, self.info.unique_id):
-            return
+        # if event.ctx.get("invokeruid") in (None, self.info.unique_id):
+        #     return
 
         msg = event.ctx.get("msg", "").strip()
-        target_mode = int(event.ctx.get("targetmode"))
+        target_mode = int(event.ctx.get("targetmode", 0))
 
         # Test if message in channel or server chat and starts with the invoker
         # If these conditions are met, omit the invoker from the beginning
@@ -89,27 +92,55 @@ class CommandHandler(Extension):
                 msg = msg[len(self.invoker) :]
 
         command, args, kwargs = parse_command(msg)
+
+        # inject usefull information into ctx
         event.ctx["command"] = command
         event.ctx["invoker_removed"] = msg[len(f"{command} ") :]
 
-        if command_handler := self.commands.get(command):
-            try:
-                _logger.debug(f"{event.ctx.get('invokername')} executed command {command}( {args}, {kwargs} )")
+        command_handler = self.commands.get(command)
 
-                # Check if command is from plugin, inject instance into the call if so
-                if instance := self.plugins.get(command_handler.plugin):
-                    command_handler(instance, event.ctx, *args, **kwargs)
-                else:
-                    command_handler(event.ctx, *args, **kwargs)
+        if not command_handler:
+            return
 
-            except CommandError as e:
-                self.emit(TSEvent(event="on_command_error", msg=f"Error: {str(e)}", ctx=event.ctx))
+        try:
+            logger.debug(f"{event.ctx.get('invokername')} executed command {command}( {args}, {kwargs} )")
 
-            except PermissionError as e:
-                self.emit(TSEvent(event="on_permission_error", msg=f"Error: {str(e)}", ctx=event.ctx))
+            # Check if command is from plugin, inject instance into the call if so
+            await command_handler.run(event.ctx, *args, **kwargs)
 
-            except Exception as e:
-                _logger.exception(
-                    f"Exception in command handler '{command_handler.__name__}': {e}\n"
-                    f"Message that caused the Exception: '{event.msg}'"
-                )
+        except TSCommandException as e:
+            self.parent.emit(TSEvent(event="command_error", msg=f"Error: {str(e)}", ctx=event.ctx))
+
+        except TSPermissionError as e:
+            self.parent.emit(TSEvent(event="permission_error", msg=f"Error: {str(e)}", ctx=event.ctx))
+
+        except Exception as e:  # This probably should emit broad "exception" event
+            logger.exception(
+                f"Exception in command handler '{command_handler.handler.__name__}': {e}\n"
+                f"Message that caused the Exception: '{event.ctx.get('msg', '')}'"
+            )
+
+
+def parse_command(msg: str) -> tuple[str, tuple[str], dict[str, str]]:
+    """
+    Parses message in to given command, its arguments and keyword arguments
+    """
+    msg_list = msg.split(" ")
+    cmd = msg_list.pop(0).lower()
+    args: list[str] = []
+    kwargs: dict[str, str] = {}
+
+    while msg_list:
+        item = msg_list.pop(0)
+
+        if item.startswith("-"):
+            key = item.replace("-", "")
+            value = ""
+            if len(msg_list) and not msg_list[0].startswith("-"):
+                value = msg_list.pop(0)
+
+            kwargs[key] = value
+        else:
+            args.append(item)
+
+    return cmd, tuple(args), kwargs
