@@ -102,10 +102,9 @@ class CommandHandler(Extension):
         if not command_handler:
             return
 
-        try:
-            logger.debug(f"{event.ctx.get('invokername')} executed command {command}( {args}, {kwargs} )")
+        logger.debug(f"{event.ctx.get('invokername')} executed command {command}({args!r}, {kwargs!r})")
 
-            # Check if command is from plugin, inject instance into the call if so
+        try:
             await command_handler.run(event.ctx, *args, **kwargs)
 
         except TSCommandException as e:
@@ -119,6 +118,7 @@ class CommandHandler(Extension):
                 f"Exception in command handler '{command_handler.handler.__name__}': {e}\n"
                 f"Message that caused the Exception: '{event.ctx.get('msg', '')}'"
             )
+            self.parent.emit(TSEvent(event="exception", msg=f"Error: {str(e)}", ctx=event.ctx))
 
 
 def parse_command(msg: str) -> tuple[str, tuple[str], dict[str, str]]:
@@ -134,7 +134,7 @@ def parse_command(msg: str) -> tuple[str, tuple[str], dict[str, str]]:
         item = msg_list.pop(0)
 
         if item.startswith("-"):
-            key = item.replace("-", "")
+            key = item.removeprefix("-")
             value = ""
             if len(msg_list) and not msg_list[0].startswith("-"):
                 value = msg_list.pop(0)
