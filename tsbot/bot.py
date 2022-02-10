@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class TSBotBase:
     SKIP_WELCOME_MESSAGE: int = 2
     KEEP_ALIVE_INTERVAL: int | float = 4 * 60  # 4 minutes
-    KEEP_ALIVE_COMMAND: str = TSQuery("bindinglist").compile()
+    KEEP_ALIVE_COMMAND: str = "version"
 
     def __init__(
         self,
@@ -53,16 +53,16 @@ class TSBotBase:
         """
         set current virtual server
         """
-        await self.send(TSQuery("use").parameter(sid=self.server_id))
+        await self.send(TSQuery("use").params(sid=self.server_id))
         self.emit(TSEvent(event="ready"))
 
     async def _register_notifies(self) -> None:
         """
         Coroutine to register server to send events to the bot
         """
-        await self.send(TSQuery("servernotifyregister").parameter(event="channel", id=0))
+        await self.send(TSQuery("servernotifyregister").params(event="channel", id=0))
         for event in ("server", "textserver", "textchannel", "textprivate"):
-            await self.send(TSQuery("servernotifyregister").parameter(event=event, id=0))
+            await self.send(TSQuery("servernotifyregister").params(event=event, id=0))
 
     async def _reader_task(self) -> None:
         """Task to read messages from the server"""
@@ -214,6 +214,7 @@ class TSBotBase:
         await self._select_server()
         await self._register_notifies()
 
+        # MAYBE: Create API to create background tasks. this way if extension wants to start a task. it can be registered at start
         self._background_tasks.extend(
             (
                 asyncio.create_task(self._keep_alive_task(), name="KeepAlive-Task"),

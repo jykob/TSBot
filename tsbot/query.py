@@ -26,11 +26,11 @@ class TSQuery:
         self._options.extend(str(arg) for arg in args)
         return self
 
-    def parameter(self: T_TSQuery, **kwargs: T_Stringable) -> T_TSQuery:
+    def params(self: T_TSQuery, **kwargs: T_Stringable) -> T_TSQuery:
         self._parameters.update({k: str(v) for k, v in kwargs.items()})
         return self
 
-    def parameter_block(self: T_TSQuery, **kwargs: T_Stringable) -> T_TSQuery:
+    def param_block(self: T_TSQuery, **kwargs: T_Stringable) -> T_TSQuery:
         self._parameter_blocks.append({k: str(v) for k, v in kwargs.items()})
         return self
 
@@ -62,16 +62,16 @@ if __name__ == "__main__":
     # TODO: Move to tests/
 
     # EXCEPT: permget permid=21174
-    query = TSQuery("permget").parameter(permid=21174).option("ignoreerrors")
+    query = TSQuery("permget").params(permid=21174).option("ignoreerrors")
     print(f"{query.compile()!r}")
 
     # EXCEPT: clientkick reasonmsg=ASDFTE reasonid=4 clid=5|clid=6|clid=7 -ignoreerrors
     query = (
         TSQuery("clientkick")
-        .parameter(reasonmsg="ASDFTE", reasonid="4")
-        .parameter_block(clid=5)
-        .parameter_block(clid=6)
-        .parameter_block(clid=7)
+        .params(reasonmsg="ASDFTE", reasonid="4")
+        .param_block(clid=5)
+        .param_block(clid=6)
+        .param_block(clid=7)
         .option("ignoreerrors")
     )
 
@@ -80,9 +80,9 @@ if __name__ == "__main__":
     # EXCEPT: clientaddperm cldbid=16 permid=17276 permvalue=50 permskip=1|permid=21415 permvalue=20 permskip=0 -ignoreerrors
     query = (
         TSQuery("clientaddperm")
-        .parameter(cldbid="16")
-        .parameter_block(permid=17276, permvalue="50", permskip=True)
-        .parameter_block(permid="21415", permvalue="20", permskip=1)
+        .params(cldbid="16")
+        .param_block(permid=17276, permvalue="50", permskip=True)
+        .param_block(permid="21415", permvalue="20", permskip=1)
         .option("ignoreerrors")
     )
 
