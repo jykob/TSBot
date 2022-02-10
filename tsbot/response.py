@@ -1,4 +1,4 @@
-from tsbot.utils import parse_data
+from tsbot.utils import parse_data, unescape
 
 
 class TSResponseError(Exception):
@@ -18,7 +18,7 @@ class TSResponse:
     def from_server_response(cls, raw_data: list[str]):
         error_id, msg = parse_error_line(raw_data.pop())
         data = parse_data("".join(raw_data))
-        return cls(data=data, error_id=error_id, msg=msg)
+        return cls(data=data, error_id=error_id, msg=unescape(msg))
 
 
 def parse_error_line(input_str: str) -> tuple[int, str]:
