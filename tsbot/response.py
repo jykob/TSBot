@@ -1,6 +1,10 @@
 from typing import Any
 
 
+class TSResponseError(Exception):
+    pass
+
+
 class TSResponse:
     def __init__(self, data: dict[str, Any], error_id: int, msg: str) -> None:
         self.data = data
@@ -15,10 +19,6 @@ class TSResponse:
         error_id, msg = parse_response_error(raw_data.pop())
         data = {}  # TODO: parse response
         return cls(data=data, error_id=error_id, msg=msg)
-
-
-class TSResponseError(Exception):
-    pass
 
 
 def parse_response_error(input_str: str) -> tuple[int, str]:
