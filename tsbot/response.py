@@ -3,10 +3,6 @@ from __future__ import annotations
 from tsbot.utils import parse_data, unescape
 
 
-class TSResponseError(Exception):
-    pass
-
-
 class TSResponse:
     def __init__(self, data: list[dict[str, str]], error_id: int, msg: str) -> None:
         self.data = data

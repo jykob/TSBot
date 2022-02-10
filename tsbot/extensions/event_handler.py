@@ -19,10 +19,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class TSEventException(Exception):
-    pass
-
-
 class TSEvent:
     __slots__ = ["event", "msg", "ctx"]
 
