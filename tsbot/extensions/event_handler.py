@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable, Coroutine, TypeAlias
 
 
-from tsbot.extension import Extension
+from tsbot.extensions.extension import Extension
 from tsbot.utils import parse_line
 
 
