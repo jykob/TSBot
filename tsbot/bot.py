@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from tsbot.command_handler import CommandHandler
 
 from tsbot.connection import TSConnection
 from tsbot.plugin import TSPlugin
 from tsbot.response import TSResponse
-from tsbot.event_handler import EventHanlder, TSEvent, TSEventHandler, T_EventHandler
-from tsbot.command_handler import TSCommand, T_CommandHandler
+from tsbot.extensions.event_handler import EventHanlder, TSEvent, TSEventHandler, T_EventHandler
+from tsbot.extensions.command_handler import CommandHandler, TSCommand, T_CommandHandler
 
 
 logger = logging.getLogger(__name__)
