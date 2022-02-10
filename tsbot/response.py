@@ -1,4 +1,4 @@
-from typing import Any
+from tsbot.utils import parse_data
 
 
 class TSResponseError(Exception):
@@ -6,7 +6,7 @@ class TSResponseError(Exception):
 
 
 class TSResponse:
-    def __init__(self, data: dict[str, Any], error_id: int, msg: str) -> None:
+    def __init__(self, data: list[dict[str, str]], error_id: int, msg: str) -> None:
         self.data = data
         self.error_id = error_id
         self.msg = msg
@@ -16,12 +16,12 @@ class TSResponse:
 
     @classmethod
     def from_server_response(cls, raw_data: list[str]):
-        error_id, msg = parse_response_error(raw_data.pop())
-        data = {}  # TODO: parse response
+        error_id, msg = parse_error_line(raw_data.pop())
+        data = parse_data("".join(raw_data))
         return cls(data=data, error_id=error_id, msg=msg)
 
 
-def parse_response_error(input_str: str) -> tuple[int, str]:
+def parse_error_line(input_str: str) -> tuple[int, str]:
     _, error_id, msg = input_str.split(" ")
 
     return int(error_id.split("=")[-1]), msg.split("=")[-1]
