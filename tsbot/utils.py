@@ -16,7 +16,12 @@ def parse_line(input_str: str) -> dict[str, str]:
 
 
 def parse_value(input_str: str) -> tuple[str, str]:
-    key, value = input_str.split("=", maxsplit=1)
+    key_value = input_str.split("=", maxsplit=1)
+
+    if len(key_value) == 1:
+        return key_value[0], ""
+
+    key, value = key_value
     return key, unescape(value)
 
 
