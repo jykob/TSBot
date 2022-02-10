@@ -26,10 +26,6 @@ class TSBotBase:
         server_id: int = 1,
         invoker: str = "!",
     ) -> None:
-        self.username = username
-        self.password = password
-        self.address = address
-        self.port = port
         self.server_id = server_id
 
         self.invoker = invoker
@@ -38,7 +34,12 @@ class TSBotBase:
         self.event_handlers: defaultdict[str, list[TSEventHandler]] = defaultdict(list)
         self.plugins: dict[str, TSPlugin] = {}
 
-        self.connection = TSConnection()
+        self.connection = TSConnection(
+            username=username,
+            password=password,
+            address=address,
+            port=port,
+        )
 
         self._reader_ready_event = asyncio.Event()
         self._keep_alive_event = asyncio.Event()
@@ -258,7 +259,7 @@ class TSBotBase:
 
         Awaits until the bot disconnects
         """
-        await self.connection.connect(self.username, self.password, self.address, self.port)
+        await self.connection.connect()
 
         reader = asyncio.create_task(self._reader_task())
         await self._reader_ready_event.wait()
