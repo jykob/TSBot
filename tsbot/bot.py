@@ -9,7 +9,6 @@ from tsbot.plugin import TSPlugin
 from tsbot.response import TSResponse
 from tsbot.event_handler import EventHanlder, TSEvent, TSEventHandler, T_EventHandler
 from tsbot.command_handler import TSCommand, T_CommandHandler
-from tsbot.util import parse_response_error
 
 
 logger = logging.getLogger(__name__)
@@ -79,8 +78,8 @@ class TSBotBase:
                 await self._event_handler.event_queue.put(TSEvent(data.removeprefix("notify").split(" ")[0]))
 
             elif data.startswith("error"):
-                error_id, msg = parse_response_error(data)
-                self._response.set_result(TSResponse("".join(response_buffer), error_id, msg))
+                response_buffer.append(data)
+                self._response.set_result(TSResponse.from_server_response(response_buffer))
                 response_buffer.clear()
 
             else:
@@ -155,7 +154,7 @@ class TSBotBase:
 
             logger.debug(f"Got a response: {response}")
 
-        # TODO: check Response error code, if non-zero, raise msg in exception
+        # TODO: check response error code, if non-zero, raise msg in exception
 
         return response
 
