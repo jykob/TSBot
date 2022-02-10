@@ -34,14 +34,11 @@ class TSCommand:
             f"handler={self.handler!r}, plugin={self.plugin_instance!r})"
         )
 
-    def __call__(self, ctx: dict[str, str], *args: Any, **kwargs: Any) -> T_CommandHandler:
-        async def wrapper():
+    async def run(self, ctx: dict[str, str], *args: Any, **kwargs: Any) -> None:
             if self.plugin_instance:
                 await self.handler(self.plugin_instance, ctx, args, kwargs)
             else:
             await self.handler(ctx, args, kwargs)
-
-        return wrapper
 
 
 class CommandHandler(Extension):

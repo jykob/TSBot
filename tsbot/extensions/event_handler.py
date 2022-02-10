@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, Callable, Coroutine, TypeAlias
+from typing import TYPE_CHECKING, Callable, Coroutine, TypeAlias
 
 
 from tsbot.extensions.extension import Extension
@@ -55,14 +55,11 @@ class TSEventHandler:
             f"handler={self.handler!r}, plugin={self.plugin_instance!r})"
         )
 
-    def __call__(self, event: TSEvent, *args: Any, **kwargs: Any) -> T_EventHandler:
-        async def wrapper():
+    async def run(self, event: TSEvent) -> None:
             if self.plugin_instance:
-                await self.handler(self.plugin_instance, event, args, kwargs)
+            await self.handler(self.plugin_instance, event)
             else:
-            await self.handler(event, args, kwargs)
-
-        return wrapper
+            await self.handler(event)
 
 
 async def _run_event_handler(
@@ -93,7 +90,7 @@ class EventHanlder(Extension):
             return
 
         for event_handlers in event_handlers:
-            asyncio.create_task(_run_event_handler(event, event_handlers.handler, timeout))
+            asyncio.create_task(_run_event_handler(event, event_handlers.run, timeout))
 
     async def handle_events_task(self) -> None:
         """
