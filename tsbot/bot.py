@@ -4,6 +4,7 @@ import asyncio
 import logging
 
 from tsbot.connection import TSConnection
+from tsbot.exceptions import TSResponseError
 from tsbot.plugin import TSPlugin
 from tsbot.query import TSQuery
 from tsbot.response import TSResponse
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class TSBotBase:
     SKIP_WELCOME_MESSAGE: int = 2
-    KEEP_ALIVE_INTERVAL: int | float = 4 * 60  # 4 minutes
+    KEEP_ALIVE_INTERVAL: float = 4 * 60  # 4 minutes
     KEEP_ALIVE_COMMAND: str = "version"
 
     def __init__(
@@ -59,7 +60,7 @@ class TSBotBase:
 
         await self.send(TSQuery("servernotifyregister").params(event="channel", id=0))
         for event in ("server", "textserver", "textchannel", "textprivate"):
-            await self.send(TSQuery("servernotifyregister").params(event=event, id=0))
+            await self.send(TSQuery("servernotifyregister").params(event=event))
 
     async def _reader_task(self) -> None:
         """Task to read messages from the server"""
@@ -149,7 +150,7 @@ class TSBotBase:
         Sends queries to the server, assuring only one of them gets sent at a time
 
         Because theres no way to distinguish between requests/responses,
-        you have to send requests to the server one at a time.
+        queries have to be sent to the server one at a time.
         """
         return await self.send_raw(query.compile())
 
@@ -171,7 +172,8 @@ class TSBotBase:
 
             logger.debug(f"Got a response: {response}")
 
-        # TODO: check response error code, if non-zero, raise msg in exception
+        if response.error_id != 0:
+            raise TSResponseError(f"{response.msg}, error_id={response.error_id}")
 
         return response
 
