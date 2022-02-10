@@ -63,7 +63,7 @@ class CommandHandler(Extension):
 
         logger.debug(
             f"Registered '{', '.join(command.commands)}' command"
-            f"""{f" from '{command.plugin}'" if command.plugin else ''}"""
+            f"""{f" from '{command.plugin_instance}'" if command.plugin_instance else ''}"""
         )
 
     async def _handle_command_event(self, event: TSEvent) -> None:

@@ -50,7 +50,10 @@ class TSEventHandler:
         self.plugin_instance = plugin_instance
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(event={self.event!r}, " f"handler={self.handler!r}, plugin={self.plugin!r})"
+        return (
+            f"{self.__class__.__name__}(event={self.event!r}, "
+            f"handler={self.handler!r}, plugin={self.plugin_instance!r})"
+        )
 
     def __call__(self, event: TSEvent, *args: Any, **kwargs: Any) -> T_EventHandler:
         async def wrapper():
@@ -123,5 +126,5 @@ class EventHanlder(Extension):
         self.event_handlers[event_handler.event].append(event_handler)
         logger.debug(
             f"Registered {event_handler.event!r} event to execute {event_handler.handler.__name__}"
-            f"""{f" from '{event_handler.plugin}'" if event_handler.plugin else ''}"""
+            f"""{f" from {event_handler.plugin_instance}" if event_handler.plugin_instance else ''}"""
         )
