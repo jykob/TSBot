@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 class TSBotBase:
     SKIP_WELCOME_MESSAGE: int = 2
     KEEP_ALIVE_INTERVAL: int | float = 4 * 60  # 4 minutes
+    KEEP_ALIVE_COMMAND: str = "bindinglist"
 
     def __init__(
         self,
@@ -112,7 +113,7 @@ class TSBotBase:
                         timeout=self.KEEP_ALIVE_INTERVAL,
                     )
                 except asyncio.TimeoutError:
-                    await self.send("version")
+                    await self.send(self.KEEP_ALIVE_COMMAND)
 
         except asyncio.CancelledError:
             pass
