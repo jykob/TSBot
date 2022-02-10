@@ -18,19 +18,27 @@ T_CommandHandler = Callable[..., Coroutine[dict[str, str], Any, None]]
 
 
 class TSCommand:
-    def __init__(self, commands: tuple[str, ...], handler: T_CommandHandler, plugin: TSPlugin | None = None) -> None:
+    def __init__(
+        self,
+        commands: tuple[str, ...],
+        handler: T_CommandHandler,
+        plugin_instance: TSPlugin | None = None,
+    ) -> None:
         self.commands = commands
         self.handler = handler
-        self.plugin = plugin
+        self.plugin_instance = plugin_instance
 
     def __repr__(self) -> str:
         return (
             f"{self.__class__.__name__}(commands={self.commands!r}, "
-            f"handler={self.handler!r}, plugin={self.plugin!r})"
+            f"handler={self.handler!r}, plugin={self.plugin_instance!r})"
         )
 
     def __call__(self, ctx: dict[str, str], *args: Any, **kwargs: Any) -> T_CommandHandler:
         async def wrapper():
+            if self.plugin_instance:
+                await self.handler(self.plugin_instance, ctx, args, kwargs)
+            else:
             await self.handler(ctx, args, kwargs)
 
         return wrapper
