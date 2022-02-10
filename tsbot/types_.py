@@ -17,13 +17,6 @@ class TSResponseError(Exception):
     pass
 
 
-@dataclass
-class TSEvent:
-    event: str
-    msg: str | None = None
-    ctx: dict[str, Any] | None = None
-
-
 T_CommandHandler = Callable[..., Coroutine[dict[str, Any], Any, None]]
 
 
@@ -31,14 +24,4 @@ T_CommandHandler = Callable[..., Coroutine[dict[str, Any], Any, None]]
 class TSCommand:
     commands: tuple[str, ...]
     handler: T_CommandHandler
-    plugin: TSPlugin | None = None
-
-
-T_EventHandler = Callable[..., Coroutine[TSEvent, None, None]]
-
-
-@dataclass
-class TSEventHandler:
-    event: str
-    handler: T_EventHandler
     plugin: TSPlugin | None = None

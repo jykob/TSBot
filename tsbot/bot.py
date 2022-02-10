@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections import defaultdict
 
 from tsbot.connection import TSConnection
 from tsbot.plugin import TSPlugin
-from tsbot.types_ import TSCommand, T_CommandHandler, TSEvent, TSEventHandler, T_EventHandler, TSResponse
+from tsbot.types_ import TSCommand, T_CommandHandler, TSResponse
+from tsbot.event_handler import EventHanlder, TSEvent, TSEventHandler, T_EventHandler
 from tsbot.util import parse_response_error
 
 
@@ -31,7 +31,6 @@ class TSBotBase:
         self.invoker = invoker
 
         self.commands: dict[str, TSCommand] = {}
-        self.event_handlers: defaultdict[str, list[TSEventHandler]] = defaultdict(list)
         self.plugins: dict[str, TSPlugin] = {}
 
         self.connection = TSConnection(
@@ -40,11 +39,11 @@ class TSBotBase:
             address=address,
             port=port,
         )
+        self._event_handler = EventHanlder()
 
         self._reader_ready_event = asyncio.Event()
         self._keep_alive_event = asyncio.Event()
 
-        self._event_queue: asyncio.Queue[TSEvent] = asyncio.Queue()
         self._background_tasks: list[asyncio.Task[None]] = []
 
         self._response: asyncio.Future[TSResponse]
@@ -77,7 +76,7 @@ class TSBotBase:
                 # TODO Parse data into TSEvent:
                 #         - get event name from data
                 #         - parse ctx
-                await self._event_queue.put(TSEvent(data.removeprefix("notify").split(" ")[0]))
+                await self._event_handler.event_queue.put(TSEvent(data.removeprefix("notify").split(" ")[0]))
 
             elif data.startswith("error"):
                 error_id, msg = parse_response_error(data)
@@ -88,48 +87,6 @@ class TSBotBase:
                 response_buffer.append(data)
 
         self._reader_ready_event.clear()
-
-    def _handle_event(self, event: TSEvent, timeout: int | float | None = None):
-        async def _run_event_handler(handler: T_EventHandler) -> None:
-            try:
-                await asyncio.wait_for(handler(event), timeout=timeout)
-            except asyncio.TimeoutError:
-                pass
-            except Exception:
-                logger.exception("Exception happend in event handler")
-
-        event_handlers = self.event_handlers.get(event.event)
-
-        if not event_handlers:
-            return
-
-        for event_handlers in event_handlers:
-            asyncio.create_task(_run_event_handler(event_handlers.handler))
-
-    async def _handle_events_task(self) -> None:
-        """
-        Task to run events put into the self._event_queue
-
-        if task is cancelled, it will try to run all the events
-        still in the queue with a timeout
-        """
-
-        try:
-            while True:
-                event = await self._event_queue.get()
-
-                logger.debug(f"Got event: {event}")
-                self._handle_event(event)
-
-                self._event_queue.task_done()
-
-        except asyncio.CancelledError:
-            while not self._event_queue.empty():
-                event = await self._event_queue.get()
-
-                self._handle_event(event, timeout=1.0)
-
-                self._event_queue.task_done()
 
     async def _keep_alive_task(self) -> None:
         """
@@ -161,7 +118,7 @@ class TSBotBase:
         """
 
         def event_decorator(func: T_EventHandler) -> T_EventHandler:
-            self._register_event_handler(TSEventHandler(event_type, func))
+            self._event_handler.register_event_handler(TSEventHandler(event_type, func))
             return func
 
         return event_decorator
@@ -170,17 +127,7 @@ class TSBotBase:
         """
         Emits an event to be handled
         """
-        self._event_queue.put_nowait(event)
-
-    def _register_event_handler(self, event_handler: TSEventHandler) -> None:
-        """
-        Registers event handlers that will be called when given event happens
-        """
-        self.event_handlers[event_handler.event].append(event_handler)
-        logger.debug(
-            f"Registered {event_handler.event!r} event to execute {event_handler.handler.__name__}"
-            f"""{f" from '{event_handler.plugin}'" if event_handler.plugin else ''}"""
-        )
+        self._event_handler.event_queue.put_nowait(event)
 
     def command(self, *commands: str) -> T_CommandHandler:
         """
@@ -198,7 +145,7 @@ class TSBotBase:
         # Check if no commands have been registered, register command handler as event handler
         if not self.commands:
             event_handler = TSEventHandler("textmessage", self._handle_command_event)
-            self._register_event_handler(event_handler)
+            self._event_handler.register_event_handler(event_handler)
 
         for command_name in command.commands:
             self.commands[command_name] = command
@@ -270,7 +217,7 @@ class TSBotBase:
         self._background_tasks.extend(
             (
                 asyncio.create_task(self._keep_alive_task(), name="KeepAlive-Task"),
-                asyncio.create_task(self._handle_events_task(), name="HandleEvent-Task"),
+                asyncio.create_task(self._event_handler.handle_events_task(), name="HandleEvent-Task"),
             )
         )
 
