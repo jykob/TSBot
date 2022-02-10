@@ -1,0 +1,2 @@
+class TSQuery:
+    pass
