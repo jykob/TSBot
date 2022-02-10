@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Callable, Coroutine
 
 from tsbot.extensions.event_handler import TSEvent
@@ -15,14 +14,26 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-T_CommandHandler = Callable[..., Coroutine[dict[str, Any], Any, None]]
+T_CommandHandler = Callable[..., Coroutine[dict[str, str], Any, None]]
 
 
-@dataclass
 class TSCommand:
-    commands: tuple[str, ...]
-    handler: T_CommandHandler
-    plugin: TSPlugin | None = None
+    def __init__(self, commands: tuple[str, ...], handler: T_CommandHandler, plugin: TSPlugin | None = None) -> None:
+        self.commands = commands
+        self.handler = handler
+        self.plugin = plugin
+
+    def __repr__(self) -> str:
+        return (
+            f"{self.__class__.__name__}(commands={self.commands!r}, "
+            f"handler={self.handler!r}, plugin={self.plugin!r})"
+        )
+
+    def __call__(self, ctx: dict[str, str], *args: Any, **kwargs: Any) -> T_CommandHandler:
+        async def wrapper():
+            await self.handler(ctx, args, kwargs)
+
+        return wrapper
 
 
 class CommandHandler(Extension):

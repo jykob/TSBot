@@ -3,8 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections import defaultdict
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Callable, Coroutine, TypeAlias
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, TypeAlias
 
 
 from tsbot.extensions.extension import Extension
@@ -39,11 +38,20 @@ class TSEvent:
 T_EventHandler: TypeAlias = Callable[..., Coroutine[TSEvent, None, None]]
 
 
-@dataclass
 class TSEventHandler:
-    event: str
-    handler: T_EventHandler
-    plugin: TSPlugin | None = None
+    def __init__(self, event: str, handler: T_EventHandler, plugin: TSPlugin | None = None) -> None:
+        self.event = event
+        self.handler = handler
+        self.plugin = plugin
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(event={self.event!r}, " f"handler={self.handler!r}, plugin={self.plugin!r})"
+
+    def __call__(self, event: TSEvent, *args: Any, **kwargs: Any) -> T_EventHandler:
+        async def wrapper():
+            await self.handler(event, args, kwargs)
+
+        return wrapper
 
 
 async def _run_event_handler(
