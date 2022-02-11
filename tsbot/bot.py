@@ -3,14 +3,14 @@ from __future__ import annotations
 import asyncio
 import logging
 
+from tsbot import enums
 from tsbot.connection import TSConnection
 from tsbot.exceptions import TSResponseError
+from tsbot.extensions.command_handler import CommandHandler, T_CommandHandler, TSCommand
+from tsbot.extensions.event_handler import EventHanlder, T_EventHandler, TSEvent, TSEventHandler
 from tsbot.plugin import TSPlugin
 from tsbot.query import TSQuery
 from tsbot.response import TSResponse
-from tsbot.extensions.event_handler import EventHanlder, TSEvent, TSEventHandler, T_EventHandler
-from tsbot.extensions.command_handler import CommandHandler, TSCommand, T_CommandHandler
-
 
 logger = logging.getLogger(__name__)
 
@@ -233,3 +233,12 @@ class TSBot(TSBotBase):
     ) -> None:
         super().__init__(username, password, address, port, server_id, invoker)
         self.owner = owner
+
+    async def respond(self, ctx: dict[str, str], message: str, dirrect_message: bool = False):
+        target = "0"
+        target_mode = int(ctx["targetmode"])
+
+        if dirrect_message or target_mode == enums.TextMessageTargetMode.CLIENT:
+            target, target_mode = ctx["invokerid"], enums.TextMessageTargetMode.CLIENT
+
+        await self.send(TSQuery("sendtextmessage").params(targetmode=target_mode, target=target, msg=message))
