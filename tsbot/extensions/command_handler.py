@@ -121,7 +121,7 @@ class CommandHandler(Extension):
             self.parent.emit(TSEvent(event="exception", msg=f"Error: {str(e)}", ctx=event.ctx))
 
 
-def parse_command(msg: str) -> tuple[str, tuple[str], dict[str, str]]:
+def parse_command(msg: str) -> tuple[str, tuple[str, ...], dict[str, str]]:
     """
     Parses message in to given command, its arguments and keyword arguments
     """
