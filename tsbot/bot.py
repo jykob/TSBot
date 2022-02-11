@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from typing import Any
 
 from tsbot import enums
 from tsbot.connection import TSConnection
@@ -173,7 +174,7 @@ class TSBotBase:
             logger.debug(f"Got a response: {response}")
 
         if response.error_id != 0:
-            raise TSResponseError(f"{response.msg}, error_id={response.error_id}")
+            raise TSResponseError(f"{response.msg}, error_id={response.error_id}")  # TODO: Change to something usefull
 
         return response
 
@@ -221,24 +222,21 @@ class TSBotBase:
 
 
 class TSBot(TSBotBase):
-    def __init__(
-        self,
-        username: str,
-        password: str,
-        address: str,
-        port: int = 10022,
-        server_id: int = 1,
-        invoker: str = "!",
-        owner: str = "",
-    ) -> None:
-        super().__init__(username, password, address, port, server_id, invoker)
+    def __init__(self, *args: Any, owner: str = "", **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
         self.owner = owner
 
-    async def respond(self, ctx: dict[str, str], message: str, dirrect_message: bool = False):
-        target = "0"
-        target_mode = int(ctx["targetmode"])
+    # TODO: Fix boolean trap
+    async def respond(self, ctx: dict[str, str], message: str, direct_message: bool = False):
+        """
+        Respond in text channel
 
-        if dirrect_message or target_mode == enums.TextMessageTargetMode.CLIENT:
+        Will respond in same text channel where 'ctx' was made, unless 'direct_message' flag given
+        """
+        target = 0
+        target_mode = enums.TextMessageTargetMode(int(ctx["targetmode"]))
+
+        if direct_message or target_mode == enums.TextMessageTargetMode.CLIENT:
             target, target_mode = ctx["invokerid"], enums.TextMessageTargetMode.CLIENT
 
-        await self.send(TSQuery("sendtextmessage").params(targetmode=target_mode, target=target, msg=message))
+        await self.send(TSQuery("sendtextmessage").params(targetmode=target_mode.value, target=target, msg=message))
