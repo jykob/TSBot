@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import TypeVar, Union
+from typing import TypeVar
 
 from tsbot.utils import escape
 
 
 T_TSQuery = TypeVar("T_TSQuery", bound="TSQuery")
-T_Stringable = Union[str, int, float, bytes]
+T_Stringable = str | int | float | bytes
 
 
 class TSQuery:
