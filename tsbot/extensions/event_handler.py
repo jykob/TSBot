@@ -76,8 +76,13 @@ class EventHanlder(Extension):
     ) -> None:
         try:
             await asyncio.wait_for(handler(event), timeout=timeout)
+
         except asyncio.TimeoutError:
             warnings.warn(f"Event handler {handler!r} took too long to run while cancelled")
+
+        except Exception as e:
+            logger.exception(f"{e.__class__.__qualname__} while running {handler.__name__!r}: {e}")
+            raise
 
     def _handle_event(self, event: TSEvent, timeout: float | None = None):
         event_handlers = self.event_handlers.get(event.event, [])

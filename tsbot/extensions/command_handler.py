@@ -113,6 +113,10 @@ class CommandHandler(Extension):
         except TSPermissionError as e:
             self.parent.emit(TSEvent(event="permission_error", msg=f"{str(e)}", ctx=event.ctx))
 
+        except Exception as e:
+            logger.exception(f"{e.__class__.__qualname__} while running {command_handler.handler.__name__!r}: {e}")
+            raise
+
 
 def parse_command(msg: str) -> tuple[str, tuple[str, ...], dict[str, str]]:
     """
