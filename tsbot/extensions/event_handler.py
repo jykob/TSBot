@@ -4,6 +4,7 @@ import asyncio
 import logging
 from collections import defaultdict
 from typing import TYPE_CHECKING, Callable, Coroutine, TypeAlias
+import warnings
 
 
 from tsbot.extensions.extension import Extension
@@ -39,6 +40,8 @@ T_EventHandler: TypeAlias = Callable[..., Coroutine[TSEvent, None, None]]
 
 
 class TSEventHandler:
+    __slots__ = ["event", "handler", "plugin_instance"]
+
     def __init__(self, event: str, handler: T_EventHandler, plugin_instance: TSPlugin | None = None) -> None:
         self.event = event
         self.handler = handler
@@ -74,11 +77,7 @@ class EventHanlder(Extension):
         try:
             await asyncio.wait_for(handler(event), timeout=timeout)
         except asyncio.TimeoutError:
-            pass  # TODO: Add warning from warning module. tell that coro ran out of time
-        except Exception as e:
-            logger.exception(f"{e.__class__.__name__} happend in event handler")
-            self.parent.emit(TSEvent(event="exception", msg=f"Error: {str(e)}", ctx=event.ctx))
-            # raise TSEventException(e) from None  # TODO: Send only current stackframe (_run_event_handler)
+            warnings.warn(f"Event handler {handler!r} took too long to run while cancelled")
 
     def _handle_event(self, event: TSEvent, timeout: float | None = None):
         event_handlers = self.event_handlers.get(event.event, [])

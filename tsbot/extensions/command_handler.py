@@ -21,6 +21,8 @@ T_CommandHandler = Callable[..., Coroutine[dict[str, str], Any, None]]
 
 
 class TSCommand:
+    __slots__ = ["commands", "handler", "plugin_instance"]
+
     def __init__(
         self, commands: tuple[str, ...], handler: T_CommandHandler, plugin_instance: TSPlugin | None = None
     ) -> None:
@@ -106,17 +108,10 @@ class CommandHandler(Extension):
             await command_handler.run(event.ctx, *args, **kwargs)
 
         except TSCommandException as e:
-            self.parent.emit(TSEvent(event="command_error", msg=f"Error: {str(e)}", ctx=event.ctx))
+            self.parent.emit(TSEvent(event="command_error", msg=f"{str(e)}", ctx=event.ctx))
 
         except TSPermissionError as e:
-            self.parent.emit(TSEvent(event="permission_error", msg=f"Error: {str(e)}", ctx=event.ctx))
-
-        except Exception as e:  # This probably should emit broad "exception" event
-            logger.exception(
-                f"Exception in command handler {command_handler.handler.__name__!r}: {e}\n"
-                f"Message that caused the Exception: {event.ctx.get('msg', '')!r}"
-            )
-            self.parent.emit(TSEvent(event="exception", msg=f"Error: {str(e)}", ctx=event.ctx))
+            self.parent.emit(TSEvent(event="permission_error", msg=f"{str(e)}", ctx=event.ctx))
 
 
 def parse_command(msg: str) -> tuple[str, tuple[str, ...], dict[str, str]]:
