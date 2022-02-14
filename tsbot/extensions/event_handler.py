@@ -119,3 +119,6 @@ class EventHanlder(Extension):
             f"Registered {event_handler.event!r} event to execute {event_handler.handler.__name__!r}"
             f"""{f" from {event_handler.plugin_instance.__class__.__name__!r}" if event_handler.plugin_instance else ''}"""
         )
+
+    async def run(self):
+        self.parent.register_background_task(self._handle_events_task, name="HandleEvent-Task")

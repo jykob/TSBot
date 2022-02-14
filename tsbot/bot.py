@@ -221,13 +221,10 @@ class TSBotBase:
         await self._select_server()
         await self._register_notifies()
 
-        # MAYBE: Create API to create background tasks. this way if extension wants to start a task. it can be registered at start
-        self._background_tasks.extend(
-            (
-                asyncio.create_task(self._keep_alive_task(), name="KeepAlive-Task"),
-                asyncio.create_task(self._event_handler.handle_events_task(), name="HandleEvent-Task"),
-            )
-        )
+        for extension in (self._event_handler, self._command_handler):
+            await extension.run()
+
+        self.register_background_task(self._keep_alive_task, name="KeepAlive-Task")
         self.emit(TSEvent(event="ready"))
 
         await reader

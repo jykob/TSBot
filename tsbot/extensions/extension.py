@@ -10,3 +10,6 @@ if TYPE_CHECKING:
 class Extension:
     def __init__(self, parent: TSBotBase) -> None:
         self.parent = parent
+
+    async def run(self):
+        ...
