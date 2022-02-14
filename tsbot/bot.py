@@ -2,16 +2,21 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any, Callable, Coroutine
 
 from tsbot import enums
 from tsbot.connection import TSConnection
 from tsbot.exceptions import TSResponseError
-from tsbot.extensions.command_handler import CommandHandler, T_CommandHandler, TSCommand
-from tsbot.extensions.event_handler import EventHanlder, T_EventHandler, TSEvent, TSEventHandler
-from tsbot.plugin import TSPlugin
+from tsbot.extensions.command_handler import CommandHandler, TSCommand
+from tsbot.extensions.event_handler import EventHanlder, TSEvent, TSEventHandler
 from tsbot.query import TSQuery
 from tsbot.response import TSResponse
+
+if TYPE_CHECKING:
+    from tsbot.extensions.command_handler import T_CommandHandler
+    from tsbot.extensions.event_handler import T_EventHandler
+    from tsbot.plugin import TSPlugin
+
 
 logger = logging.getLogger(__name__)
 
@@ -116,6 +121,10 @@ class TSBotBase:
         except asyncio.CancelledError:
             pass
 
+    def emit(self, event: TSEvent) -> None:
+        """Emits an event to be handled"""
+        self._event_handler.event_queue.put_nowait(event)
+
     def on(self, event_type: str) -> T_EventHandler:
         """Decorator to register coroutines on events"""
 
@@ -128,10 +137,6 @@ class TSBotBase:
     def register_event_handler(self, event_type: str, handler: T_EventHandler) -> None:
         """Register Coroutines to be ran on specific event"""
         self._event_handler.register_event_handler(TSEventHandler(event_type, handler))
-
-    def emit(self, event: TSEvent) -> None:
-        """Emits an event to be handled"""
-        self._event_handler.event_queue.put_nowait(event)
 
     def command(self, *commands: str) -> T_CommandHandler:
         """Decorator to register coroutines on command"""
