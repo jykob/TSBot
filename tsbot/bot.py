@@ -11,11 +11,11 @@ from tsbot.extensions.command_handler import CommandHandler, TSCommand
 from tsbot.extensions.event_handler import EventHanlder, TSEvent, TSEventHandler
 from tsbot.query import TSQuery
 from tsbot.response import TSResponse
+from tsbot.plugin import TSPlugin
 
 if TYPE_CHECKING:
     from tsbot.extensions.command_handler import T_CommandHandler
     from tsbot.extensions.event_handler import T_EventHandler
-    from tsbot.plugin import TSPlugin
 
 
 logger = logging.getLogger(__name__)
@@ -59,7 +59,6 @@ class TSBotBase:
     async def _select_server(self) -> None:
         """Set current virtual server"""
         await self.send(TSQuery("use").params(sid=self.server_id))
-        self.emit(TSEvent(event="ready"))
 
     async def _register_notifies(self) -> None:
         """Coroutine to register server to send events to the bot"""
@@ -151,6 +150,13 @@ class TSBotBase:
         """Register Coroutines to be ran on specific command"""
         self._command_handler.register_command(TSCommand(commands, handler))
 
+    def register_background_task(
+        self,
+        background_handler: Callable[..., Coroutine[None, None, None]],
+        name: str | None = None,
+    ):
+        self._background_tasks.append(asyncio.create_task(background_handler(), name=name))
+
     async def send(self, query: TSQuery):
         """
         Sends queries to the server, assuring only one of them gets sent at a time
@@ -222,6 +228,7 @@ class TSBotBase:
                 asyncio.create_task(self._event_handler.handle_events_task(), name="HandleEvent-Task"),
             )
         )
+        self.emit(TSEvent(event="ready"))
 
         await reader
 
@@ -240,8 +247,8 @@ class TSBotBase:
 
 
 class TSBot(TSBotBase):
-    def __init__(self, *args: Any, owner: str = "", **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(self, /, owner: str = "", **kwargs: Any) -> None:
+        super().__init__(**kwargs)
         self.owner = owner
 
     # TODO: Fix boolean trap

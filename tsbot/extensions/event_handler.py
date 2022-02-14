@@ -46,7 +46,7 @@ class TSEventHandler:
 
     def __repr__(self) -> str:
         return (
-            f"{self.__class__.__name__}(event={self.event!r}, "
+            f"{self.__class__.__qualname__}(event={self.event!r}, "
             f"handler={self.handler.__name__!r}, "
             f"plugin={None if not self.plugin_instance else self.plugin_instance.__class__.__name__!r})"
         )
@@ -86,7 +86,7 @@ class EventHanlder(Extension):
         for event_handler in event_handlers:
             asyncio.create_task(self._run_event_handler(event, event_handler.run, timeout))
 
-    async def handle_events_task(self) -> None:
+    async def _handle_events_task(self) -> None:
         """
         Task to run events put into the self._event_queue
 
@@ -111,11 +111,11 @@ class EventHanlder(Extension):
                 self.event_queue.task_done()
 
     def register_event_handler(self, event_handler: TSEventHandler) -> None:
-        """
-        Registers event handlers that will be called when given event happens
-        """
+        """Registers event handlers that will be called when given event happens"""
+
         self.event_handlers[event_handler.event].append(event_handler)
+
         logger.debug(
-            f"Registered {event_handler.event!r} event to execute {event_handler.handler.__name__}"
+            f"Registered {event_handler.event!r} event to execute {event_handler.handler.__name__!r}"
             f"""{f" from {event_handler.plugin_instance.__class__.__name__!r}" if event_handler.plugin_instance else ''}"""
         )

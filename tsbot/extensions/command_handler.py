@@ -30,7 +30,7 @@ class TSCommand:
 
     def __repr__(self) -> str:
         return (
-            f"{self.__class__.__name__}(commands={self.commands!r}, "
+            f"{self.__class__.__qualname__}(commands={self.commands!r}, "
             f"handler={self.handler.__name__!r}, "
             f"plugin={None if not self.plugin_instance else self.plugin_instance.__class__.__name__!r})"
         )
@@ -60,7 +60,7 @@ class CommandHandler(Extension):
             self.commands[command_name] = command
 
         logger.debug(
-            f"Registered '{', '.join(command.commands)}' command"
+            f"Registered '{', '.join(command.commands)}' command to execute {command.handler.__name__!r}"
             f"""{f" from {command.plugin_instance.__class__.__name__!r}" if command.plugin_instance else ''}"""
         )
 
