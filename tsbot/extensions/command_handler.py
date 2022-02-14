@@ -22,10 +22,7 @@ T_CommandHandler = Callable[..., Coroutine[dict[str, str], Any, None]]
 
 class TSCommand:
     def __init__(
-        self,
-        commands: tuple[str, ...],
-        handler: T_CommandHandler,
-        plugin_instance: TSPlugin | None = None,
+        self, commands: tuple[str, ...], handler: T_CommandHandler, plugin_instance: TSPlugin | None = None
     ) -> None:
         self.commands = commands
         self.handler = handler
@@ -34,7 +31,8 @@ class TSCommand:
     def __repr__(self) -> str:
         return (
             f"{self.__class__.__name__}(commands={self.commands!r}, "
-            f"handler={self.handler!r}, plugin={self.plugin_instance!r})"
+            f"handler={self.handler.__name__!r}, "
+            f"plugin={None if not self.plugin_instance else self.plugin_instance.__class__.__name__!r})"
         )
 
     async def run(self, ctx: dict[str, str], *args: Any, **kwargs: Any) -> None:
@@ -63,7 +61,7 @@ class CommandHandler(Extension):
 
         logger.debug(
             f"Registered '{', '.join(command.commands)}' command"
-            f"""{f" from '{command.plugin_instance}'" if command.plugin_instance else ''}"""
+            f"""{f" from {command.plugin_instance.__class__.__name__!r}" if command.plugin_instance else ''}"""
         )
 
     async def _handle_command_event(self, event: TSEvent) -> None:
@@ -115,8 +113,8 @@ class CommandHandler(Extension):
 
         except Exception as e:  # This probably should emit broad "exception" event
             logger.exception(
-                f"Exception in command handler '{command_handler.handler.__name__}': {e}\n"
-                f"Message that caused the Exception: '{event.ctx.get('msg', '')}'"
+                f"Exception in command handler {command_handler.handler.__name__!r}: {e}\n"
+                f"Message that caused the Exception: {event.ctx.get('msg', '')!r}"
             )
             self.parent.emit(TSEvent(event="exception", msg=f"Error: {str(e)}", ctx=event.ctx))
 

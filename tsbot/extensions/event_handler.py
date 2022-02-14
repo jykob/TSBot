@@ -39,12 +39,7 @@ T_EventHandler: TypeAlias = Callable[..., Coroutine[TSEvent, None, None]]
 
 
 class TSEventHandler:
-    def __init__(
-        self,
-        event: str,
-        handler: T_EventHandler,
-        plugin_instance: TSPlugin | None = None,
-    ) -> None:
+    def __init__(self, event: str, handler: T_EventHandler, plugin_instance: TSPlugin | None = None) -> None:
         self.event = event
         self.handler = handler
         self.plugin_instance = plugin_instance
@@ -52,7 +47,8 @@ class TSEventHandler:
     def __repr__(self) -> str:
         return (
             f"{self.__class__.__name__}(event={self.event!r}, "
-            f"handler={self.handler!r}, plugin={self.plugin_instance!r})"
+            f"handler={self.handler.__name__!r}, "
+            f"plugin={None if not self.plugin_instance else self.plugin_instance.__class__.__name__!r})"
         )
 
     async def run(self, event: TSEvent) -> None:
@@ -121,5 +117,5 @@ class EventHanlder(Extension):
         self.event_handlers[event_handler.event].append(event_handler)
         logger.debug(
             f"Registered {event_handler.event!r} event to execute {event_handler.handler.__name__}"
-            f"""{f" from {event_handler.plugin_instance}" if event_handler.plugin_instance else ''}"""
+            f"""{f" from {event_handler.plugin_instance.__class__.__name__!r}" if event_handler.plugin_instance else ''}"""
         )
