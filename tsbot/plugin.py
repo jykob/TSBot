@@ -1,50 +1,35 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any
 
-from typing import TYPE_CHECKING, Any, Callable, Coroutine, ParamSpec
 from tsbot.extensions.command_handler import TSCommand
 from tsbot.extensions.event_handler import TSEventHandler
 
-
 if TYPE_CHECKING:
     from tsbot.bot import TSBotBase
-
-
-P = ParamSpec("P")
+    from tsbot.extensions.command_handler import T_CommandHandler
+    from tsbot.extensions.event_handler import T_EventHandler
 
 
 class TSPlugin:
-    __plugins__: list[TSPlugin] = []
-    __events__: list[TSEventHandler] = []
-    __commands__: list[TSCommand] = []
-
     bot: TSBotBase
-
-    def __new__(cls, *args: Any, **kwargs: Any):
-        new_instance = super().__new__(cls, *args, **kwargs)
-        cls.__plugins__.append(new_instance)
-
-        return new_instance
 
     @classmethod
     def on(cls, event_type: str):
         """Decorator to register coroutines on events"""
 
-        def event_decorator(func: Callable[P, TSEventHandler]) -> TSEventHandler:
+        def event_decorator(func: T_EventHandler) -> TSEventHandler:
             handler = TSEventHandler(event_type, func)
-            cls.__events__.append(handler)
-            return func
+            return handler
 
         return event_decorator
 
     @classmethod
     def command(cls, *commands: str):
         """Decorator to register coroutines on commands"""
-        print("COMMAND CREATED")
 
-        def command_decorator(func: Callable[P, TSCommand]) -> Callable[..., Coroutine[None, None, None]]:
+        def command_decorator(func: T_CommandHandler) -> TSCommand:
             handler = TSCommand(commands, func)
-            cls.__commands__.append(handler)
-            return func
+            return handler
 
         return command_decorator
