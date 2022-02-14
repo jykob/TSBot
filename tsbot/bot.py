@@ -220,6 +220,19 @@ class TSBotBase:
 
         await reader
 
+    def load_plugin(self, *plugins: TSPlugin) -> None:
+        TSPlugin.bot = self
+
+        for plugin in plugins:
+            for member in plugin.__class__.__dict__.values():
+                if isinstance(member, TSEventHandler):
+                    member.plugin_instance = plugin
+                    self._event_handler.register_event_handler(member)
+
+                elif isinstance(member, TSCommand):
+                    member.plugin_instance = plugin
+                    self._command_handler.register_command(member)
+
 
 class TSBot(TSBotBase):
     def __init__(self, *args: Any, owner: str = "", **kwargs: Any) -> None:
