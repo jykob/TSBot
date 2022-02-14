@@ -37,8 +37,6 @@ class TSBotBase:
     ) -> None:
         self.server_id = server_id
 
-        self.plugins: dict[str, TSPlugin] = {}
-
         self.connection = TSConnection(
             username=username,
             password=password,
@@ -229,6 +227,14 @@ class TSBotBase:
 
         await reader
 
+
+class TSBot(TSBotBase):
+    def __init__(self, /, owner: str = "", **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.owner = owner
+
+        self.plugins: dict[str, TSPlugin] = {}
+
     def load_plugin(self, *plugins: TSPlugin) -> None:
         TSPlugin.bot = self
 
@@ -242,11 +248,7 @@ class TSBotBase:
                     member.plugin_instance = plugin
                     self._command_handler.register_command(member)
 
-
-class TSBot(TSBotBase):
-    def __init__(self, /, owner: str = "", **kwargs: Any) -> None:
-        super().__init__(**kwargs)
-        self.owner = owner
+            self.plugins[plugin.__class__.__qualname__] = plugin
 
     # TODO: Fix boolean trap
     async def respond(self, ctx: dict[str, str], message: str, direct_message: bool = False):

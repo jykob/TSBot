@@ -1,18 +1,18 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from tsbot.extensions.command_handler import TSCommand
 from tsbot.extensions.event_handler import TSEventHandler
 
 if TYPE_CHECKING:
-    from tsbot.bot import TSBotBase
+    from tsbot.bot import TSBot
     from tsbot.extensions.command_handler import T_CommandHandler
     from tsbot.extensions.event_handler import T_EventHandler
 
 
 class TSPlugin:
-    bot: TSBotBase
+    bot: TSBot
 
     @classmethod
     def on(cls, event_type: str):
