@@ -183,7 +183,7 @@ class TSBotBase:
             logger.debug(f"Got a response: {response}")
 
         if response.error_id != 0:
-            raise TSResponseError(f"{response.msg}, error_id={response.error_id}")  # TODO: Change to something usefull
+            raise TSResponseError(f"{response.msg}", error_id=int(response.error_id))
 
         return response
 

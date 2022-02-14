@@ -5,6 +5,14 @@ class TSException(Exception):
 class TSResponseError(TSException):
     """Raised when response from server has error_id set to other than 0."""
 
+    def __init__(self, message: str, error_id: int) -> None:
+        self.message = message
+        self.error_id = error_id
+        super().__init__(message)
+
+    def __str__(self) -> str:
+        return f"Error {self.error_id}: {self.message}"
+
 
 class TSCommandException(TSException):
     """
