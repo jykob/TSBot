@@ -1,10 +1,8 @@
-#TSBot
+# TSBot
 
 ### Installation
-
 ---
-
-install with pip
+install with pip:
 
 ```shell
 pip install tsbot
