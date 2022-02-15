@@ -176,6 +176,9 @@ class TSBot:
         Not recommended to use this if you don't know what you are doing.
         Use send() method instead.
         """
+        return await asyncio.shield(self._send(command))
+
+    async def _send(self, command: str) -> TSResponse:
         async with self._response_lock:
             logger.debug(f"Sending command: %s", command)
             # tell _keep_alive_task that command has been sent
