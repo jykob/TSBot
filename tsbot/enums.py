@@ -8,5 +8,5 @@ class TextMessageTargetMode(IntEnum):
 
 
 class ReasonIdentifier(IntEnum):
-    REASON_KICK_CHANNEL = (4,)
+    REASON_KICK_CHANNEL = 4
     REASON_KICK_SERVER = 5
