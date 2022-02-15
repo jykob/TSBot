@@ -9,6 +9,7 @@ from tsbot.connection import TSConnection
 from tsbot.exceptions import TSResponseError
 from tsbot.extensions.commands import CommandHandler, TSCommand
 from tsbot.extensions.events import EventHanlder, TSEvent, TSEventHandler
+from tsbot.extensions.keepalive import KeepAlive
 from tsbot.plugin import TSPlugin
 from tsbot.query import TSQuery
 from tsbot.response import TSResponse
@@ -23,8 +24,6 @@ logger = logging.getLogger(__name__)
 
 class TSBot:
     SKIP_WELCOME_MESSAGE: int = 2
-    KEEP_ALIVE_INTERVAL: float = 4 * 60  # 4 minutes
-    KEEP_ALIVE_COMMAND: str = "version"
 
     def __init__(
         self,
@@ -47,9 +46,9 @@ class TSBot:
         )
         self._event_handler = EventHanlder(self)
         self._command_handler = CommandHandler(self, invoker=invoker)
+        self._keep_alive = KeepAlive(self)
 
         self._reader_ready_event = asyncio.Event()
-        self._keep_alive_event = asyncio.Event()
 
         self._background_tasks: list[asyncio.Task[None]] = []
 
@@ -95,30 +94,6 @@ class TSBot:
                 response_buffer.append(data)
 
         self._reader_ready_event.clear()
-
-    async def _keep_alive_task(self) -> None:
-        """
-        Task to keep connection alive with the TeamSpeak server
-
-        Normally TeamSpeak server cuts the connection to the query client
-        after 5 minutes of inactivity. If the bot doesn't send any commands
-        to the server, this task sends a command to keep connection alive.
-        """
-        logger.debug("Keep-alive task started")
-
-        try:
-            while True:
-                self._keep_alive_event.clear()
-                try:
-                    await asyncio.wait_for(
-                        asyncio.shield(self._keep_alive_event.wait()),
-                        timeout=self.KEEP_ALIVE_INTERVAL,
-                    )
-                except asyncio.TimeoutError:
-                    await self.send_raw(self.KEEP_ALIVE_COMMAND)
-
-        except asyncio.CancelledError:
-            pass
 
     def emit(self, event: TSEvent) -> None:
         """Emits an event to be handled"""
@@ -181,8 +156,8 @@ class TSBot:
     async def _send(self, command: str) -> TSResponse:
         async with self._response_lock:
             logger.debug(f"Sending command: %s", command)
-            # tell _keep_alive_task that command has been sent
-            self._keep_alive_event.set()
+            # tell _keep_alive that command has been sent
+            self._keep_alive.command_sent_event.set()
 
             self._response = asyncio.Future()
             await self._connection.write(command)
@@ -235,10 +210,9 @@ class TSBot:
         await self._select_server()
         await self._register_notifies()
 
-        for extension in (self._event_handler, self._command_handler):
+        for extension in (self._event_handler, self._command_handler, self._keep_alive):
             await extension.run()
 
-        self.register_background_task(self._keep_alive_task, name="KeepAlive-Task")
         self.emit(TSEvent(event="ready"))
 
         await reader
