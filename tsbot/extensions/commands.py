@@ -1,10 +1,8 @@
 from __future__ import annotations
+
 import asyncio
-
 import logging
-from typing import TYPE_CHECKING, Any, Awaitable, Callable, Coroutine
-from tsbot.bot import TSBot
-
+from typing import TYPE_CHECKING, Any, Callable, Coroutine
 
 from tsbot.enums import TextMessageTargetMode
 from tsbot.exceptions import TSCommandError, TSPermissionError
@@ -12,7 +10,7 @@ from tsbot.extensions.events import TSEvent
 from tsbot.extensions.extension import Extension
 
 if TYPE_CHECKING:
-    from tsbot.bot import TSBotBase
+    from tsbot.bot import TSBot
     from tsbot.plugin import TSPlugin
 
 
@@ -54,7 +52,7 @@ class TSCommand:
 
 
 class CommandHandler(Extension):
-    def __init__(self, parent: TSBotBase, invoker: str = "!") -> None:
+    def __init__(self, parent: TSBot, invoker: str = "!") -> None:
         super().__init__(parent)
 
         self.invoker = invoker

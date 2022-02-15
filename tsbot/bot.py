@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any, Callable, Coroutine
+from typing import TYPE_CHECKING, Callable, Coroutine
 
 from tsbot import enums
 from tsbot.connection import TSConnection
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class TSBotBase:
+class TSBot:
     SKIP_WELCOME_MESSAGE: int = 2
     KEEP_ALIVE_INTERVAL: float = 4 * 60  # 4 minutes
     KEEP_ALIVE_COMMAND: str = "version"
@@ -36,6 +36,8 @@ class TSBotBase:
         invoker: str = "!",
     ) -> None:
         self.server_id = server_id
+
+        self.plugins: dict[str, TSPlugin] = {}
 
         self.connection = TSConnection(
             username=username,
@@ -234,14 +236,6 @@ class TSBotBase:
         self.emit(TSEvent(event="ready"))
 
         await reader
-
-
-class TSBot(TSBotBase):
-    def __init__(self, /, owner: str = "", **kwargs: Any) -> None:
-        super().__init__(**kwargs)
-        self.owner = owner
-
-        self.plugins: dict[str, TSPlugin] = {}
 
     def load_plugin(self, *plugins: TSPlugin) -> None:
         TSPlugin.bot = self

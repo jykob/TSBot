@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections import defaultdict
-from typing import TYPE_CHECKING, Callable, Coroutine, TypeAlias
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, TypeAlias
 import warnings
 
 
@@ -12,7 +12,7 @@ from tsbot.utils import parse_line
 
 
 if TYPE_CHECKING:
-    from tsbot.bot import TSBotBase
+    from tsbot.bot import TSBot
     from tsbot.plugin import TSPlugin
 
 
@@ -62,7 +62,7 @@ class TSEventHandler:
 
 
 class EventHanlder(Extension):
-    def __init__(self, parent: TSBotBase) -> None:
+    def __init__(self, parent: TSBot) -> None:
         super().__init__(parent)
         self.event_handlers: defaultdict[str, list[TSEventHandler]] = defaultdict(list)
 
