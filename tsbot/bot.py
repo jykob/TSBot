@@ -124,31 +124,34 @@ class TSBot:
         """Emits an event to be handled"""
         self._event_handler.event_queue.put_nowait(event)
 
-    def on(self, event_type: str) -> T_EventHandler:
+    def on(self, event_type: str) -> TSEventHandler:
         """Decorator to register coroutines on events"""
 
-        def event_decorator(func: T_EventHandler) -> T_EventHandler:
-            self.register_event_handler(event_type, func)
-            return func
+        def event_decorator(func: T_EventHandler) -> TSEventHandler:
+            return self.register_event_handler(event_type, func)
 
         return event_decorator
 
-    def register_event_handler(self, event_type: str, handler: T_EventHandler) -> None:
+    def register_event_handler(self, event_type: str, handler: T_EventHandler) -> TSEventHandler:
         """Register Coroutines to be ran on specific event"""
-        self._event_handler.register_event_handler(TSEventHandler(event_type, handler))
 
-    def command(self, *commands: str) -> T_CommandHandler:
+        event_handler = TSEventHandler(event_type, handler)
+        self._event_handler.register_event_handler(event_handler)
+        return event_handler
+
+    def command(self, *commands: str) -> TSCommand:
         """Decorator to register coroutines on command"""
 
-        def command_decorator(func: T_CommandHandler) -> T_CommandHandler:
-            self.register_command(commands, func)
-            return func
+        def command_decorator(func: T_CommandHandler) -> TSCommand:
+            return self.register_command(commands, func)
 
         return command_decorator
 
-    def register_command(self, commands: tuple[str, ...], handler: T_CommandHandler) -> None:
+    def register_command(self, commands: tuple[str, ...], handler: T_CommandHandler) -> TSCommand:
         """Register Coroutines to be ran on specific command"""
-        self._command_handler.register_command(TSCommand(commands, handler))
+        command_handler = TSCommand(commands, handler)
+        self._command_handler.register_command(command_handler)
+        return command_handler
 
     def register_background_task(
         self,
