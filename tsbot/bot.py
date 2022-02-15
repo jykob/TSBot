@@ -9,9 +9,9 @@ from tsbot.connection import TSConnection
 from tsbot.exceptions import TSResponseError
 from tsbot.extensions.commands import CommandHandler, TSCommand
 from tsbot.extensions.events import EventHanlder, TSEvent, TSEventHandler
+from tsbot.plugin import TSPlugin
 from tsbot.query import TSQuery
 from tsbot.response import TSResponse
-from tsbot.plugin import TSPlugin
 
 if TYPE_CHECKING:
     from tsbot.extensions.commands import T_CommandHandler

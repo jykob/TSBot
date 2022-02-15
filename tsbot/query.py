@@ -4,7 +4,6 @@ from typing import TypeVar
 
 from tsbot.utils import escape
 
-
 T_TSQuery = TypeVar("T_TSQuery", bound="TSQuery")
 T_Stringable = str | int | float | bytes
 

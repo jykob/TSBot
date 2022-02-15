@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any, Callable, Coroutine
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, TypeAlias
 
 from tsbot.enums import TextMessageTargetMode
 from tsbot.exceptions import TSCommandError, TSPermissionError
@@ -13,8 +13,8 @@ if TYPE_CHECKING:
     from tsbot.bot import TSBot
     from tsbot.plugin import TSPlugin
 
-    T_CommandHandler = Callable[..., Coroutine[dict[str, str], Any, None]]
-    T_CommandCheck = Callable[..., Coroutine[TSBot, None, None]]
+    T_CommandHandler: TypeAlias = Callable[..., Coroutine[dict[str, str], Any, None]]
+    T_CommandCheck: TypeAlias = Callable[..., Coroutine[TSBot, None, None]]
 
 
 logger = logging.getLogger(__name__)

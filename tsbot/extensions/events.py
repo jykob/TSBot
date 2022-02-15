@@ -2,15 +2,13 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import warnings
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any, Callable, Coroutine, TypeAlias
-import warnings
-
 
 from tsbot.exceptions import TSException
 from tsbot.extensions.extension import Extension
 from tsbot.utils import parse_line
-
 
 if TYPE_CHECKING:
     from tsbot.bot import TSBot

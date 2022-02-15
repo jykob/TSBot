@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import logging
-import asyncssh
 
+import asyncssh
 
 logger = logging.getLogger(__name__)
 
