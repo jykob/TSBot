@@ -134,6 +134,7 @@ class TSBot:
         name: str | None = None,
     ):
         self._background_tasks.append(asyncio.create_task(background_handler(), name=name))
+        logger.debug("Registered %r as a background task", background_handler.__qualname__)
 
     async def send(self, query: TSQuery):
         """

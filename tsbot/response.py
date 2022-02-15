@@ -10,7 +10,7 @@ class TSResponse:
         self.msg = msg
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(data={self.data!r}, error_id={self.error_id!r}, msg={self.msg!r})"
+        return f"{self.__class__.__qualname__}(data={self.data!r}, error_id={self.error_id!r}, msg={self.msg!r})"
 
     @classmethod
     def from_server_response(cls, raw_data: list[str]):

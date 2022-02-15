@@ -27,7 +27,7 @@ class TSEvent:
         self.ctx: dict[str, str] = ctx if ctx else {}
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(event={self.event!r}, msg={self.msg!r}, ctx={self.ctx!r})"
+        return f"{self.__class__.__qualname__}(event={self.event!r}, msg={self.msg!r}, ctx={self.ctx!r})"
 
     @classmethod
     def from_server_response(cls, raw_data: str):
@@ -49,8 +49,8 @@ class TSEventHandler:
     def __repr__(self) -> str:
         return (
             f"{self.__class__.__qualname__}(event={self.event!r}, "
-            f"handler={self.handler.__name__!r}, "
-            f"plugin={None if not self.plugin_instance else self.plugin_instance.__class__.__name__!r}"
+            f"handler={self.handler.__qualname__!r}, "
+            f"plugin={None if not self.plugin_instance else self.plugin_instance.__class__.__qualname__!r}"
             ")"
         )
 
@@ -84,7 +84,9 @@ class EventHanlder(Extension):
             pass
 
         except Exception as e:
-            logger.exception(f"%s while running %r: %s", e.__class__.__qualname__, event_handler.handler.__name__, e)
+            logger.exception(
+                f"%s while running %r: %s", e.__class__.__qualname__, event_handler.handler.__qualname__, e
+            )
             raise
 
     def _handle_event(self, event: TSEvent, timeout: float | None = None):
@@ -122,10 +124,7 @@ class EventHanlder(Extension):
 
         self.event_handlers[event_handler.event].append(event_handler)
 
-        logger.debug(
-            f"Registered {event_handler.event!r} event to execute {event_handler.handler.__name__!r}"
-            f"""{f" from {event_handler.plugin_instance.__class__.__name__!r}" if event_handler.plugin_instance else ''}"""
-        )
+        logger.debug(f"Registered {event_handler.event!r} event to execute {event_handler.handler.__qualname__!r}")
 
     async def run(self):
         self.parent.register_background_task(self._handle_events_task, name="HandleEvent-Task")

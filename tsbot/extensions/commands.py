@@ -34,9 +34,9 @@ class TSCommand:
     def __repr__(self) -> str:
         return (
             f"{self.__class__.__qualname__}(commands={self.commands!r}, "
-            f"handler={self.handler.__name__!r}, "
-            f"plugin={None if not self.plugin_instance else self.plugin_instance.__class__.__name__!r}, "
-            f"checks=[{', '.join(check.__name__ for check in self.checks)}]"
+            f"handler={self.handler.__qualname__!r}, "
+            f"plugin={None if not self.plugin_instance else self.plugin_instance.__class__.__qualname__!r}, "
+            f"checks=[{', '.join(check.__qualname__ for check in self.checks)}]"
             ")"
         )
 
@@ -82,10 +82,7 @@ class CommandHandler(Extension):
         for command_name in command.commands:
             self.commands[command_name] = command
 
-        logger.debug(
-            f"Registered '{', '.join(command.commands)}' command to execute {command.handler.__name__!r}"
-            f"""{f" from {command.plugin_instance.__class__.__name__!r}" if command.plugin_instance else ''}"""
-        )
+        logger.debug(f"Registered '{', '.join(command.commands)}' command to execute {command.handler.__qualname__!r}")
 
     async def _handle_command_event(self, event: TSEvent) -> None:
         """
@@ -135,7 +132,9 @@ class CommandHandler(Extension):
             self.parent.emit(TSEvent(event="permission_error", msg=f"{str(e)}", ctx=event.ctx))
 
         except Exception as e:
-            logger.exception(f"%s while running %r: %s", e.__class__.__qualname__, command_handler.handler.__name__, e)
+            logger.exception(
+                f"%s while running %r: %s", e.__class__.__qualname__, command_handler.handler.__qualname__, e
+            )
             raise
 
 
