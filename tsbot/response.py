@@ -18,6 +18,10 @@ class TSResponse:
         data = parse_data("".join(raw_data))
         return cls(data=data, error_id=error_id, msg=unescape(msg))
 
+    @property
+    def first(self):
+        return self.data[0]
+
 
 def parse_error_line(input_str: str) -> tuple[int, str]:
     data = parse_line(input_str)

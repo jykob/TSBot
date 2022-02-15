@@ -2,26 +2,26 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any, Callable, Coroutine
+from typing import TYPE_CHECKING, Callable, Coroutine
 
 from tsbot import enums
 from tsbot.connection import TSConnection
 from tsbot.exceptions import TSResponseError
-from tsbot.extensions.command_handler import CommandHandler, TSCommand
-from tsbot.extensions.event_handler import EventHanlder, TSEvent, TSEventHandler
+from tsbot.extensions.commands import CommandHandler, TSCommand
+from tsbot.extensions.events import EventHanlder, TSEvent, TSEventHandler
 from tsbot.query import TSQuery
 from tsbot.response import TSResponse
 from tsbot.plugin import TSPlugin
 
 if TYPE_CHECKING:
-    from tsbot.extensions.command_handler import T_CommandHandler
-    from tsbot.extensions.event_handler import T_EventHandler
+    from tsbot.extensions.commands import T_CommandHandler
+    from tsbot.extensions.events import T_EventHandler
 
 
 logger = logging.getLogger(__name__)
 
 
-class TSBotBase:
+class TSBot:
     SKIP_WELCOME_MESSAGE: int = 2
     KEEP_ALIVE_INTERVAL: float = 4 * 60  # 4 minutes
     KEEP_ALIVE_COMMAND: str = "version"
@@ -36,6 +36,8 @@ class TSBotBase:
         invoker: str = "!",
     ) -> None:
         self.server_id = server_id
+
+        self.plugins: dict[str, TSPlugin] = {}
 
         self.connection = TSConnection(
             username=username,
@@ -122,31 +124,34 @@ class TSBotBase:
         """Emits an event to be handled"""
         self._event_handler.event_queue.put_nowait(event)
 
-    def on(self, event_type: str) -> T_EventHandler:
+    def on(self, event_type: str) -> TSEventHandler:
         """Decorator to register coroutines on events"""
 
-        def event_decorator(func: T_EventHandler) -> T_EventHandler:
-            self.register_event_handler(event_type, func)
-            return func
+        def event_decorator(func: T_EventHandler) -> TSEventHandler:
+            return self.register_event_handler(event_type, func)
 
         return event_decorator
 
-    def register_event_handler(self, event_type: str, handler: T_EventHandler) -> None:
+    def register_event_handler(self, event_type: str, handler: T_EventHandler) -> TSEventHandler:
         """Register Coroutines to be ran on specific event"""
-        self._event_handler.register_event_handler(TSEventHandler(event_type, handler))
 
-    def command(self, *commands: str) -> T_CommandHandler:
+        event_handler = TSEventHandler(event_type, handler)
+        self._event_handler.register_event_handler(event_handler)
+        return event_handler
+
+    def command(self, *commands: str) -> TSCommand:
         """Decorator to register coroutines on command"""
 
-        def command_decorator(func: T_CommandHandler) -> T_CommandHandler:
-            self.register_command(commands, func)
-            return func
+        def command_decorator(func: T_CommandHandler) -> TSCommand:
+            return self.register_command(commands, func)
 
         return command_decorator
 
-    def register_command(self, commands: tuple[str, ...], handler: T_CommandHandler) -> None:
+    def register_command(self, commands: tuple[str, ...], handler: T_CommandHandler) -> TSCommand:
         """Register Coroutines to be ran on specific command"""
-        self._command_handler.register_command(TSCommand(commands, handler))
+        command_handler = TSCommand(commands, handler)
+        self._command_handler.register_command(command_handler)
+        return command_handler
 
     def register_background_task(
         self,
@@ -171,6 +176,9 @@ class TSBotBase:
         Not recommended to use this if you don't know what you are doing.
         Use send() method instead.
         """
+        return await asyncio.shield(self._send(command))
+
+    async def _send(self, command: str) -> TSResponse:
         async with self._response_lock:
             logger.debug(f"Sending command: %s", command)
             # tell _keep_alive_task that command has been sent
@@ -234,14 +242,6 @@ class TSBotBase:
         self.emit(TSEvent(event="ready"))
 
         await reader
-
-
-class TSBot(TSBotBase):
-    def __init__(self, /, owner: str = "", **kwargs: Any) -> None:
-        super().__init__(**kwargs)
-        self.owner = owner
-
-        self.plugins: dict[str, TSPlugin] = {}
 
     def load_plugin(self, *plugins: TSPlugin) -> None:
         TSPlugin.bot = self
