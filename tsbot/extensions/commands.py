@@ -1,12 +1,14 @@
 from __future__ import annotations
+import asyncio
 
 import logging
-from typing import TYPE_CHECKING, Any, Callable, Coroutine
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, Coroutine
+from tsbot.bot import TSBot
 
 
 from tsbot.enums import TextMessageTargetMode
 from tsbot.exceptions import TSCommandError, TSPermissionError
-from tsbot.extensions.event_handler import TSEvent
+from tsbot.extensions.events import TSEvent
 from tsbot.extensions.extension import Extension
 
 if TYPE_CHECKING:
@@ -21,7 +23,7 @@ T_CommandHandler = Callable[..., Coroutine[dict[str, str], Any, None]]
 
 
 class TSCommand:
-    __slots__ = ["commands", "handler", "plugin_instance"]
+    __slots__ = ["commands", "handler", "plugin_instance", "checks"]
 
     def __init__(
         self, commands: tuple[str, ...], handler: T_CommandHandler, plugin_instance: TSPlugin | None = None
@@ -29,6 +31,7 @@ class TSCommand:
         self.commands = commands
         self.handler = handler
         self.plugin_instance = plugin_instance
+        self.checks: list[Awaitable[None]] = []
 
     def __repr__(self) -> str:
         return (
@@ -37,11 +40,17 @@ class TSCommand:
             f"plugin={None if not self.plugin_instance else self.plugin_instance.__class__.__name__!r})"
         )
 
-    async def run(self, ctx: dict[str, str], *args: Any, **kwargs: Any) -> None:
+    async def run(self, bot: TSBot, ctx: dict[str, str], *args: Any, **kwargs: Any) -> None:
+        if self.checks:
+            await asyncio.gather(*self.checks)
+
         if self.plugin_instance:
             await self.handler(self.plugin_instance, ctx, args, kwargs)
         else:
             await self.handler(ctx, args, kwargs)
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        return self.run(*args, **kwargs)
 
 
 class CommandHandler(Extension):
@@ -105,7 +114,7 @@ class CommandHandler(Extension):
         logger.debug(f"%s executed command %s(%r, %r)", event.ctx.get("invokername"), command, args, kwargs)
 
         try:
-            await command_handler.run(event.ctx, *args, **kwargs)
+            await command_handler(event.ctx, *args, **kwargs)
 
         except TSCommandError as e:
             self.parent.emit(TSEvent(event="command_error", msg=f"{str(e)}", ctx=event.ctx))

@@ -7,15 +7,15 @@ from typing import TYPE_CHECKING, Any, Callable, Coroutine
 from tsbot import enums
 from tsbot.connection import TSConnection
 from tsbot.exceptions import TSResponseError
-from tsbot.extensions.command_handler import CommandHandler, TSCommand
-from tsbot.extensions.event_handler import EventHanlder, TSEvent, TSEventHandler
+from tsbot.extensions.commands import CommandHandler, TSCommand
+from tsbot.extensions.events import EventHanlder, TSEvent, TSEventHandler
 from tsbot.query import TSQuery
 from tsbot.response import TSResponse
 from tsbot.plugin import TSPlugin
 
 if TYPE_CHECKING:
-    from tsbot.extensions.command_handler import T_CommandHandler
-    from tsbot.extensions.event_handler import T_EventHandler
+    from tsbot.extensions.commands import T_CommandHandler
+    from tsbot.extensions.events import T_EventHandler
 
 
 logger = logging.getLogger(__name__)
