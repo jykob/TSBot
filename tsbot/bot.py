@@ -39,7 +39,7 @@ class TSBot:
 
         self.plugins: dict[str, TSPlugin] = {}
 
-        self.connection = TSConnection(
+        self._connection = TSConnection(
             username=username,
             password=password,
             address=address,
@@ -70,7 +70,7 @@ class TSBot:
     async def _reader_task(self) -> None:
         """Task to read messages from the server"""
 
-        async for data in self.connection.read_lines(self.SKIP_WELCOME_MESSAGE):
+        async for data in self._connection.read_lines(self.SKIP_WELCOME_MESSAGE):
             pass
         logger.debug("Skipped welcome message")
 
@@ -78,7 +78,7 @@ class TSBot:
 
         response_buffer: list[str] = []
 
-        async for data in self.connection.read():
+        async for data in self._connection.read():
             logger.debug(f"Got data: %r", data)
 
             if data.startswith("notify"):
@@ -185,7 +185,7 @@ class TSBot:
             self._keep_alive_event.set()
 
             self._response = asyncio.Future()
-            await self.connection.write(command)
+            await self._connection.write(command)
             response: TSResponse = await self._response
 
             logger.debug(f"Got a response: %s", response)
@@ -202,7 +202,7 @@ class TSBot:
         Will emit TSEvent(event="close") to notify client closing, cancel background tasks
         and wait for the connection to be closed.
         """
-        if self.connection.writer.is_closing():
+        if self._connection.writer.is_closing():
             return
 
         logger.info("Closing")
@@ -212,7 +212,7 @@ class TSBot:
             task.cancel()
             await task
 
-        await self.connection.close()
+        await self._connection.close()
         logger.info("Connection closed")
 
     async def run(self) -> None:
@@ -225,7 +225,7 @@ class TSBot:
         Awaits until the bot disconnects.
         """
         logger.info("Setting up connection")
-        await self.connection.connect()
+        await self._connection.connect()
 
         reader = asyncio.create_task(self._reader_task())
 
