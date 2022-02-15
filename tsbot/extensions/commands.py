@@ -40,7 +40,7 @@ class TSCommand:
             ")"
         )
 
-    def add_check(self, func: Callable[..., Coroutine[TSBot, None, None]]) -> None:
+    def add_check(self, func: T_CommandCheck) -> None:
         self.checks.append(func)
 
     async def run(self, bot: TSBot, ctx: dict[str, str], *args: Any, **kwargs: Any) -> None:
