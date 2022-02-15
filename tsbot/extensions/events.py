@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, Callable, Coroutine, TypeAlias
 import warnings
 
 
+from tsbot.exceptions import TSException
 from tsbot.extensions.extension import Extension
 from tsbot.utils import parse_line
 
@@ -80,6 +81,9 @@ class EventHanlder(Extension):
 
         except asyncio.TimeoutError:
             warnings.warn(f"Event handler {event_handler!r} took too long to run while cancelled")
+
+        except TSException:
+            pass
 
         except Exception as e:
             logger.exception(f"%s while running %r: %s", e.__class__.__qualname__, event_handler.handler.__name__, e)
