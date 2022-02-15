@@ -108,7 +108,11 @@ class TSBot:
         return event_decorator  # type: ignore
 
     def register_event_handler(self, event_type: str, handler: T_EventHandler) -> TSEventHandler:
-        """Register Coroutines to be ran on specific event"""
+        """
+        Register Coroutines to be ran on events
+
+        Returns the event handler.
+        """
 
         event_handler = TSEventHandler(event_type, handler)
         self._event_handler.register_event_handler(event_handler)
@@ -123,7 +127,11 @@ class TSBot:
         return command_decorator  # type: ignore
 
     def register_command(self, commands: tuple[str, ...], handler: T_CommandHandler) -> TSCommand:
-        """Register Coroutines to be ran on specific command"""
+        """
+        Register Coroutines to be ran on specific command
+
+        Returns the command handler.
+        """
         command_handler = TSCommand(commands, handler)
         self._command_handler.register_command(command_handler)
         return command_handler
@@ -227,7 +235,7 @@ class TSBot:
         Loads all the events and commands from plugin into bot instance
 
         If TSEventHandler and TSCommand are in a plugin instance, they need to know about it.
-        This method sets the plugin instance on these objects
+        This method sets the plugin instance on these objects.
         """
 
         TSPlugin.bot = self
@@ -248,7 +256,7 @@ class TSBot:
         """
         Respond in text channel
 
-        Will respond in same text channel where 'ctx' was made, unless 'in_dms' flag given
+        Will respond in same text channel where 'ctx' was made, unless 'in_dms' flag given.
         """
         target = 0
         target_mode = enums.TextMessageTargetMode(int(ctx["targetmode"]))
