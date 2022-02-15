@@ -10,6 +10,7 @@ from tsbot.exceptions import TSResponseError
 from tsbot.extensions.commands import CommandHandler, TSCommand
 from tsbot.extensions.events import EventHanlder, TSEvent, TSEventHandler
 from tsbot.extensions.keepalive import KeepAlive
+from tsbot.extensions.self import Self
 from tsbot.query import TSQuery
 from tsbot.response import TSResponse
 
@@ -47,6 +48,7 @@ class TSBot:
         self._event_handler = EventHanlder(self)
         self._command_handler = CommandHandler(self, invoker=invoker)
         self._keep_alive = KeepAlive(self)
+        self.self = Self(self)
 
         self._reader_ready_event = asyncio.Event()
 
@@ -223,7 +225,7 @@ class TSBot:
         await self._select_server()
         await self._register_notifies()
 
-        for extension in (self._event_handler, self._command_handler, self._keep_alive):
+        for extension in (self._event_handler, self._command_handler, self._keep_alive, self.self):
             await extension.run()
 
         self.emit(TSEvent(event="ready"))

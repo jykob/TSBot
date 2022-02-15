@@ -88,10 +88,9 @@ class CommandHandler(Extension):
         Logic to handle commands
         """
 
-        # TODO: Check that message wasn't sent by the bot
         # If sender is the bot, return:
-        # if event.ctx.get("invokeruid") in (None, self.info.unique_id):
-        #     return
+        if event.ctx.get("invokeruid") in (None, self.parent.self.unique_identifier):
+            return
 
         msg = event.ctx.get("msg", "").strip()
         target_mode = int(event.ctx.get("targetmode", 0))
