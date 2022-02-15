@@ -42,6 +42,7 @@ class KeepAlive(Extension):
                         timeout=self.KEEP_ALIVE_INTERVAL,
                     )
                 except asyncio.TimeoutError:
+                    logger.debug("Sengind keep-alive")
                     await self.parent.send_raw(self.KEEP_ALIVE_COMMAND)
 
         except asyncio.CancelledError:

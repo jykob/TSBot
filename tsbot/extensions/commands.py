@@ -143,7 +143,7 @@ def add_check(func: T_CommandCheck) -> TSCommand:
         command_handler.add_check(func)
         return command_handler
 
-    return check_decorator
+    return check_decorator  # type: ignore
 
 
 def _parse_command(msg: str) -> tuple[str, tuple[str, ...], dict[str, str]]:

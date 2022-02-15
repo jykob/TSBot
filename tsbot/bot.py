@@ -105,7 +105,7 @@ class TSBot:
         def event_decorator(func: T_EventHandler) -> TSEventHandler:
             return self.register_event_handler(event_type, func)
 
-        return event_decorator
+        return event_decorator  # type: ignore
 
     def register_event_handler(self, event_type: str, handler: T_EventHandler) -> TSEventHandler:
         """Register Coroutines to be ran on specific event"""
@@ -120,7 +120,7 @@ class TSBot:
         def command_decorator(func: T_CommandHandler) -> TSCommand:
             return self.register_command(commands, func)
 
-        return command_decorator
+        return command_decorator  # type: ignore
 
     def register_command(self, commands: tuple[str, ...], handler: T_CommandHandler) -> TSCommand:
         """Register Coroutines to be ran on specific command"""
