@@ -13,11 +13,11 @@ if TYPE_CHECKING:
     from tsbot.bot import TSBot
     from tsbot.plugin import TSPlugin
 
+    T_CommandHandler = Callable[..., Coroutine[dict[str, str], Any, None]]
+    T_CommandCheck = Callable[..., Coroutine[TSBot, None, None]]
+
 
 logger = logging.getLogger(__name__)
-
-
-T_CommandHandler = Callable[..., Coroutine[dict[str, str], Any, None]]
 
 
 class TSCommand:
@@ -29,18 +29,32 @@ class TSCommand:
         self.commands = commands
         self.handler = handler
         self.plugin_instance = plugin_instance
-        self.checks: list[Awaitable[None]] = []
+        self.checks: list[T_CommandCheck] = []
 
     def __repr__(self) -> str:
         return (
             f"{self.__class__.__qualname__}(commands={self.commands!r}, "
             f"handler={self.handler.__name__!r}, "
-            f"plugin={None if not self.plugin_instance else self.plugin_instance.__class__.__name__!r})"
+            f"plugin={None if not self.plugin_instance else self.plugin_instance.__class__.__name__!r}, "
+            f"checks=[{', '.join(check.__name__ for check in self.checks)}]"
+            ")"
         )
+
+    def add_check(self, func: Callable[..., Coroutine[TSBot, None, None]]) -> None:
+        self.checks.append(func)
 
     async def run(self, bot: TSBot, ctx: dict[str, str], *args: Any, **kwargs: Any) -> None:
         if self.checks:
-            await asyncio.gather(*self.checks)
+            done, pending = await asyncio.wait(
+                [check(bot, ctx, args, kwargs) for check in self.checks],
+                return_when=asyncio.FIRST_EXCEPTION,
+            )
+            for pending_task in pending:
+                pending_task.cancel()
+
+            for done_task in done:
+                if exception := done_task.exception():
+                    raise exception
 
         if self.plugin_instance:
             await self.handler(self.plugin_instance, ctx, args, kwargs)
@@ -49,6 +63,14 @@ class TSCommand:
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         return self.run(*args, **kwargs)
+
+
+def add_check(func: T_CommandCheck) -> TSCommand:
+    def check_decorator(command_handler: TSCommand) -> TSCommand:
+        command_handler.add_check(func)
+        return command_handler
+
+    return check_decorator
 
 
 class CommandHandler(Extension):
@@ -112,7 +134,7 @@ class CommandHandler(Extension):
         logger.debug(f"%s executed command %s(%r, %r)", event.ctx.get("invokername"), command, args, kwargs)
 
         try:
-            await command_handler(event.ctx, *args, **kwargs)
+            await command_handler(self.parent, event.ctx, *args, **kwargs)
 
         except TSCommandError as e:
             self.parent.emit(TSEvent(event="command_error", msg=f"{str(e)}", ctx=event.ctx))
