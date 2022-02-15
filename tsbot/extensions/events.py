@@ -51,7 +51,8 @@ class TSEventHandler:
         return (
             f"{self.__class__.__qualname__}(event={self.event!r}, "
             f"handler={self.handler.__name__!r}, "
-            f"plugin={None if not self.plugin_instance else self.plugin_instance.__class__.__name__!r})"
+            f"plugin={None if not self.plugin_instance else self.plugin_instance.__class__.__name__!r}"
+            ")"
         )
 
     async def run(self, event: TSEvent) -> None:
@@ -59,6 +60,9 @@ class TSEventHandler:
             await self.handler(self.plugin_instance, event)
         else:
             await self.handler(event)
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        return self.run(*args, **kwargs)
 
 
 class EventHanlder(Extension):
@@ -69,26 +73,23 @@ class EventHanlder(Extension):
         self.event_queue: asyncio.Queue[TSEvent] = asyncio.Queue()
 
     async def _run_event_handler(
-        self,
-        event: TSEvent,
-        handler: T_EventHandler,
-        timeout: float | None = None,
+        self, event: TSEvent, event_handler: TSEventHandler, timeout: float | None = None
     ) -> None:
         try:
-            await asyncio.wait_for(handler(event), timeout=timeout)
+            await asyncio.wait_for(event_handler(event), timeout=timeout)
 
         except asyncio.TimeoutError:
-            warnings.warn(f"Event handler {handler!r} took too long to run while cancelled")
+            warnings.warn(f"Event handler {event_handler!r} took too long to run while cancelled")
 
         except Exception as e:
-            logger.exception(f"%s while running %r: %s", e.__class__.__qualname__, handler.__name__, e)
+            logger.exception(f"%s while running %r: %s", e.__class__.__qualname__, event_handler.handler.__name__, e)
             raise
 
     def _handle_event(self, event: TSEvent, timeout: float | None = None):
         event_handlers = self.event_handlers.get(event.event, [])
 
         for event_handler in event_handlers:
-            asyncio.create_task(self._run_event_handler(event, event_handler.run, timeout))
+            asyncio.create_task(self._run_event_handler(event, event_handler, timeout))
 
     async def _handle_events_task(self) -> None:
         """
