@@ -194,6 +194,10 @@ class TSBotBase:
         Will emit TSEvent(event="close") to notify client closing, cancel background tasks
         and wait for the connection to be closed.
         """
+        if self.connection.writer.is_closing():
+            return
+
+        logger.info("Closing")
         self.emit(TSEvent(event="close"))
 
         for task in self._background_tasks:
@@ -201,6 +205,7 @@ class TSBotBase:
             await task
 
         await self.connection.close()
+        logger.info("Connection closed")
 
     async def run(self) -> None:
         """
@@ -211,10 +216,13 @@ class TSBotBase:
 
         Awaits until the bot disconnects.
         """
+        logger.info("Setting up connection")
         await self.connection.connect()
 
         reader = asyncio.create_task(self._reader_task())
+
         await self._reader_ready_event.wait()
+        logger.info("Connected")
 
         await self._select_server()
         await self._register_notifies()
