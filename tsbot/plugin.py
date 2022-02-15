@@ -12,24 +12,26 @@ if TYPE_CHECKING:
 
 
 class TSPlugin:
+    """Base class for plugins"""
+
     bot: TSBot
 
-    @classmethod
-    def on(cls, event_type: str):
-        """Decorator to register coroutines on events"""
 
-        def event_decorator(func: T_EventHandler) -> TSEventHandler:
-            handler = TSEventHandler(event_type, func)
-            return handler
+def command(*commands: str):
+    """Decorator to register coroutines on commands"""
 
-        return event_decorator
+    def command_decorator(func: T_CommandHandler) -> TSCommand:
+        handler = TSCommand(commands, func)
+        return handler
 
-    @classmethod
-    def command(cls, *commands: str):
-        """Decorator to register coroutines on commands"""
+    return command_decorator
 
-        def command_decorator(func: T_CommandHandler) -> TSCommand:
-            handler = TSCommand(commands, func)
-            return handler
 
-        return command_decorator
+def on(event_type: str):
+    """Decorator to register coroutines on events"""
+
+    def event_decorator(func: T_EventHandler) -> TSEventHandler:
+        handler = TSEventHandler(event_type, func)
+        return handler
+
+    return event_decorator
