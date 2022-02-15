@@ -102,7 +102,7 @@ class CommandHandler(Extension):
         if not command_handler:
             return
 
-        logger.debug(f"{event.ctx.get('invokername')} executed command {command}({args!r}, {kwargs!r})")
+        logger.debug(f"%s executed command %s(%r, %r)", event.ctx.get("invokername"), command, args, kwargs)
 
         try:
             await command_handler.run(event.ctx, *args, **kwargs)
@@ -114,7 +114,7 @@ class CommandHandler(Extension):
             self.parent.emit(TSEvent(event="permission_error", msg=f"{str(e)}", ctx=event.ctx))
 
         except Exception as e:
-            logger.exception(f"{e.__class__.__qualname__} while running {command_handler.handler.__name__!r}: {e}")
+            logger.exception(f"%s while running %r: %s", e.__class__.__qualname__, command_handler.handler.__name__, e)
             raise
 
 

@@ -81,7 +81,7 @@ class EventHanlder(Extension):
             warnings.warn(f"Event handler {handler!r} took too long to run while cancelled")
 
         except Exception as e:
-            logger.exception(f"{e.__class__.__qualname__} while running {handler.__name__!r}: {e}")
+            logger.exception(f"%s while running %r: %s", e.__class__.__qualname__, handler.__name__, e)
             raise
 
     def _handle_event(self, event: TSEvent, timeout: float | None = None):
@@ -101,7 +101,7 @@ class EventHanlder(Extension):
             while True:
                 event = await self.event_queue.get()
 
-                logger.debug(f"Got event: {event}")
+                logger.debug(f"Got event: %s", event)
                 self._handle_event(event)
 
                 self.event_queue.task_done()

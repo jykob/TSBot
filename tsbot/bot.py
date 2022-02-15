@@ -77,7 +77,7 @@ class TSBotBase:
         response_buffer: list[str] = []
 
         async for data in self.connection.read():
-            logger.debug(f"Got data: {data!r}")
+            logger.debug(f"Got data: %r", data)
 
             if data.startswith("notify"):
                 event = TSEvent.from_server_response(data)
@@ -172,7 +172,7 @@ class TSBotBase:
         Use send() method instead.
         """
         async with self._response_lock:
-            logger.debug(f"Sending command: {command}")
+            logger.debug(f"Sending command: %s", command)
             # tell _keep_alive_task that command has been sent
             self._keep_alive_event.set()
 
@@ -180,7 +180,7 @@ class TSBotBase:
             await self.connection.write(command)
             response: TSResponse = await self._response
 
-            logger.debug(f"Got a response: {response}")
+            logger.debug(f"Got a response: %s", response)
 
         if response.error_id != 0:
             raise TSResponseError(f"{response.msg}", error_id=int(response.error_id))
@@ -250,8 +250,7 @@ class TSBot(TSBotBase):
 
             self.plugins[plugin.__class__.__qualname__] = plugin
 
-    # TODO: Fix boolean trap
-    async def respond(self, ctx: dict[str, str], message: str, direct_message: bool = False):
+    async def respond(self, ctx: dict[str, str], message: str, in_dms: bool = False):
         """
         Respond in text channel
 
@@ -260,7 +259,7 @@ class TSBot(TSBotBase):
         target = 0
         target_mode = enums.TextMessageTargetMode(int(ctx["targetmode"]))
 
-        if direct_message or target_mode == enums.TextMessageTargetMode.CLIENT:
+        if in_dms or target_mode == enums.TextMessageTargetMode.CLIENT:
             target, target_mode = ctx["invokerid"], enums.TextMessageTargetMode.CLIENT
 
         await self.send(TSQuery("sendtextmessage").params(targetmode=target_mode.value, target=target, msg=message))
