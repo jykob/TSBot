@@ -65,14 +65,6 @@ class TSCommand:
         return self.run(*args, **kwargs)
 
 
-def add_check(func: T_CommandCheck) -> TSCommand:
-    def check_decorator(command_handler: TSCommand) -> TSCommand:
-        command_handler.add_check(func)
-        return command_handler
-
-    return check_decorator
-
-
 class CommandHandler(Extension):
     def __init__(self, parent: TSBot, invoker: str = "!") -> None:
         super().__init__(parent)
@@ -120,7 +112,7 @@ class CommandHandler(Extension):
             if msg.startswith(self.invoker):
                 msg = msg[len(self.invoker) :]
 
-        command, args, kwargs = parse_command(msg)
+        command, args, kwargs = _parse_command(msg)
 
         # inject usefull information into ctx
         event.ctx["command"] = command
@@ -147,7 +139,15 @@ class CommandHandler(Extension):
             raise
 
 
-def parse_command(msg: str) -> tuple[str, tuple[str, ...], dict[str, str]]:
+def add_check(func: T_CommandCheck) -> TSCommand:
+    def check_decorator(command_handler: TSCommand) -> TSCommand:
+        command_handler.add_check(func)
+        return command_handler
+
+    return check_decorator
+
+
+def _parse_command(msg: str) -> tuple[str, tuple[str, ...], dict[str, str]]:
     """
     Parses message in to given command, its arguments and keyword arguments
     """
