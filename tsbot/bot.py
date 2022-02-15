@@ -129,10 +129,9 @@ class TSBot:
         return command_handler
 
     def register_background_task(
-        self,
-        background_handler: Callable[..., Coroutine[None, None, None]],
-        name: str | None = None,
+        self, background_handler: Callable[..., Coroutine[None, None, None]], name: str | None = None
     ):
+        """Registers a coroutine as background task"""
         self._background_tasks.append(asyncio.create_task(background_handler(), name=name))
         logger.debug("Registered %r as a background task", background_handler.__qualname__)
 
@@ -155,6 +154,11 @@ class TSBot:
         return await asyncio.shield(self._send(command))
 
     async def _send(self, command: str) -> TSResponse:
+        """
+        Method responsibe for actually sending the data
+
+        This method should't be ever cancalled!
+        """
         async with self._response_lock:
             logger.debug(f"Sending command: %s", command)
             # tell _keep_alive that command has been sent
@@ -219,6 +223,13 @@ class TSBot:
         await reader
 
     def load_plugin(self, *plugins: TSPlugin) -> None:
+        """
+        Loads all the events and commands from plugin into bot instance
+
+        If TSEventHandler and TSCommand are in a plugin instance, they need to know about it.
+        This method sets the plugin instance on these objects
+        """
+
         TSPlugin.bot = self
 
         for plugin in plugins:
@@ -231,13 +242,13 @@ class TSBot:
                     member.plugin_instance = plugin
                     self._command_handler.register_command(member)
 
-            self.plugins[plugin.__class__.__qualname__] = plugin
+            self.plugins[plugin.__class__.__name__] = plugin
 
     async def respond(self, ctx: dict[str, str], message: str, in_dms: bool = False):
         """
         Respond in text channel
 
-        Will respond in same text channel where 'ctx' was made, unless 'direct_message' flag given
+        Will respond in same text channel where 'ctx' was made, unless 'in_dms' flag given
         """
         target = 0
         target_mode = enums.TextMessageTargetMode(int(ctx["targetmode"]))
