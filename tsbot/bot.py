@@ -192,7 +192,7 @@ class TSBot:
         Will emit TSEvent(event="close") to notify client closing, cancel background tasks
         and wait for the connection to be closed.
         """
-        if self._connection.writer.is_closing():
+        if not self._connection.writer or self._connection.writer.is_closing():
             return
 
         logger.info("Closing")
