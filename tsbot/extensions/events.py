@@ -54,13 +54,13 @@ class TSEventHandler:
             ")"
         )
 
-    async def run(self, event: TSEvent) -> None:
+    async def run(self, bot: TSBot, event: TSEvent) -> None:
         if self.plugin_instance:
-            await self.handler(self.plugin_instance, event)
+            await self.handler(self.plugin_instance, bot, event)
         else:
-            await self.handler(event)
+            await self.handler(bot, event)
 
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+    def __call__(self, *args: Any, **kwargs: Any):
         return self.run(*args, **kwargs)
 
 
@@ -75,7 +75,7 @@ class EventHanlder(Extension):
         self, event: TSEvent, event_handler: TSEventHandler, timeout: float | None = None
     ) -> None:
         try:
-            await asyncio.wait_for(event_handler(event), timeout=timeout)
+            await asyncio.wait_for(event_handler.run(self.parent, event), timeout=timeout)
 
         except asyncio.TimeoutError:
             warnings.warn(f"Event handler {event_handler!r} took too long to run while cancelled")

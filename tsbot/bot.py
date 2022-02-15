@@ -10,13 +10,13 @@ from tsbot.exceptions import TSResponseError
 from tsbot.extensions.commands import CommandHandler, TSCommand
 from tsbot.extensions.events import EventHanlder, TSEvent, TSEventHandler
 from tsbot.extensions.keepalive import KeepAlive
-from tsbot.plugin import TSPlugin
 from tsbot.query import TSQuery
 from tsbot.response import TSResponse
 
 if TYPE_CHECKING:
     from tsbot.extensions.commands import T_CommandHandler
     from tsbot.extensions.events import T_EventHandler
+    from tsbot.plugin import TSPlugin
 
 
 logger = logging.getLogger(__name__)
@@ -237,8 +237,6 @@ class TSBot:
         If TSEventHandler and TSCommand are in a plugin instance, they need to know about it.
         This method sets the plugin instance on these objects.
         """
-
-        TSPlugin.bot = self
 
         for plugin in plugins:
             for member in plugin.__class__.__dict__.values():

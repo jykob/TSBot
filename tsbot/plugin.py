@@ -6,15 +6,12 @@ from tsbot.extensions.commands import TSCommand
 from tsbot.extensions.events import TSEventHandler
 
 if TYPE_CHECKING:
-    from tsbot.bot import TSBot
     from tsbot.extensions.commands import T_CommandHandler
     from tsbot.extensions.events import T_EventHandler
 
 
 class TSPlugin:
     """Base class for plugins"""
-
-    bot: TSBot
 
 
 def command(*commands: str):

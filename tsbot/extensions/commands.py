@@ -13,8 +13,7 @@ if TYPE_CHECKING:
     from tsbot.bot import TSBot
     from tsbot.plugin import TSPlugin
 
-    T_CommandHandler: TypeAlias = Callable[..., Coroutine[dict[str, str], Any, None]]
-    T_CommandCheck: TypeAlias = Callable[..., Coroutine[TSBot, None, None]]
+    T_CommandHandler: TypeAlias = Callable[..., Coroutine[None, None, None]]
 
 
 logger = logging.getLogger(__name__)
@@ -29,7 +28,7 @@ class TSCommand:
         self.commands = commands
         self.handler = handler
         self.plugin_instance = plugin_instance
-        self.checks: list[T_CommandCheck] = []
+        self.checks: list[T_CommandHandler] = []
 
     def __repr__(self) -> str:
         return (
@@ -40,10 +39,10 @@ class TSCommand:
             ")"
         )
 
-    def add_check(self, func: T_CommandCheck) -> None:
+    def add_check(self, func: T_CommandHandler) -> None:
         self.checks.append(func)
 
-    async def run(self, bot: TSBot, ctx: dict[str, str], *args: Any, **kwargs: Any) -> None:
+    async def run(self, bot: TSBot, ctx: dict[str, str], *args: str, **kwargs: str) -> None:
         if self.checks:
             done, pending = await asyncio.wait(
                 [check(bot, ctx, args, kwargs) for check in self.checks],
@@ -57,11 +56,11 @@ class TSCommand:
                     raise exception
 
         if self.plugin_instance:
-            await self.handler(self.plugin_instance, ctx, args, kwargs)
+            await self.handler(self.plugin_instance, bot, ctx, args, kwargs)
         else:
-            await self.handler(ctx, args, kwargs)
+            await self.handler(bot, ctx, args, kwargs)
 
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+    def __call__(self, *args: Any, **kwargs: Any):
         return self.run(*args, **kwargs)
 
 
@@ -84,7 +83,7 @@ class CommandHandler(Extension):
 
         logger.debug(f"Registered '{', '.join(command.commands)}' command to execute {command.handler.__qualname__!r}")
 
-    async def _handle_command_event(self, event: TSEvent) -> None:
+    async def _handle_command_event(self, bot: TSBot, event: TSEvent) -> None:
         """
         Logic to handle commands
         """
@@ -123,7 +122,7 @@ class CommandHandler(Extension):
         logger.debug(f"%s executed command %s(%r, %r)", event.ctx.get("invokername"), command, args, kwargs)
 
         try:
-            await command_handler(self.parent, event.ctx, *args, **kwargs)
+            await command_handler.run(bot, event.ctx, *args, **kwargs)
 
         except TSCommandError as e:
             self.parent.emit(TSEvent(event="command_error", msg=f"{str(e)}", ctx=event.ctx))
@@ -136,14 +135,6 @@ class CommandHandler(Extension):
                 f"%s while running %r: %s", e.__class__.__qualname__, command_handler.handler.__qualname__, e
             )
             raise
-
-
-def add_check(func: T_CommandCheck) -> TSCommand:
-    def check_decorator(command_handler: TSCommand) -> TSCommand:
-        command_handler.add_check(func)
-        return command_handler
-
-    return check_decorator  # type: ignore
 
 
 def _parse_command(msg: str) -> tuple[str, tuple[str, ...], dict[str, str]]:
@@ -169,3 +160,11 @@ def _parse_command(msg: str) -> tuple[str, tuple[str, ...], dict[str, str]]:
             args.append(item)
 
     return cmd, tuple(args), kwargs
+
+
+def add_check(func: T_CommandHandler) -> TSCommand:
+    def check_decorator(command_handler: TSCommand) -> TSCommand:
+        command_handler.add_check(func)
+        return command_handler
+
+    return check_decorator
