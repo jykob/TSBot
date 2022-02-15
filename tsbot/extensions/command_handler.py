@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Callable, Coroutine
 
 
 from tsbot.enums import TextMessageTargetMode
-from tsbot.exceptions import TSCommandException, TSPermissionError
+from tsbot.exceptions import TSCommandError, TSPermissionError
 from tsbot.extensions.event_handler import TSEvent
 from tsbot.extensions.extension import Extension
 
@@ -107,7 +107,7 @@ class CommandHandler(Extension):
         try:
             await command_handler.run(event.ctx, *args, **kwargs)
 
-        except TSCommandException as e:
+        except TSCommandError as e:
             self.parent.emit(TSEvent(event="command_error", msg=f"{str(e)}", ctx=event.ctx))
 
         except TSPermissionError as e:

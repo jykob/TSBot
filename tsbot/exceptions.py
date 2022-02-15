@@ -14,7 +14,7 @@ class TSResponseError(TSException):
         return f"Error {self.error_id}: {self.message}"
 
 
-class TSCommandException(TSException):
+class TSCommandError(TSException):
     """
     Command handlers can raise this exception to indicate
     that something went wrong while running the handler.
@@ -29,5 +29,5 @@ class TSPermissionError(TSException):
     """
 
 
-class TSEventException(TSException):
+class TSEventError(TSException):
     """Exception happend during event handling"""
