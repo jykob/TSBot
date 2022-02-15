@@ -54,3 +54,7 @@ class TSQuery:
             compiled += f" {' '.join(f'-{option}' for option in self._options)}"
 
         return compiled
+
+
+def query(command: str) -> TSQuery:
+    return TSQuery(command)

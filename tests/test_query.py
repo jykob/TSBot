@@ -1,10 +1,10 @@
 import pytest
 
-from tsbot import query
+from tsbot.query import TSQuery, query
 
 
 def test_add_options():
-    q = query.TSQuery("channellist")
+    q = query("channellist")
     assert q._options == []  # type: ignore
 
     q.option("topic", "flags", "voice")
@@ -12,7 +12,7 @@ def test_add_options():
 
 
 def test_add_params():
-    q = query.TSQuery("channelmove")
+    q = query("channelmove")
     assert q._parameters == {}  # type: ignore
 
     q.params(cid=16, cpid=1, order=0)
@@ -20,7 +20,7 @@ def test_add_params():
 
 
 def test_app_param_blocks():
-    q = query.TSQuery("permidgetbyname")
+    q = query("permidgetbyname")
     assert q._parameter_blocks == []  # type: ignore
 
     q.param_block(permsid="b_serverinstance_help_view")
@@ -33,19 +33,19 @@ def test_app_param_blocks():
 @pytest.mark.parametrize(
     ("input_query", "excepted"),
     (
-        pytest.param(query.TSQuery("serverlist"), "serverlist", id="test_command_only"),
+        pytest.param(query("serverlist"), "serverlist", id="test_command_only"),
         pytest.param(
-            query.TSQuery("clientlist").option("uid", "away").option("groups"),
+            query("clientlist").option("uid", "away").option("groups"),
             "clientlist -uid -away -groups",
             id="test_options",
         ),
         pytest.param(
-            query.TSQuery("sendtextmessage").params(targetmode=2, target=12).params(msg="Hello World!"),
+            query("sendtextmessage").params(targetmode=2, target=12).params(msg="Hello World!"),
             r"sendtextmessage targetmode=2 target=12 msg=Hello\sWorld!",
             id="test_params",
         ),
         pytest.param(
-            query.TSQuery("clientkick")
+            query("clientkick")
             .params(reasonid=5, reasonmsg="Go away!")
             .param_block(clid=1)
             .param_block(clid=2)
@@ -54,7 +54,7 @@ def test_app_param_blocks():
             id="test_param_block_single",
         ),
         pytest.param(
-            query.TSQuery("servergroupaddperm")
+            query("servergroupaddperm")
             .params(sgid=13)
             .param_block(permid=17276, permvalue=50, permnegated=0, permskip=0)
             .param_block(permid=21415, permvalue=20, permnegated=0),
@@ -62,19 +62,16 @@ def test_app_param_blocks():
             id="test_param_block_multiple",
         ),
         pytest.param(
-            query.TSQuery("ftdeletefile")
-            .params(cid=2, cpw="")
-            .param_block(name="/Pic1.PNG")
-            .param_block(name="/Pic2.PNG"),
+            query("ftdeletefile").params(cid=2, cpw="").param_block(name="/Pic1.PNG").param_block(name="/Pic2.PNG"),
             r"ftdeletefile cid=2 cpw= name=\/Pic1.PNG|name=\/Pic2.PNG",
             id="test_empty_param",
         ),
     ),
 )
-def test_query_compile(input_query: query.TSQuery, excepted: str) -> None:
+def test_query_compile(input_query: TSQuery, excepted: str) -> None:
     assert input_query.compile() == excepted
 
 
 def test_empty_query():
     with pytest.raises(ValueError):
-        query.TSQuery("")
+        query("")
