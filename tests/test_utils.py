@@ -6,6 +6,7 @@ from tsbot import utils
 @pytest.mark.parametrize(
     ("input_str", "excepted"),
     (
+        pytest.param("", [], id="test_empty"),
         pytest.param("ip=0.0.0.0|ip=::", [{"ip": "0.0.0.0"}, {"ip": "::"}], id="test_simple"),
         pytest.param(
             "clid=14 client_nickname=Sven|clid=17 client_nickname=SvenBot",
@@ -123,6 +124,7 @@ def test_parse_data(input_str: str, excepted: list[dict[str, str]]) -> None:
 @pytest.mark.parametrize(
     ("input_str", "excepted"),
     (
+        pytest.param("", {}, id="test_empty"),
         pytest.param(
             "version=3.13.3 build=1608128225 platform=Windows",
             {"version": "3.13.3", "build": "1608128225", "platform": "Windows"},
