@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tsbot.utils import parse_data, parse_line, unescape
+from tsbot.utils import parse_data, parse_line
 
 
 class TSResponse:
