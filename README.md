@@ -1,12 +1,13 @@
 # TSBot
 
-> Asynchronous framework to build **TeamSpeak 3 Server Query** bots
+Asynchronous framework to build **TeamSpeak 3 Server Query** bots
 
 ## Features
 
 ---
 
 - INSERT FEATURES HERE
+- Secure connection through SSH
 - Query building
 
 ## Examples
@@ -41,6 +42,8 @@ async def poke_on_enter(bot: TSBot, event: events.TSEvent):
 
 asyncio.run(bot.run())
 ```
+
+**Check out [examples](https://github.com/0x4aK/TSBot/tree/master/examples) for more**
 
 ## Installation
 
