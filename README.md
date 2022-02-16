@@ -14,8 +14,8 @@ Asynchronous framework to build **TeamSpeak 3 Server Query** bots
 import asyncio
 
 from tsbot import TSBot
+from tsbot import events
 from tsbot.query import query
-from tsbot.extensions import events
 
 
 bot = TSBot(
