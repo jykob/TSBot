@@ -4,15 +4,11 @@ Asynchronous framework to build **TeamSpeak 3 Server Query** bots
 
 ## Features
 
----
-
 - INSERT FEATURES HERE
 - Secure connection through SSH
 - Query building
 
 ## Examples
-
----
 
 ```python
 import asyncio
@@ -46,8 +42,6 @@ asyncio.run(bot.run())
 **Check out [examples](https://github.com/0x4aK/TSBot/tree/master/examples) for more**
 
 ## Installation
-
----
 
 **Python 3.8 or higher is required**
 
