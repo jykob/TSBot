@@ -2,15 +2,13 @@
 
 Asynchronous framework to build **TeamSpeak 3 Server Query** bots
 
-## ✔️ &nbsp; Features
+## ✔️ Features
 
 - Uses modern Python `async` and `await` syntax
 - Secure connection through SSH
 - Query building
 
----
-
-## ✏️ &nbsp; Examples
+## ✏️ Examples
 
 ```python
 import asyncio
@@ -43,9 +41,7 @@ asyncio.run(bot.run())
 
 **Check out [📁examples](https://github.com/0x4aK/TSBot/tree/master/examples) for more**
 
----
-
-## 📦 &nbsp; Installation
+## 📦 Installation
 
 **Python 3.8 or higher is required**
 
