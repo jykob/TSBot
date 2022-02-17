@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import logging
+from types import TracebackType
+from typing import AsyncGenerator
 
 import asyncssh
 
@@ -17,7 +19,7 @@ class TSConnection:
         self.writer: asyncssh.stream.SSHWriter[str]
         self.reader: asyncssh.stream.SSHReader[str]
 
-    async def connect(self):
+    async def connect(self) -> None:
         connection = await asyncssh.connection.connect(
             self.address,
             port=self.port,
@@ -27,7 +29,7 @@ class TSConnection:
 
         self.writer, self.reader, _ = await connection.open_session()  # type: ignore
 
-    async def read_lines(self, number_of_lines: int = 1):
+    async def read_lines(self, number_of_lines: int = 1) -> AsyncGenerator[str, None]:
         try:
             lines_read: int = 0
 
@@ -45,9 +47,9 @@ class TSConnection:
                     return
 
         except (ConnectionResetError, asyncssh.misc.ConnectionLost, asyncssh.misc.DisconnectError):
-            logger.warning("Connection closed")
+            pass
 
-    async def read(self):
+    async def read(self) -> AsyncGenerator[str, None]:
         try:
             while not self.reader.at_eof():
                 data = await self.reader.readuntil("\n\r")
@@ -59,17 +61,28 @@ class TSConnection:
                 yield data
 
         except (ConnectionResetError, asyncssh.misc.ConnectionLost, asyncssh.misc.DisconnectError):
-            logger.warning("Connection closed")
-
-        finally:
-            await self.close()
+            pass
 
         logger.debug("Reading done")
 
-    async def write(self, msg: str):
+    async def write(self, msg: str) -> None:
         self.writer.write(f"{msg}\n\r")
         await self.writer.drain()
 
-    async def close(self):
+    async def close(self) -> None:
         self.writer.close()
         await self.writer.wait_closed()
+
+    async def __aenter__(self) -> None:
+        await self.connect()
+
+    async def __aexit__(
+        self,
+        exception_type: type[BaseException] | None,
+        exception_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        if not hasattr(self, "writer") and self.writer.is_closing():
+            return
+
+        await self.close()

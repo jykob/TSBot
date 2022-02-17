@@ -214,22 +214,23 @@ class TSBot:
         Awaits until the bot disconnects.
         """
         logger.info("Setting up connection")
-        await self._connection.connect()
 
-        reader = asyncio.create_task(self._reader_task())
+        async with self._connection:
+            reader = asyncio.create_task(self._reader_task())
 
-        await self._reader_ready_event.wait()
-        logger.info("Connected")
+            await self._reader_ready_event.wait()
+            logger.info("Connected")
 
-        await self._select_server()
-        await self._register_notifies()
+            await self._select_server()
+            await self._register_notifies()
 
-        for extension in (self._event_handler, self._command_handler, self._keep_alive, self.self):
-            await extension.run()
+            for extension in (self._event_handler, self._command_handler, self._keep_alive, self.self):
+                await extension.run()
 
-        self.emit(TSEvent(event="ready"))
+            self.emit(TSEvent(event="ready"))
 
-        await reader
+            await reader
+            await self.close()
 
     def load_plugin(self, *plugins: TSPlugin) -> None:
         """
