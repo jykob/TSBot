@@ -127,12 +127,15 @@ class TSBot:
 
         return command_decorator  # type: ignore
 
-    def register_command(self, commands: tuple[str, ...], handler: T_CommandHandler) -> TSCommand:
+    def register_command(self, commands: str | tuple[str, ...], handler: T_CommandHandler) -> TSCommand:
         """
         Register Coroutines to be ran on specific command
 
         Returns the command handler.
         """
+        if isinstance(commands, str):
+            commands = (commands,)
+
         command_handler = TSCommand(commands, handler)
         self._command_handler.register_command(command_handler)
         return command_handler
@@ -234,7 +237,7 @@ class TSBot:
 
     def load_plugin(self, *plugins: TSPlugin) -> None:
         """
-        Loads all the events and commands from plugin into bot instance
+        Loads TSPlugin instances into the bot instance
 
         If TSEventHandler and TSCommand are in a plugin instance, they need to know about it.
         This method sets the plugin instance on these objects.
