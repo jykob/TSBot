@@ -83,8 +83,7 @@ class TSBot:
             logger.debug(f"Got data: %r", data)
 
             if data.startswith("notify"):
-                event = TSEvent.from_server_response(data)
-                await self._event_handler.event_queue.put(event)
+                self.emit(TSEvent.from_server_response(data))
 
             elif data.startswith("error"):
                 response_buffer.append(data)
