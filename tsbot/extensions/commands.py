@@ -45,7 +45,7 @@ class TSCommand:
     async def run(self, bot: TSBot, ctx: dict[str, str], *args: str, **kwargs: str) -> None:
         if self.checks:
             done, pending = await asyncio.wait(
-                [check(bot, ctx, args, kwargs) for check in self.checks],
+                [check(bot, ctx, *args, **kwargs) for check in self.checks],
                 return_when=asyncio.FIRST_EXCEPTION,
             )
             for pending_task in pending:
@@ -56,9 +56,9 @@ class TSCommand:
                     raise exception
 
         if self.plugin_instance:
-            await self.handler(self.plugin_instance, bot, ctx, args, kwargs)
+            await self.handler(self.plugin_instance, bot, ctx, *args, **kwargs)
         else:
-            await self.handler(bot, ctx, args, kwargs)
+            await self.handler(bot, ctx, *args, **kwargs)
 
     def __call__(self, *args: Any, **kwargs: Any):
         return self.run(*args, **kwargs)
