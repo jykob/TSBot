@@ -25,6 +25,7 @@ class TSConnection:
             port=self.port,
             username=self.username,
             password=self.password,
+            known_hosts=None,
         )
 
         self.writer, self.reader, _ = await connection.open_session()  # type: ignore
