@@ -17,8 +17,9 @@ class Self(Extension):
         super().__init__(parent)
 
         self.clid: str
-        self.nickname: str
         self.database_id: str
+        self.login_name: str
+        self.nickname: str
         self.unique_identifier: str
 
     def __repr__(self) -> str:
@@ -31,6 +32,7 @@ class Self(Extension):
         response = await self.parent.send_raw("whoami")
 
         self.clid = response.first["client_id"]
-        self.nickname = response.first["client_nickname"]
         self.database_id = response.first["client_database_id"]
+        self.login_name = response.first["client_login_name"]
+        self.nickname = response.first["client_nickname"]
         self.unique_identifier = response.first["client_unique_identifier"]
