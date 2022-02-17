@@ -18,8 +18,7 @@ def command(*commands: str):
     """Decorator to register coroutines on commands"""
 
     def command_decorator(func: T_CommandHandler) -> TSCommand:
-        handler = TSCommand(commands, func)
-        return handler
+        return TSCommand(commands, func)
 
     return command_decorator
 
@@ -28,7 +27,6 @@ def on(event_type: str):
     """Decorator to register coroutines on events"""
 
     def event_decorator(func: T_EventHandler) -> TSEventHandler:
-        handler = TSEventHandler(event_type, func)
-        return handler
+        return TSEventHandler(event_type, func)
 
     return event_decorator
