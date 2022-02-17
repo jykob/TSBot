@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Generator
 
 from tsbot.utils import parse_data, parse_line
 
@@ -11,6 +12,9 @@ class TSResponse:
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(data={self.data!r}, error_id={self.error_id!r}, msg={self.msg!r})"
+
+    def __iter__(self) -> Generator[dict[str, str], None, None]:
+        yield from self.data
 
     @property
     def first(self):
