@@ -176,12 +176,18 @@ class TSBot:
         This method should't be ever cancalled!
         """
 
-        # TODO: add cache check here
-        #           - if cache hit, return cached data
+        cache_hash = hash(command)
+
+        if max_cache_age and (cached_response := self.cache.get_cache(cache_hash, max_cache_age)):
+            return cached_response
 
         async with self._response_lock:
+            # Check cache again to be sure if previous requests added something to the cache
+            if max_cache_age and (cached_response := self.cache.get_cache(cache_hash, max_cache_age)):
+                return cached_response
+
             logger.debug(f"Sending command: %s", command)
-            # tell _keep_alive that command has been sent
+            # Tell _keep_alive that command has been sent
             self._keep_alive.command_sent_event.set()
 
             self._response = asyncio.Future()
@@ -192,6 +198,8 @@ class TSBot:
 
         if response.error_id != 0:
             raise TSResponseError(f"{response.msg}", error_id=int(response.error_id))
+
+        self.cache.add_cache(cache_hash, response)
 
         return response
 
@@ -235,7 +243,7 @@ class TSBot:
             await self._select_server()
             await self._register_notifies()
 
-            for extension in (self._event_handler, self._command_handler, self._keep_alive, self.bot_info):
+            for extension in (self._event_handler, self._command_handler, self._keep_alive, self.bot_info, self.cache):
                 await extension.run()
 
             self.emit(events.TSEvent(event="ready"))
