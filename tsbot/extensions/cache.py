@@ -39,7 +39,6 @@ class Cache(Extension):
             return cached_response.record
 
     def add_cache(self, cache_hash: int, response: response.TSResponse) -> None:
-        logger.debug("Added response to cache. hash %s", cache_hash)
         self.cache[cache_hash] = CacheRecord(time(), response)
 
     async def _clean_cache(self) -> None:

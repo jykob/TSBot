@@ -179,7 +179,9 @@ class TSBot:
         cache_hash = hash(command)
 
         if max_cache_age and (cached_response := self.cache.get_cache(cache_hash, max_cache_age)):
-            logger.debug("Got cache hit %s", cache_hash)
+            logger.debug(
+                "Got cache hit for %r. hash: %s", command if len(command) < 20 else f"{command[:20]}...", cache_hash
+            )
             return cached_response
 
         async with self._response_lock:
@@ -201,6 +203,12 @@ class TSBot:
             raise TSResponseError(f"{response.msg}", error_id=int(response.error_id))
 
         self.cache.add_cache(cache_hash, response)
+
+        logger.debug(
+            "Added %r response to cache. hash %s",
+            command if len(command) < 20 else f"{command[:20]}...",
+            cache_hash,
+        )
 
         return response
 
