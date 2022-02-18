@@ -84,9 +84,7 @@ class EventHanlder(Extension):
             pass
 
         except Exception as e:
-            logger.exception(
-                f"%s while running %r: %s", e.__class__.__qualname__, event_handler.handler.__qualname__, e
-            )
+            logger.exception("%s while running %r: %s", e.__class__.__qualname__, event_handler.handler.__qualname__, e)
             raise
 
     def _handle_event(self, event: TSEvent, timeout: float | None = None):
@@ -106,7 +104,7 @@ class EventHanlder(Extension):
             while True:
                 event = await self.event_queue.get()
 
-                logger.debug(f"Got event: %s", event)
+                logger.debug("Got event: %s", event)
                 self._handle_event(event)
 
                 self.event_queue.task_done()

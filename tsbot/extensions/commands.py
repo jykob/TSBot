@@ -118,7 +118,7 @@ class CommandHandler(Extension):
         if not command_handler:
             return
 
-        logger.debug(f"%s executed command %s(%r, %r)", event.ctx.get("invokername"), command, args, kwargs)
+        logger.debug("%s executed command %s(%r, %r)", event.ctx.get("invokername"), command, args, kwargs)
 
         try:
             await command_handler.run(bot, event.ctx, *args, **kwargs)
@@ -131,7 +131,7 @@ class CommandHandler(Extension):
 
         except Exception as e:
             logger.exception(
-                f"%s while running %r: %s", e.__class__.__qualname__, command_handler.handler.__qualname__, e
+                "%s while running %r: %s", e.__class__.__qualname__, command_handler.handler.__qualname__, e
             )
             raise
 

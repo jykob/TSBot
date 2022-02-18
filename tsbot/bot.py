@@ -82,7 +82,7 @@ class TSBot:
         response_buffer: list[str] = []
 
         async for data in self._connection.read():
-            logger.debug(f"Got data: %r", data)
+            logger.debug("Got data: %r", data)
 
             if data.startswith("notify"):
                 self.emit(events.TSEvent.from_server_response(data))
@@ -179,6 +179,7 @@ class TSBot:
         cache_hash = hash(command)
 
         if max_cache_age and (cached_response := self.cache.get_cache(cache_hash, max_cache_age)):
+            logger.debug("Got cache hit %s", cache_hash)
             return cached_response
 
         async with self._response_lock:
@@ -186,7 +187,7 @@ class TSBot:
             if max_cache_age and (cached_response := self.cache.get_cache(cache_hash, max_cache_age)):
                 return cached_response
 
-            logger.debug(f"Sending command: %s", command)
+            logger.debug("Sending command: %s", command)
             # Tell _keep_alive that command has been sent
             self._keep_alive.command_sent_event.set()
 
@@ -194,7 +195,7 @@ class TSBot:
             await self._connection.write(command)
             response: TSResponse = await self._response
 
-            logger.debug(f"Got a response: %s", response)
+            logger.debug("Got a response: %s", response)
 
         if response.error_id != 0:
             raise TSResponseError(f"{response.msg}", error_id=int(response.error_id))

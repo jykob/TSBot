@@ -36,7 +36,6 @@ class Cache(Extension):
             return None
 
         if cached_response.timestamp + max_age > time():
-            logger.debug("Got cache hit %s", cache_hash)
             return cached_response.record
 
     def add_cache(self, cache_hash: int, response: response.TSResponse) -> None:
