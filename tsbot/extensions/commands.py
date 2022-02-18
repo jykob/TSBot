@@ -89,7 +89,7 @@ class CommandHandler(Extension):
         """
 
         # If sender is the bot, return:
-        if event.ctx.get("invokeruid") in (None, self.parent.self.unique_identifier):
+        if event.ctx.get("invokeruid") in (None, self.parent.bot_info.unique_identifier):
             return
 
         msg = event.ctx.get("msg", "").strip()
