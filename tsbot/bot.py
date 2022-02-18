@@ -82,8 +82,6 @@ class TSBot:
         response_buffer: list[str] = []
 
         async for data in self._connection.read():
-            logger.debug("Got data: %r", data)
-
             if data.startswith("notify"):
                 self.emit(events.TSEvent.from_server_response(data))
 
