@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class Self(Extension):
+class BotInfo(Extension):
     def __init__(self, parent: TSBot) -> None:
         super().__init__(parent)
 

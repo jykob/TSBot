@@ -7,15 +7,16 @@ from typing import TYPE_CHECKING, Callable, Coroutine
 from tsbot import enums
 from tsbot.connection import TSConnection
 from tsbot.exceptions import TSResponseError
-from tsbot.extensions.commands import CommandHandler, TSCommand
-from tsbot.extensions.events import EventHanlder, TSEvent, TSEventHandler
-from tsbot.extensions.keepalive import KeepAlive
-from tsbot.extensions.self import Self
+from tsbot.extensions import commands
+from tsbot.extensions import events
+from tsbot.extensions import keepalive
+from tsbot.extensions import bot_info
+from tsbot.extensions import cache
+
 from tsbot.query import TSQuery
 from tsbot.response import TSResponse
 
 if TYPE_CHECKING:
-    from tsbot.extensions.commands import T_CommandHandler
     from tsbot.extensions.events import T_EventHandler
     from tsbot.plugin import TSPlugin
 
@@ -45,10 +46,11 @@ class TSBot:
             address=address,
             port=port,
         )
-        self._event_handler = EventHanlder(self)
-        self._command_handler = CommandHandler(self, invoker=invoker)
-        self._keep_alive = KeepAlive(self)
-        self.self = Self(self)
+        self._event_handler = events.EventHanlder(self)
+        self._command_handler = commands.CommandHandler(self, invoker=invoker)
+        self._keep_alive = keepalive.KeepAlive(self)
+        self.cache = cache.Cache(self)
+        self.bot_info = bot_info.BotInfo(self)
 
         self._reader_ready_event = asyncio.Event()
 
@@ -83,7 +85,7 @@ class TSBot:
             logger.debug(f"Got data: %r", data)
 
             if data.startswith("notify"):
-                self.emit(TSEvent.from_server_response(data))
+                self.emit(events.TSEvent.from_server_response(data))
 
             elif data.startswith("error"):
                 response_buffer.append(data)
@@ -96,47 +98,49 @@ class TSBot:
 
         self._reader_ready_event.clear()
 
-    def emit(self, event: TSEvent) -> None:
+    def emit(self, event: events.TSEvent) -> None:
         """Emits an event to be handled"""
         self._event_handler.event_queue.put_nowait(event)
 
-    def on(self, event_type: str) -> TSEventHandler:
+    def on(self, event_type: str) -> events.TSEventHandler:
         """Decorator to register coroutines on events"""
 
-        def event_decorator(func: T_EventHandler) -> TSEventHandler:
+        def event_decorator(func: T_EventHandler) -> events.TSEventHandler:
             return self.register_event_handler(event_type, func)
 
         return event_decorator  # type: ignore
 
-    def register_event_handler(self, event_type: str, handler: T_EventHandler) -> TSEventHandler:
+    def register_event_handler(self, event_type: str, handler: T_EventHandler) -> events.TSEventHandler:
         """
         Register Coroutines to be ran on events
 
         Returns the event handler.
         """
 
-        event_handler = TSEventHandler(event_type, handler)
+        event_handler = events.TSEventHandler(event_type, handler)
         self._event_handler.register_event_handler(event_handler)
         return event_handler
 
-    def command(self, *commands: str) -> TSCommand:
+    def command(self, *command: str) -> commands.TSCommand:
         """Decorator to register coroutines on command"""
 
-        def command_decorator(func: T_CommandHandler) -> TSCommand:
-            return self.register_command(commands, func)
+        def command_decorator(func: commands.T_CommandHandler) -> commands.TSCommand:
+            return self.register_command(command, func)
 
         return command_decorator  # type: ignore
 
-    def register_command(self, commands: str | tuple[str, ...], handler: T_CommandHandler) -> TSCommand:
+    def register_command(
+        self, command: str | tuple[str, ...], handler: commands.T_CommandHandler
+    ) -> commands.TSCommand:
         """
         Register Coroutines to be ran on specific command
 
         Returns the command handler.
         """
-        if isinstance(commands, str):
-            commands = (commands,)
+        if isinstance(command, str):
+            command = (command,)
 
-        command_handler = TSCommand(commands, handler)
+        command_handler = commands.TSCommand(command, handler)
         self._command_handler.register_command(command_handler)
         return command_handler
 
@@ -147,33 +151,43 @@ class TSBot:
         self._background_tasks.append(asyncio.create_task(background_handler(), name=name))
         logger.debug("Registered %r as a background task", background_handler.__qualname__)
 
-    async def send(self, query: TSQuery):
+    async def send(self, query: TSQuery, max_cache_age: int | float = 0):
         """
         Sends queries to the server, assuring only one of them gets sent at a time
 
         Because theres no way to distinguish between requests/responses,
         queries have to be sent to the server one at a time.
         """
-        return await self.send_raw(query.compile())
+        return await self.send_raw(query.compile(), max_cache_age)
 
-    async def send_raw(self, command: str) -> TSResponse:
+    async def send_raw(self, command: str, max_cache_age: int | float = 0) -> TSResponse:
         """
         Send raw commands to the server
 
         Not recommended to use this if you don't know what you are doing.
         Use send() method instead.
         """
-        return await asyncio.shield(self._send(command))
+        return await asyncio.shield(self._send(command, max_cache_age))
 
-    async def _send(self, command: str) -> TSResponse:
+    async def _send(self, command: str, max_cache_age: int | float = 0) -> TSResponse:
         """
         Method responsibe for actually sending the data
 
         This method should't be ever cancalled!
         """
+
+        cache_hash = hash(command)
+
+        if max_cache_age and (cached_response := self.cache.get_cache(cache_hash, max_cache_age)):
+            return cached_response
+
         async with self._response_lock:
+            # Check cache again to be sure if previous requests added something to the cache
+            if max_cache_age and (cached_response := self.cache.get_cache(cache_hash, max_cache_age)):
+                return cached_response
+
             logger.debug(f"Sending command: %s", command)
-            # tell _keep_alive that command has been sent
+            # Tell _keep_alive that command has been sent
             self._keep_alive.command_sent_event.set()
 
             self._response = asyncio.Future()
@@ -184,6 +198,8 @@ class TSBot:
 
         if response.error_id != 0:
             raise TSResponseError(f"{response.msg}", error_id=int(response.error_id))
+
+        self.cache.add_cache(cache_hash, response)
 
         return response
 
@@ -198,7 +214,7 @@ class TSBot:
             return
 
         logger.info("Closing")
-        self.emit(TSEvent(event="close"))
+        self.emit(events.TSEvent(event="close"))
 
         for task in self._background_tasks:
             task.cancel()
@@ -227,10 +243,10 @@ class TSBot:
             await self._select_server()
             await self._register_notifies()
 
-            for extension in (self._event_handler, self._command_handler, self._keep_alive, self.self):
+            for extension in (self._event_handler, self._command_handler, self._keep_alive, self.bot_info, self.cache):
                 await extension.run()
 
-            self.emit(TSEvent(event="ready"))
+            self.emit(events.TSEvent(event="ready"))
 
             await reader
             await self.close()
@@ -245,11 +261,11 @@ class TSBot:
 
         for plugin in plugins:
             for member in plugin.__class__.__dict__.values():
-                if isinstance(member, TSEventHandler):
+                if isinstance(member, events.TSEventHandler):
                     member.plugin_instance = plugin
                     self._event_handler.register_event_handler(member)
 
-                elif isinstance(member, TSCommand):
+                elif isinstance(member, commands.TSCommand):
                     member.plugin_instance = plugin
                     self._command_handler.register_command(member)
 
