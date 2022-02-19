@@ -200,13 +200,13 @@ class TSBot:
         if response.error_id != 0:
             raise TSResponseError(f"{response.msg}", error_id=int(response.error_id))
 
-        self.cache.add_cache(cache_hash, response)
-
-        logger.debug(
-            "Added %r response to cache. hash %s",
-            command if len(command) < 20 else f"{command[:20]}...",
-            cache_hash,
-        )
+        if response.data:
+            self.cache.add_cache(cache_hash, response)
+            logger.debug(
+                "Added %r response to cache. Hash: %s",
+                command if len(command) < 50 else f"{command[:50]}...",
+                cache_hash,
+            )
 
         return response
 
