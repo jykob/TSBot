@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class TSEvent:
-    __slots__ = ["event", "msg", "ctx"]
+    __slots__ = "event", "msg", "ctx"
 
     def __init__(self, event: str, msg: str | None = None, ctx: dict[str, str] | None = None) -> None:
         self.event = event
@@ -39,7 +39,7 @@ T_EventHandler: TypeAlias = Callable[..., Coroutine[TSEvent, None, None]]
 
 
 class TSEventHandler:
-    __slots__ = ["event", "handler", "plugin_instance"]
+    __slots__ = "event", "handler", "plugin_instance"
 
     def __init__(self, event: str, handler: T_EventHandler, plugin_instance: TSPlugin | None = None) -> None:
         self.event = event

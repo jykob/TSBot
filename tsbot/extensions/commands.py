@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class TSCommand:
-    __slots__ = ["commands", "handler", "plugin_instance", "checks"]
+    __slots__ = "commands", "handler", "plugin_instance", "checks"
 
     def __init__(
         self, commands: tuple[str, ...], handler: T_CommandHandler, plugin_instance: TSPlugin | None = None
