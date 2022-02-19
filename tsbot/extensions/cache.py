@@ -47,10 +47,10 @@ class Cache(Extension):
 
             logger.debug("Running cache clean-up")
 
-            delete_after: float = self.CACHE_MAX_LIFETIME + time()
+            delete_timestamp: float = time() - self.CACHE_MAX_LIFETIME
 
             for key, value in self._cache.items():
-                if value.timestamp < delete_after:
+                if not value.timestamp < delete_timestamp:
                     continue
 
                 logger.debug("Deleting key %r", key)
