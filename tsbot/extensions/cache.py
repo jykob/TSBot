@@ -27,10 +27,10 @@ class Cache(Extension):
     def __init__(self, parent: TSBot) -> None:
         super().__init__(parent)
 
-        self.cache: dict[int, CacheRecord] = {}
+        self._cache: dict[int, CacheRecord] = {}
 
     def get_cache(self, cache_hash: int, max_age: int | float) -> response.TSResponse | None:
-        cached_response = self.cache.get(cache_hash)
+        cached_response = self._cache.get(cache_hash)
 
         if not cached_response:
             return None
@@ -39,18 +39,22 @@ class Cache(Extension):
             return cached_response.record
 
     def add_cache(self, cache_hash: int, response: response.TSResponse) -> None:
-        self.cache[cache_hash] = CacheRecord(time(), response)
+        self._cache[cache_hash] = CacheRecord(time(), response)
 
     async def _clean_cache(self) -> None:
         while True:
             await asyncio.sleep(self.CACHE_CLEANUP_DELAY)
 
-            now: float = time()
-            for key, value in self.cache.items():
-                if value.timestamp + self.CACHE_MAX_LIFETIME < now:
+            logger.debug("Running cache clean-up")
+
+            delete_after: float = self.CACHE_MAX_LIFETIME + time()
+
+            for key, value in self._cache.items():
+                if value.timestamp < delete_after:
                     continue
 
-                del self.cache[key]
+                logger.debug("Deleting key %r", key)
+                del self._cache[key]
 
     async def run(self) -> None:
         self.parent.register_background_task(self._clean_cache, name="CacheClean")
