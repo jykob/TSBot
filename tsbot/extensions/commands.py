@@ -4,20 +4,18 @@ import asyncio
 import inspect
 import itertools
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, TypeAlias
 
 from tsbot import plugin
 from tsbot.enums import TextMessageTargetMode
 from tsbot.exceptions import TSCommandError, TSPermissionError
-from tsbot.extensions import events
+from tsbot.extensions import events, extension
 
 if TYPE_CHECKING:
-    from typing import Any, Callable, Coroutine, TypeAlias
-
     from tsbot.bot import TSBot
-    from tsbot.extensions import extension
 
-    T_CommandHandler: TypeAlias = Callable[..., Coroutine[None, None, None]]
+
+T_CommandHandler: TypeAlias = Callable[..., Coroutine[None, None, None]]
 
 
 logger = logging.getLogger(__name__)

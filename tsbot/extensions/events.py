@@ -4,16 +4,14 @@ import asyncio
 import logging
 import warnings
 from collections import defaultdict
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, TypeAlias
 
 from tsbot import utils
 from tsbot.exceptions import TSException
+from tsbot.extensions import extension
 
 if TYPE_CHECKING:
-    from typing import Any, Callable, Coroutine, TypeAlias
-
     from tsbot.bot import TSBot
-    from tsbot.extensions import extension
     from tsbot.plugin import TSPlugin
 
 
