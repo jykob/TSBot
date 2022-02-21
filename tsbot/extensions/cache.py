@@ -6,10 +6,10 @@ from time import time
 from typing import TYPE_CHECKING, NamedTuple
 
 from tsbot import response
-from tsbot.extensions.extension import Extension
 
 if TYPE_CHECKING:
     from tsbot.bot import TSBot
+    from tsbot.extensions import extension
 
 
 logger = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ class CacheRecord(NamedTuple):
     record: response.TSResponse
 
 
-class Cache(Extension):
+class Cache(extension.Extension):
     CACHE_CLEANUP_DELAY: int = 60 * 10
     CACHE_MAX_LIFETIME: int = 60 * 10
 
