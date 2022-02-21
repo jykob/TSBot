@@ -4,14 +4,16 @@ import asyncio
 import logging
 import warnings
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, Callable, Coroutine, TypeAlias
+from typing import TYPE_CHECKING
 
+from tsbot import utils
 from tsbot.exceptions import TSException
-from tsbot.extensions.extension import Extension
-from tsbot.utils import parse_line
 
 if TYPE_CHECKING:
+    from typing import Any, Callable, Coroutine, TypeAlias
+
     from tsbot.bot import TSBot
+    from tsbot.extensions import extension
     from tsbot.plugin import TSPlugin
 
 
@@ -32,7 +34,7 @@ class TSEvent:
     @classmethod
     def from_server_response(cls, raw_data: str):
         event, data = raw_data.split(" ", maxsplit=1)
-        return cls(event=event.removeprefix("notify"), msg=None, ctx=parse_line(data))
+        return cls(event=event.removeprefix("notify"), msg=None, ctx=utils.parse_line(data))
 
 
 T_EventHandler: TypeAlias = Callable[..., Coroutine[TSEvent, None, None]]
@@ -64,7 +66,7 @@ class TSEventHandler:
         return self.run(*args, **kwargs)
 
 
-class EventHanlder(Extension):
+class EventHanlder(extension.Extension):
     def __init__(self, parent: TSBot) -> None:
         super().__init__(parent)
         self.event_handlers: defaultdict[str, list[TSEventHandler]] = defaultdict(list)

@@ -3,16 +3,15 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from tsbot.extensions.extension import Extension
-
 
 if TYPE_CHECKING:
     from tsbot.bot import TSBot
+    from tsbot.extensions import extension
 
 logger = logging.getLogger(__name__)
 
 
-class BotInfo(Extension):
+class BotInfo(extension.Extension):
     def __init__(self, parent: TSBot) -> None:
         super().__init__(parent)
 
