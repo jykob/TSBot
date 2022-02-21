@@ -67,6 +67,10 @@ class TSBot:
         self._response: asyncio.Future[TSResponse]
         self._response_lock = asyncio.Lock()
 
+    @property
+    def bot_info(self) -> bot_info.BotInfo:
+        return self.extensions.bot_info
+
     async def _select_server(self) -> None:
         """Set current virtual server"""
         await self.send(TSQuery("use").params(sid=self.server_id))
