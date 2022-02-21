@@ -42,19 +42,23 @@ class Cache(extension.Extension):
         self._cache[cache_hash] = CacheRecord(time(), response)
 
     async def _clean_cache(self) -> None:
-        while True:
-            await asyncio.sleep(self.CACHE_CLEANUP_DELAY)
+        try:
+            while True:
+                await asyncio.sleep(self.CACHE_CLEANUP_DELAY)
 
-            logger.debug("Running cache clean-up")
+                logger.debug("Running cache clean-up")
 
-            delete_timestamp: float = time() - self.CACHE_MAX_LIFETIME
+                delete_timestamp: float = time() - self.CACHE_MAX_LIFETIME
 
-            for key, value in self._cache.items():
-                if not value.timestamp < delete_timestamp:
-                    continue
+                for key, value in self._cache.items():
+                    if not value.timestamp < delete_timestamp:
+                        continue
 
-                logger.debug("Deleting key %r", key)
-                del self._cache[key]
+                    logger.debug("Deleting key %r", key)
+                    del self._cache[key]
+
+        except asyncio.CancelledError:
+            pass
 
     async def run(self) -> None:
         self.parent.register_background_task(self._clean_cache, name="CacheClean")

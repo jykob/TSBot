@@ -32,16 +32,20 @@ class KeepAlive(extension.Extension):
         """
         logger.debug("Keep-alive task started")
 
-        while True:
-            self.command_sent_event.clear()
-            try:
-                await asyncio.wait_for(
-                    asyncio.shield(self.command_sent_event.wait()),
-                    timeout=self.KEEP_ALIVE_INTERVAL,
-                )
-            except asyncio.TimeoutError:
-                logger.debug("Sengind keep-alive")
-                await self.parent.send_raw(self.KEEP_ALIVE_COMMAND)
+        try:
+            while True:
+                self.command_sent_event.clear()
+                try:
+                    await asyncio.wait_for(
+                        asyncio.shield(self.command_sent_event.wait()),
+                        timeout=self.KEEP_ALIVE_INTERVAL,
+                    )
+                except asyncio.TimeoutError:
+                    logger.debug("Sengind keep-alive")
+                    await self.parent.send_raw(self.KEEP_ALIVE_COMMAND)
+
+        except asyncio.CancelledError:
+            pass
 
     async def run(self):
         self.parent.register_background_task(self._keep_alive_task, name="KeepAlive-Task")
