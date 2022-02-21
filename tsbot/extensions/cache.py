@@ -6,10 +6,10 @@ from time import time
 from typing import TYPE_CHECKING, NamedTuple
 
 from tsbot import response
+from tsbot.extensions import extension
 
 if TYPE_CHECKING:
     from tsbot.bot import TSBot
-    from tsbot.extensions import extension
 
 
 logger = logging.getLogger(__name__)
