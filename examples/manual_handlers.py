@@ -6,7 +6,7 @@ from tsbot import TSBot, events
 from tsbot.query import query
 
 
-async def hello_world(bot: TSBot, ctx: dict[str, str], *args: str, **kwargs: str):
+async def hello_world(bot: TSBot, ctx: dict[str, str]):
     await bot.respond(ctx, "Hello World!")
 
 
