@@ -131,11 +131,13 @@ class TSBot:
         self.extensions.event_handler.register_event_handler(event_handler)
         return event_handler
 
-    def command(self, *command: str, help_text: str | None = None, raw: bool = False) -> commands.TSCommand:
+    def command(
+        self, *command: str, help_text: str | None = None, raw: bool = False, hidden: bool = False
+    ) -> commands.TSCommand:
         """Decorator to register coroutines on command"""
 
         def command_decorator(func: commands.T_CommandHandler) -> commands.TSCommand:
-            return self.register_command(command, func, help_text=help_text, raw=raw)
+            return self.register_command(command, func, help_text=help_text, raw=raw, hidden=hidden)
 
         return command_decorator  # type: ignore
 
@@ -146,6 +148,7 @@ class TSBot:
         *,
         help_text: str | None = None,
         raw: bool = False,
+        hidden: bool = False,
     ) -> commands.TSCommand:
         """
         Register Coroutines to be ran on specific command
@@ -155,7 +158,7 @@ class TSBot:
         if isinstance(command, str):
             command = (command,)
 
-        command_handler = commands.TSCommand(command, handler, help_text, raw)
+        command_handler = commands.TSCommand(command, handler, help_text=help_text, raw=raw, hidden=hidden)
         self.extensions.command_handler.register_command(command_handler)
         return command_handler
 

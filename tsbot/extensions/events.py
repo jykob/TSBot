@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import warnings
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any, Callable, Coroutine, TypeAlias
 
@@ -23,7 +22,7 @@ class TSEvent:
     def __init__(self, event: str, msg: str | None = None, ctx: dict[str, str] | None = None) -> None:
         self.event = event
         self.msg = msg
-        self.ctx: dict[str, str] = ctx if ctx else {}
+        self.ctx: dict[str, str] = ctx or {}
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(event={self.event!r}, msg={self.msg!r}, ctx={self.ctx!r})"
@@ -54,10 +53,12 @@ class TSEventHandler:
         )
 
     async def run(self, bot: TSBot, event: TSEvent) -> None:
+        event_args = (bot, event)
+
         if self.plugin_instance:
-            await self.handler(self.plugin_instance, bot, event)
-        else:
-            await self.handler(bot, event)
+            event_args = (self.plugin_instance, *event_args)
+
+        await self.handler(*event_args)
 
     def __call__(self, *args: Any, **kwargs: Any):
         return self.run(*args, **kwargs)
@@ -66,28 +67,15 @@ class TSEventHandler:
 class EventHanlder(extension.Extension):
     def __init__(self, parent: TSBot) -> None:
         super().__init__(parent)
+
         self.event_handlers: defaultdict[str, list[TSEventHandler]] = defaultdict(list)
-
         self.event_queue: asyncio.Queue[TSEvent] = asyncio.Queue()
-
-    async def _run_event_handler(
-        self, event: TSEvent, event_handler: TSEventHandler, timeout: float | None = None
-    ) -> None:
-        try:
-            await asyncio.wait_for(event_handler.run(self.parent, event), timeout=timeout)
-
-        except asyncio.TimeoutError:
-            warnings.warn(f"Event handler {event_handler!r} took too long to run while cancelled")
-
-        except Exception as e:
-            logger.exception("%s while running %r: %s", e.__class__.__qualname__, event_handler.handler.__qualname__, e)
-            raise
 
     def _handle_event(self, event: TSEvent, timeout: float | None = None):
         event_handlers = self.event_handlers.get(event.event, [])
 
         for event_handler in event_handlers:
-            asyncio.create_task(self._run_event_handler(event, event_handler, timeout))
+            asyncio.create_task(asyncio.wait_for(event_handler.run(self.parent, event), timeout=timeout))
 
     async def _handle_events_task(self) -> None:
         """
@@ -108,14 +96,12 @@ class EventHanlder(extension.Extension):
         except asyncio.CancelledError:
             while not self.event_queue.empty():
                 event = await self.event_queue.get()
-
                 self._handle_event(event, timeout=1.0)
 
                 self.event_queue.task_done()
 
     def register_event_handler(self, event_handler: TSEventHandler) -> None:
         """Registers event handlers that will be called when given event happens"""
-
         self.event_handlers[event_handler.event].append(event_handler)
 
         logger.debug(f"Registered {event_handler.event!r} event to execute {event_handler.handler.__qualname__!r}")

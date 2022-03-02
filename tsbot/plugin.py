@@ -14,11 +14,11 @@ class TSPlugin:
     """Base class for plugins"""
 
 
-def command(*command: str, help_text: str | None = None, raw: bool = False):
+def command(*command: str, help_text: str | None = None, raw: bool = False, hidden: bool = False):
     """Decorator to register coroutines on commands"""
 
     def command_decorator(func: T_CommandHandler) -> commands.TSCommand:
-        return commands.TSCommand(command, func, help_text, raw)
+        return commands.TSCommand(command, func, help_text=help_text, raw=raw, hidden=hidden)
 
     return command_decorator
 

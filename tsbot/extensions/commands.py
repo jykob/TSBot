@@ -22,25 +22,30 @@ logger = logging.getLogger(__name__)
 
 
 class TSCommand:
-    __slots__ = "commands", "handler", "help_text", "plugin_instance", "checks", "raw"
-
     def __init__(
-        self, commands: tuple[str, ...], handler: T_CommandHandler, help_text: str | None = None, raw: bool = False
+        self,
+        commands: tuple[str, ...],
+        handler: T_CommandHandler,
+        *,
+        help_text: str | None = None,
+        raw: bool = False,
+        hidden: bool = False,
     ) -> None:
         self.commands = commands
         self.handler = handler
+
         self.help_text = help_text
+        self.raw = raw
+        self.hidden = hidden
+
         self.plugin_instance: plugin.TSPlugin | None = None
         self.checks: list[T_CommandHandler] = []
-        self.raw = raw
 
     def __repr__(self) -> str:
         return (
             f"{self.__class__.__qualname__}(commands={self.commands!r}, "
             f"handler={self.handler.__qualname__!r}, "
-            f"help_txt={self.help_text!r}, "
-            f"plugin={None if not self.plugin_instance else self.plugin_instance.__class__.__qualname__!r}, "
-            f"checks=[{', '.join(check.__qualname__ for check in self.checks)}]"
+            f"plugin={self.plugin_instance.__class__.__qualname__ if self.plugin_instance else None!r}"
             ")"
         )
 
@@ -55,42 +60,54 @@ class TSCommand:
         return tuple(itertools.islice(signature.parameters.values(), params_to_discard, None))
 
     @property
-    def usage(self):
+    def usage(self) -> str:
         usage: list[str] = []
 
         for param in self.call_signature:
             if param.kind is inspect.Parameter.VAR_POSITIONAL:
                 usage.append(f"[{param.name!r}, ...]")
+
             elif param.kind is inspect.Parameter.KEYWORD_ONLY:
                 usage.append(
                     f"-{param.name} {'[!]' if param.default is param.empty else '[?]'}"
                     f"{f' ({param.default!r})' if param.default not in (param.empty, None) else ''}"
                 )
+
             else:
                 usage.append(
                     f"{param.name!r}"
                     f"""{f" ({param.default or '?'!r})" if param.default is not param.empty else ''}"""
                 )
 
-        return " ".join(usage)
+        return f"Usage: {' | '.join(self.commands)}  {' '.join(usage)}"
 
-    async def run(self, bot: TSBot, ctx: dict[str, str], *args: str, **kwargs: str) -> None:
-        if self.checks:
-            done, pending = await asyncio.wait(
-                [check(bot, ctx, *args, **kwargs) for check in self.checks],
-                return_when=asyncio.FIRST_EXCEPTION,
-            )
-            for pending_task in pending:
-                pending_task.cancel()
+    async def run_checks(self, bot: TSBot, ctx: dict[str, str], *args: str, **kwargs: str):
+        done, pending = await asyncio.wait(
+            [check(bot, ctx, *args, **kwargs) for check in self.checks],
+            return_when=asyncio.FIRST_EXCEPTION,
+        )
+        for pending_task in pending:
+            pending_task.cancel()
 
-            for done_task in done:
-                if exception := done_task.exception():
-                    raise exception
+        for done_task in done:
+            if exception := done_task.exception():
+                raise exception
 
-        if self.plugin_instance:
-            await self.handler(self.plugin_instance, bot, ctx, *args, **kwargs)
+    async def run(self, bot: TSBot, ctx: dict[str, str], msg: str) -> None:
+
+        if self.raw:
+            args, kwargs = (msg,), {}
         else:
-            await self.handler(bot, ctx, *args, **kwargs)
+            args, kwargs = _parse_args_kwargs(msg)
+
+        if self.checks:
+            await self.run_checks(bot, ctx, *args, **kwargs)
+
+        command_args = (bot, ctx)
+        if self.plugin_instance:
+            command_args = (self.plugin_instance, *command_args)
+
+        await self.handler(*command_args, *args, **kwargs)
 
     def __call__(self, *args: Any, **kwargs: Any):
         return self.run(*args, **kwargs)
@@ -113,7 +130,7 @@ class CommandHandler(extension.Extension):
         """Logic to handle commands"""
 
         # If sender is the bot, return:
-        if event.ctx.get("invokeruid") in (None, self.parent.extensions.bot_info.unique_identifier):
+        if event.ctx.get("invokeruid") in (None, self.parent.bot_info.unique_identifier):
             return
 
         msg = event.ctx.get("msg", "").strip()
@@ -147,19 +164,10 @@ class CommandHandler(extension.Extension):
         logger.debug("%s executed command %s(%r)", event.ctx["invokername"], command, msg)
 
         try:
-            if command_handler.raw:
-                await command_handler.run(bot, event.ctx, msg)
-            else:
-                args, kwargs = _parse_args_kwargs(msg)
-                await command_handler.run(bot, event.ctx, *args, **kwargs)
+            await command_handler.run(bot, event.ctx, msg)
 
         except TypeError:
-            response_text = f"Usage: {bot.invoker}{command}"
-
-            if usage := command_handler.usage:
-                response_text += f" {usage}"
-
-            await bot.respond(event.ctx, response_text)
+            await bot.respond(event.ctx, command_handler.usage)
 
         except TSCommandError as e:
             bot.emit(events.TSEvent(event="command_error", msg=f"{str(e)}", ctx=event.ctx))
@@ -175,15 +183,13 @@ class CommandHandler(extension.Extension):
 async def _help_handler(bot: TSBot, ctx: dict[str, str], command: str):
     command_handler = bot.extensions.command_handler.commands.get(command)
 
-    if not command_handler:
+    if not command_handler or command_handler.hidden:
         raise TSCommandError("Command not found")
 
     response_text = "\n"
 
     if help_text := command_handler.help_text:
         response_text += f"{help_text}\n"
-
-    response_text += f"Usage: {bot.invoker}{command}"
 
     if usage := command_handler.usage:
         response_text += f" {usage}"
