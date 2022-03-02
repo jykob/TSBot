@@ -177,7 +177,7 @@ class CommandHandler(extension.Extension):
 
     async def run(self):
         self.parent.register_event_handler("textmessage", self._handle_command_event)
-        self.register_command(TSCommand(("help",), _help_handler, help_text="Print help of a command"))
+        self.register_command(TSCommand(("help",), _help_handler, help_text="Print help text of a command"))
 
 
 async def _help_handler(bot: TSBot, ctx: dict[str, str], command: str):
@@ -192,7 +192,7 @@ async def _help_handler(bot: TSBot, ctx: dict[str, str], command: str):
         response_text += f"{help_text}\n"
 
     if usage := command_handler.usage:
-        response_text += f" {usage}"
+        response_text += f"{usage}"
 
     await bot.respond(ctx, response_text)
 
