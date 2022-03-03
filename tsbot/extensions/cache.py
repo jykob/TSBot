@@ -21,16 +21,16 @@ class CacheRecord(NamedTuple):
 
 
 class Cache(extension.Extension):
-    CACHE_CLEANUP_DELAY: int = 60 * 10
+    CACHE_CLEANUP_INTERVAL: int = 60 * 10
     CACHE_MAX_LIFETIME: int = 60 * 10
 
     def __init__(self, parent: TSBot) -> None:
         super().__init__(parent)
 
-        self._cache: dict[int, CacheRecord] = {}
+        self.cache: dict[int, CacheRecord] = {}
 
     def get_cache(self, cache_hash: int, max_age: int | float) -> response.TSResponse | None:
-        cached_response = self._cache.get(cache_hash)
+        cached_response = self.cache.get(cache_hash)
 
         if not cached_response:
             return None
@@ -39,23 +39,23 @@ class Cache(extension.Extension):
             return cached_response.record
 
     def add_cache(self, cache_hash: int, response: response.TSResponse) -> None:
-        self._cache[cache_hash] = CacheRecord(time(), response)
+        self.cache[cache_hash] = CacheRecord(time(), response)
 
     async def _clean_cache(self) -> None:
         try:
             while True:
-                await asyncio.sleep(self.CACHE_CLEANUP_DELAY)
+                await asyncio.sleep(self.CACHE_CLEANUP_INTERVAL)
 
                 logger.debug("Running cache clean-up")
 
                 delete_timestamp: float = time() - self.CACHE_MAX_LIFETIME
 
-                for key, value in self._cache.items():
+                for key, value in tuple(self.cache.items()):
                     if not value.timestamp < delete_timestamp:
                         continue
 
                     logger.debug("Deleting key %r", key)
-                    del self._cache[key]
+                    del self.cache[key]
 
         except asyncio.CancelledError:
             pass
