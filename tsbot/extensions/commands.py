@@ -181,7 +181,7 @@ class CommandHandler(extension.Extension):
 
 
 async def _help_handler(bot: TSBot, ctx: dict[str, str], command: str):
-    command_handler = bot.extensions.command_handler.commands.get(command)
+    command_handler = bot.ext.command_handler.commands.get(command)
 
     if not command_handler or command_handler.hidden:
         raise TSCommandError("Command not found")

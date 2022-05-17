@@ -4,8 +4,8 @@ from typing import TypeVar
 
 from tsbot.utils import escape
 
-T_TSQuery = TypeVar("T_TSQuery", bound="TSQuery")
-T_Stringable = str | int | float | bytes
+TTSQuery = TypeVar("TTSQuery", bound="TSQuery")
+TStringable = str | int | float | bytes
 
 
 class TSQuery:
@@ -18,18 +18,18 @@ class TSQuery:
         self._parameters: dict[str, str] = {}
         self._parameter_blocks: list[dict[str, str]] = []
 
-    def option(self: T_TSQuery, *args: T_Stringable) -> T_TSQuery:
+    def option(self: TTSQuery, *args: TStringable) -> TTSQuery:
         """
         Add options to the command
         """
         self._options.extend(str(arg) for arg in args)
         return self
 
-    def params(self: T_TSQuery, **kwargs: T_Stringable) -> T_TSQuery:
+    def params(self: TTSQuery, **kwargs: TStringable) -> TTSQuery:
         self._parameters.update({k: str(v) for k, v in kwargs.items()})
         return self
 
-    def param_block(self: T_TSQuery, **kwargs: T_Stringable) -> T_TSQuery:
+    def param_block(self: TTSQuery, **kwargs: TStringable) -> TTSQuery:
         self._parameter_blocks.append({k: str(v) for k, v in kwargs.items()})
         return self
 
