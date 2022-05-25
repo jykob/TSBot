@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from tsbot.bot import TSBot
 
 
-T_CommandHandler: TypeAlias = Callable[..., Coroutine[None, None, None]]
+TCommandHandler: TypeAlias = Callable[..., Coroutine[None, None, None]]
 
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ class TSCommand:
     def __init__(
         self,
         commands: tuple[str, ...],
-        handler: T_CommandHandler,
+        handler: TCommandHandler,
         *,
         help_text: str | None = None,
         raw: bool = False,
@@ -39,7 +39,7 @@ class TSCommand:
         self.hidden = hidden
 
         self.plugin_instance: plugin.TSPlugin | None = None
-        self.checks: list[T_CommandHandler] = []
+        self.checks: list[TCommandHandler] = []
 
     def __repr__(self) -> str:
         return (
@@ -49,7 +49,7 @@ class TSCommand:
             ")"
         )
 
-    def add_check(self, func: T_CommandHandler) -> None:
+    def add_check(self, func: TCommandHandler) -> None:
         self.checks.append(func)
 
     @property
@@ -220,7 +220,7 @@ def _parse_args_kwargs(msg: str) -> tuple[tuple[str, ...], dict[str, str]]:
     return tuple(args), kwargs
 
 
-def add_check(func: T_CommandHandler) -> TSCommand:
+def add_check(func: TCommandHandler) -> TSCommand:
     def check_decorator(command_handler: TSCommand) -> TSCommand:
         command_handler.add_check(func)
         return command_handler

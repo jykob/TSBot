@@ -33,13 +33,13 @@ class TSEvent:
         return cls(event=event.removeprefix("notify"), msg=None, ctx=utils.parse_line(data))
 
 
-T_EventHandler: TypeAlias = Callable[..., Coroutine[TSEvent, None, None]]
+TEventHandler: TypeAlias = Callable[..., Coroutine[TSEvent, None, None]]
 
 
 class TSEventHandler:
     __slots__ = "event", "handler", "plugin_instance"
 
-    def __init__(self, event: str, handler: T_EventHandler, plugin_instance: TSPlugin | None = None) -> None:
+    def __init__(self, event: str, handler: TEventHandler, plugin_instance: TSPlugin | None = None) -> None:
         self.event = event
         self.handler = handler
         self.plugin_instance = plugin_instance
@@ -75,7 +75,9 @@ class EventHanlder(extension.Extension):
         event_handlers = self.event_handlers.get(event.event, [])
 
         for event_handler in event_handlers:
-            asyncio.create_task(asyncio.wait_for(event_handler.run(self.parent, event), timeout=timeout))
+            asyncio.create_task(
+                asyncio.wait_for(event_handler.run(self.parent, event), timeout=timeout), name="EventHandler"
+            )
 
     async def _handle_events_task(self) -> None:
         """
@@ -96,7 +98,7 @@ class EventHanlder(extension.Extension):
         except asyncio.CancelledError:
             while not self.event_queue.empty():
                 event = await self.event_queue.get()
-                self._handle_event(event, timeout=1.0)
+                self._handle_event(event, timeout=5.0)
 
                 self.event_queue.task_done()
 
