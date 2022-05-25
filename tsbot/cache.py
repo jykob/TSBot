@@ -3,13 +3,9 @@ from __future__ import annotations
 import asyncio
 import logging
 from time import time
-from typing import TYPE_CHECKING, NamedTuple
+from typing import NamedTuple
 
-from tsbot import response
-from tsbot.extensions import extension
-
-if TYPE_CHECKING:
-    from tsbot.bot import TSBot
+from tsbot.response import TSResponse
 
 
 logger = logging.getLogger(__name__)
@@ -17,19 +13,17 @@ logger = logging.getLogger(__name__)
 
 class CacheRecord(NamedTuple):
     timestamp: float
-    record: response.TSResponse
+    record: TSResponse
 
 
-class Cache(extension.Extension):
-    CACHE_CLEANUP_INTERVAL: int = 60 * 10
+class Cache:
+    CACHE_CLEANUP_INTERVAL: int = 60 * 5
     CACHE_MAX_LIFETIME: int = 60 * 10
 
-    def __init__(self, parent: TSBot) -> None:
-        super().__init__(parent)
-
+    def __init__(self) -> None:
         self.cache: dict[int, CacheRecord] = {}
 
-    def get_cache(self, cache_hash: int, max_age: int | float) -> response.TSResponse | None:
+    def get_cache(self, cache_hash: int, max_age: int | float) -> TSResponse | None:
         cached_response = self.cache.get(cache_hash)
 
         if not cached_response:
@@ -38,10 +32,10 @@ class Cache(extension.Extension):
         if cached_response.timestamp + max_age > time():
             return cached_response.record
 
-    def add_cache(self, cache_hash: int, response: response.TSResponse) -> None:
+    def add_cache(self, cache_hash: int, response: TSResponse) -> None:
         self.cache[cache_hash] = CacheRecord(time(), response)
 
-    async def _clean_cache(self) -> None:
+    async def cache_cleanup_task(self) -> None:
         try:
             while True:
                 await asyncio.sleep(self.CACHE_CLEANUP_INTERVAL)
@@ -59,6 +53,3 @@ class Cache(extension.Extension):
 
         except asyncio.CancelledError:
             pass
-
-    async def run(self) -> None:
-        self.parent.register_background_task(self._clean_cache, name="CacheClean")

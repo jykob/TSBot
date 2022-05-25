@@ -2,37 +2,47 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Callable, Coroutine, Generator
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 from tsbot import enums
+from tsbot.cache import Cache
+from tsbot.commands.handler import CommandHandler
+from tsbot.commands.tscommand import TSCommand
 from tsbot.connection import TSConnection
+from tsbot.events.handler import EventHanlder
+from tsbot.events.tsevent import TSEvent
+from tsbot.events.tsevent_handler import TSEventHandler
 from tsbot.exceptions import TSResponseError
-from tsbot.extensions import commands
-from tsbot.extensions import events
-from tsbot.extensions import keepalive
-from tsbot.extensions import bot_info
-from tsbot.extensions import cache
-
 from tsbot.query import TSQuery
 from tsbot.response import TSResponse
 
+from tsbot.default_plugins.help import Help
+from tsbot.default_plugins.keepalive import KeepAlive
+
 if TYPE_CHECKING:
     from tsbot.plugin import TSPlugin
-    from tsbot.extensions import extension
+    from tsbot.typealiases import TBackgroundTask, TCommandHandler, TEventHandler
 
 logger = logging.getLogger(__name__)
 
 
-class TSBotExtensions:
-    def __init__(self, parent: TSBot) -> None:
-        self.event_handler = events.EventHanlder(parent)
-        self.command_handler = commands.CommandHandler(parent)
-        self.keep_alive = keepalive.KeepAlive(parent)
-        self.cache = cache.Cache(parent)
-        self.bot_info = bot_info.BotInfo(parent)
+@dataclass(slots=True)
+class TSBotInfo:
+    clid: str = field(init=False)
+    database_id: str = field(init=False)
+    login_name: str = field(init=False)
+    nickname: str = field(init=False)
+    unique_identifier: str = field(init=False)
 
-    def __iter__(self) -> Generator[extension.Extension, None, None]:
-        yield from self.__dict__.values()
+    async def update(self, bot: TSBot):
+        response = await bot.send_raw("whoami")
+
+        self.clid = response.first["client_id"]
+        self.database_id = response.first["client_database_id"]
+        self.login_name = response.first["client_login_name"]
+        self.nickname = response.first["client_nickname"]
+        self.unique_identifier = response.first["client_unique_identifier"]
 
 
 class TSBot:
@@ -48,9 +58,9 @@ class TSBot:
         invoker: str = "!",
     ) -> None:
         self.server_id = server_id
-        self.invoker = invoker
 
         self.plugins: dict[str, TSPlugin] = {}
+        self._background_tasks: list[asyncio.Task[None]] = []
 
         self._connection = TSConnection(
             username=username,
@@ -58,18 +68,16 @@ class TSBot:
             address=address,
             port=port,
         )
-        self.ext = TSBotExtensions(self)
+
+        self.event_handler = EventHanlder(self)
+        self.command_handler = CommandHandler(invoker)
+        self.cache = Cache()
+        self.bot_info = TSBotInfo()
 
         self._reader_ready_event = asyncio.Event()
 
-        self._background_tasks: list[asyncio.Task[None]] = []
-
         self._response: asyncio.Future[TSResponse]
         self._response_lock = asyncio.Lock()
-
-    @property
-    def bot_info(self) -> bot_info.BotInfo:
-        return self.ext.bot_info
 
     async def _select_server(self) -> None:
         """Set current virtual server"""
@@ -95,7 +103,7 @@ class TSBot:
 
         async for data in self._connection.read():
             if data.startswith("notify"):
-                self.emit(events.TSEvent.from_server_response(data))
+                self.emit(TSEvent.from_server_response(data))
 
             elif data.startswith("error"):
                 response_buffer.append(data)
@@ -108,35 +116,35 @@ class TSBot:
 
         self._reader_ready_event.clear()
 
-    def emit(self, event: events.TSEvent) -> None:
+    def emit(self, event: TSEvent) -> None:
         """Emits an event to be handled"""
-        self.ext.event_handler.event_queue.put_nowait(event)
+        self.event_handler.event_queue.put_nowait(event)
 
-    def on(self, event_type: str) -> events.TSEventHandler:
+    def on(self, event_type: str) -> TSEventHandler:
         """Decorator to register coroutines on events"""
 
-        def event_decorator(func: events.T_EventHandler) -> events.TSEventHandler:
+        def event_decorator(func: TEventHandler) -> TSEventHandler:
             return self.register_event_handler(event_type, func)
 
         return event_decorator  # type: ignore
 
-    def register_event_handler(self, event_type: str, handler: events.T_EventHandler) -> events.TSEventHandler:
+    def register_event_handler(self, event_type: str, handler: TEventHandler) -> TSEventHandler:
         """
         Register Coroutines to be ran on events
 
         Returns the event handler.
         """
 
-        event_handler = events.TSEventHandler(event_type, handler)
-        self.ext.event_handler.register_event_handler(event_handler)
+        event_handler = TSEventHandler(event_type, handler)
+        self.event_handler.register_event_handler(event_handler)
         return event_handler
 
     def command(
         self, *command: str, help_text: str | None = None, raw: bool = False, hidden: bool = False
-    ) -> commands.TSCommand:
+    ) -> TSCommand:
         """Decorator to register coroutines on command"""
 
-        def command_decorator(func: commands.T_CommandHandler) -> commands.TSCommand:
+        def command_decorator(func: TCommandHandler) -> TSCommand:
             return self.register_command(command, func, help_text=help_text, raw=raw, hidden=hidden)
 
         return command_decorator  # type: ignore
@@ -144,12 +152,12 @@ class TSBot:
     def register_command(
         self,
         command: str | tuple[str, ...],
-        handler: commands.T_CommandHandler,
+        handler: TCommandHandler,
         *,
         help_text: str | None = None,
         raw: bool = False,
         hidden: bool = False,
-    ) -> commands.TSCommand:
+    ) -> TSCommand:
         """
         Register Coroutines to be ran on specific command
 
@@ -158,13 +166,11 @@ class TSBot:
         if isinstance(command, str):
             command = (command,)
 
-        command_handler = commands.TSCommand(command, handler, help_text=help_text, raw=raw, hidden=hidden)
-        self.ext.command_handler.register_command(command_handler)
+        command_handler = TSCommand(command, handler, help_text=help_text, raw=raw, hidden=hidden)
+        self.command_handler.register_command(command_handler)
         return command_handler
 
-    def register_background_task(
-        self, background_handler: Callable[..., Coroutine[None, None, None]], *, name: str | None = None
-    ):
+    def register_background_task(self, background_handler: TBackgroundTask, *, name: str | None = None):
         """Registers a coroutine as background task"""
         self._background_tasks.append(asyncio.create_task(background_handler(), name=name))
         logger.debug("Registered %r as a background task", background_handler.__qualname__)
@@ -196,7 +202,7 @@ class TSBot:
 
         cache_hash = hash(command)
 
-        if max_cache_age and (cached_response := self.ext.cache.get_cache(cache_hash, max_cache_age)):
+        if max_cache_age and (cached_response := self.cache.get_cache(cache_hash, max_cache_age)):
             logger.debug(
                 "Got cache hit for %r. hash: %s",
                 command if len(command) < 50 else f"{command[:50]}...",
@@ -206,7 +212,7 @@ class TSBot:
 
         async with self._response_lock:
             # Check cache again to be sure if previous requests added something to the cache
-            if max_cache_age and (cached_response := self.ext.cache.get_cache(cache_hash, max_cache_age)):
+            if max_cache_age and (cached_response := self.cache.get_cache(cache_hash, max_cache_age)):
                 logger.debug(
                     "Got cache hit for %r. hash: %s",
                     command if len(command) < 50 else f"{command[:50]}...",
@@ -216,7 +222,8 @@ class TSBot:
 
             logger.debug("Sending command: %s", command)
             # Tell _keep_alive that command has been sent
-            self.ext.keep_alive.command_sent_event.set()
+
+            self.emit(TSEvent(event="send"))
 
             self._response = asyncio.Future()
             await self._connection.write(command)
@@ -228,7 +235,7 @@ class TSBot:
             raise TSResponseError(f"{response.msg}", error_id=int(response.error_id))
 
         if response.data:
-            self.ext.cache.add_cache(cache_hash, response)
+            self.cache.add_cache(cache_hash, response)
             logger.debug(
                 "Added %r response to cache. Hash: %s",
                 command if len(command) < 50 else f"{command[:50]}...",
@@ -248,7 +255,7 @@ class TSBot:
             return
 
         logger.info("Closing")
-        self.emit(events.TSEvent(event="close"))
+        self.emit(TSEvent(event="close"))
 
         for task in self._background_tasks:
             task.cancel()
@@ -277,10 +284,15 @@ class TSBot:
             await self._select_server()
             await self._register_notifies()
 
-            for extension in self.ext:
-                await extension.run()
+            self.register_background_task(self.event_handler.handle_events_task, name="HandleEvent-Task")
+            self.register_background_task(self.cache.cache_cleanup_task, name="CacheCleanup-Task")
+            self.register_event_handler("textmessage", self.command_handler.handle_command_event)
 
-            self.emit(events.TSEvent(event="ready"))
+            self.load_plugin(Help(), KeepAlive())
+
+            await self.bot_info.update(self)
+
+            self.emit(TSEvent(event="ready"))
 
             await reader
             await self.close()
@@ -295,13 +307,13 @@ class TSBot:
 
         for plugin in plugins:
             for member in plugin.__class__.__dict__.values():
-                if isinstance(member, events.TSEventHandler):
+                if isinstance(member, TSEventHandler):
                     member.plugin_instance = plugin
-                    self.ext.event_handler.register_event_handler(member)
+                    self.event_handler.register_event_handler(member)
 
-                elif isinstance(member, commands.TSCommand):
+                elif isinstance(member, TSCommand):
                     member.plugin_instance = plugin
-                    self.ext.command_handler.register_command(member)
+                    self.command_handler.register_command(member)
 
             self.plugins[plugin.__class__.__name__] = plugin
 
