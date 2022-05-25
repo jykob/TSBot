@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-
 import logging
 from typing import TYPE_CHECKING
-
 
 from tsbot import plugin
 from tsbot.exceptions import TSCommandError

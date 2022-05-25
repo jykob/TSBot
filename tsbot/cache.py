@@ -7,7 +7,6 @@ from typing import NamedTuple
 
 from tsbot.response import TSResponse
 
-
 logger = logging.getLogger(__name__)
 
 

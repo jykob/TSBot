@@ -4,12 +4,10 @@ import itertools
 import logging
 from typing import TYPE_CHECKING
 
-
 from tsbot import enums
-from tsbot.exceptions import TSCommandError, TSPermissionError
 from tsbot.commands.tscommand import TSCommand
 from tsbot.events.tsevent import TSEvent
-
+from tsbot.exceptions import TSCommandError, TSPermissionError
 
 if TYPE_CHECKING:
     from tsbot import bot

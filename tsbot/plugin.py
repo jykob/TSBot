@@ -2,13 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-
 from tsbot.commands.tscommand import TSCommand
 from tsbot.events.tsevent_handler import TSEventHandler
 
 if TYPE_CHECKING:
-    from tsbot.typealiases import TEventHandler
-    from tsbot.typealiases import TCommandHandler
+    from tsbot.typealiases import TCommandHandler, TEventHandler
 
 
 class TSPlugin:

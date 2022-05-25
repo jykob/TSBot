@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Awaitable, Callable, Coroutine, TypeAlias, TypeVar
+from typing import TYPE_CHECKING, Awaitable, Callable, Coroutine, TypeAlias
 
 if TYPE_CHECKING:
     from tsbot.bot import TSBot

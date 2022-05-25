@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import Generator
 
 from tsbot.utils import parse_data, parse_line

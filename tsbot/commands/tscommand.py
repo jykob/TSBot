@@ -8,10 +8,9 @@ from typing import TYPE_CHECKING, Any
 from tsbot import utils
 
 if TYPE_CHECKING:
-    from tsbot.bot import TSBot
     from tsbot import plugin
-    from tsbot.typealiases import TCommandHandler
-    from tsbot.typealiases import TPluginCommandHandler
+    from tsbot.bot import TSBot
+    from tsbot.typealiases import TCommandHandler, TPluginCommandHandler
 
 
 def add_check(func: TCommandHandler) -> TSCommand:
