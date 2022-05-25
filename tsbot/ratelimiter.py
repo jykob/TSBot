@@ -13,14 +13,14 @@ class RateLimiter:
         self._period: float = period
 
         self._calls: int = 0
-        self._since: float = time.monotonic_ns()
+        self._since: float = time.monotonic()
 
     async def wait(self):
-        remaining = self._period - (time.monotonic_ns() - self._since)
+        remaining = self._period - (time.monotonic() - self._since)
 
         if remaining <= 0:
             self._calls = 0
-            self._since = time.monotonic_ns()
+            self._since = time.monotonic()
 
         self._calls += 1
 
