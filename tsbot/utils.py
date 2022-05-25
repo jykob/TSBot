@@ -31,6 +31,29 @@ def parse_value(input_str: str) -> tuple[str, str]:
     return key, unescape(value)
 
 
+def parse_args_kwargs(msg: str) -> tuple[tuple[str, ...], dict[str, str]]:
+    """Parses message in to given command, its arguments and keyword arguments"""
+    msg_list = msg.split()
+
+    args: list[str] = []
+    kwargs: dict[str, str] = {}
+
+    while msg_list:
+        item = msg_list.pop(0)
+
+        if item.startswith("-"):
+            key = item.removeprefix("-")
+            value = ""
+            if len(msg_list) and not msg_list[0].startswith("-"):
+                value = msg_list.pop(0)
+
+            kwargs[key] = value
+        else:
+            args.append(item)
+
+    return tuple(args), kwargs
+
+
 # https://github.com/benediktschmitt/py-ts3/blob/v2/ts3/escape.py
 
 ESCAPE_MAP = [

@@ -1,26 +1,28 @@
 from __future__ import annotations
 
+
 import asyncio
 import logging
 from typing import TYPE_CHECKING
 
-from tsbot.extensions import extension
+
+from tsbot import plugin
 
 if TYPE_CHECKING:
     from tsbot.bot import TSBot
+    from tsbot.events.tsevent import TSEvent
 
 
 logger = logging.getLogger(__name__)
 
 
-class KeepAlive(extension.Extension):
+class KeepAlive(plugin.TSPlugin):
     KEEP_ALIVE_INTERVAL: float = 4 * 60  # 4 minutes
     KEEP_ALIVE_COMMAND: str = "version"
 
-    def __init__(self, parent: TSBot) -> None:
-        super().__init__(parent)
-
+    def __init__(self) -> None:
         self.command_sent_event = asyncio.Event()
+        self.bot: TSBot
 
     async def _keep_alive_task(self) -> None:
         """
@@ -42,10 +44,16 @@ class KeepAlive(extension.Extension):
                     )
                 except asyncio.TimeoutError:
                     logger.debug("Sengind keep-alive")
-                    await self.parent.send_raw(self.KEEP_ALIVE_COMMAND)
+                    await self.bot.send_raw(self.KEEP_ALIVE_COMMAND)
 
         except asyncio.CancelledError:
             pass
 
-    async def run(self):
-        self.parent.register_background_task(self._keep_alive_task, name="KeepAlive-Task")
+    @plugin.on("send")
+    async def on_command_sent(self, bot: TSBot, event: TSEvent):
+        self.command_sent_event.set()
+
+    @plugin.on("ready")
+    async def register_keepalive_task(self, bot: TSBot, event: TSEvent):
+        self.bot = bot
+        self.bot.register_background_task(self._keep_alive_task, name="KeepAlive-Task")

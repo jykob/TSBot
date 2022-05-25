@@ -185,3 +185,16 @@ def test_escape(input_str: str, excepted: str) -> None:
 @pytest.mark.parametrize(("excepted", "input_str"), escape_params)
 def test_unescape(input_str: str, excepted: str) -> None:
     assert utils.unescape(input_str) == excepted
+
+
+@pytest.mark.parametrize(
+    ("input_str", "excepted_args", "excepted_kwargs"),
+    (
+        pytest.param("123 asd test", ("123", "asd", "test"), {}, id="test_args"),
+        pytest.param("-asd test -name test_account", (), {"asd": "test", "name": "test_account"}, id="test_kwargs"),
+        pytest.param("-asd -name test_account", (), {"asd": "", "name": "test_account"}, id="test_kwargs_2"),
+        pytest.param("asd -name test_account 123", ("asd", "123"), {"name": "test_account"}, id="test_args_kwargs"),
+    ),
+)
+def test_parse_args_kwargs(input_str: str, excepted_args: tuple[str], excepted_kwargs: dict[str, str]):
+    assert utils.parse_args_kwargs(input_str) == (excepted_args, excepted_kwargs)
