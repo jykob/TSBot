@@ -10,15 +10,15 @@ from tsbot.cache import Cache
 from tsbot.commands.handler import CommandHandler
 from tsbot.commands.tscommand import TSCommand
 from tsbot.connection import TSConnection
+from tsbot.default_plugins.help import Help
+from tsbot.default_plugins.keepalive import KeepAlive
 from tsbot.events.handler import EventHanlder
 from tsbot.events.tsevent import TSEvent
 from tsbot.events.tsevent_handler import TSEventHandler
 from tsbot.exceptions import TSResponseError
 from tsbot.query import TSQuery
+from tsbot.ratelimiter import RateLimiter
 from tsbot.response import TSResponse
-
-from tsbot.default_plugins.help import Help
-from tsbot.default_plugins.keepalive import KeepAlive
 
 if TYPE_CHECKING:
     from tsbot.plugin import TSPlugin
@@ -54,8 +54,12 @@ class TSBot:
         password: str,
         address: str,
         port: int = 10022,
+        *,
         server_id: int = 1,
         invoker: str = "!",
+        ratelimited: bool = False,
+        ratelimit_calls: int = 10,
+        ratelimit_period: float = 3,
     ) -> None:
         self.server_id = server_id
 
@@ -73,6 +77,9 @@ class TSBot:
         self.command_handler = CommandHandler(invoker)
         self.cache = Cache()
         self.bot_info = TSBotInfo()
+
+        self.is_ratelimited = ratelimited
+        self.ratelimiter = RateLimiter(max_calls=ratelimit_calls, period=ratelimit_period)
 
         self._reader_ready_event = asyncio.Event()
 
@@ -223,10 +230,14 @@ class TSBot:
             logger.debug("Sending command: %s", command)
             # Tell _keep_alive that command has been sent
 
-            self.emit(TSEvent(event="send"))
-
             self._response = asyncio.Future()
+
+            if self.is_ratelimited:
+                await self.ratelimiter.wait()
+
+            self.emit(TSEvent(event="send"))
             await self._connection.write(command)
+
             response: TSResponse = await self._response
 
             logger.debug("Got a response: %s", response)
