@@ -227,14 +227,12 @@ class TSBot:
                 )
                 return cached_response
 
-            logger.debug("Sending command: %s", command)
-            # Tell _keep_alive that command has been sent
-
             self._response = asyncio.Future()
 
             if self.is_ratelimited:
                 await self.ratelimiter.wait()
 
+            logger.debug("Sending command: %s", command)
             self.emit(TSEvent(event="send"))
             await self._connection.write(command)
 
