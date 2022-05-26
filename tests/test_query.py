@@ -1,3 +1,5 @@
+# pyright: reportPrivateUsage=false
+
 import pytest
 
 from tsbot.query import TSQuery, query
@@ -5,29 +7,29 @@ from tsbot.query import TSQuery, query
 
 def test_add_options():
     q = query("channellist")
-    assert q._options == []  # type: ignore
+    assert q._options == []
 
     q.option("topic", "flags", "voice")
-    assert q._options == ["topic", "flags", "voice"]  # type: ignore
+    assert q._options == ["topic", "flags", "voice"]
 
 
 def test_add_params():
     q = query("channelmove")
-    assert q._parameters == {}  # type: ignore
+    assert q._parameters == {}
 
     q.params(cid=16, cpid=1, order=0)
-    assert q._parameters == {"cid": "16", "cpid": "1", "order": "0"}  # type: ignore
+    assert q._parameters == {"cid": "16", "cpid": "1", "order": "0"}
 
 
 def test_app_param_blocks():
     q = query("permidgetbyname")
-    assert q._parameter_blocks == []  # type: ignore
+    assert q._parameter_blocks == []
 
     q.param_block(permsid="b_serverinstance_help_view")
     q.param_block(permsid="b_serverinstance_info_view")
 
-    assert {"permsid": "b_serverinstance_help_view"} in q._parameter_blocks  # type: ignore
-    assert {"permsid": "b_serverinstance_info_view"} in q._parameter_blocks  # type: ignore
+    assert {"permsid": "b_serverinstance_help_view"} in q._parameter_blocks
+    assert {"permsid": "b_serverinstance_info_view"} in q._parameter_blocks
 
 
 @pytest.mark.parametrize(
