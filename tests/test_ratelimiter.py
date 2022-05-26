@@ -36,7 +36,7 @@ def test_ratelimiter_multiple_calls(rl: ratelimiter.RateLimiter, number_of_calls
 @pytest.mark.parametrize(
     ("rl", "number_of_calls"),
     (
-        pytest.param(ratelimiter.RateLimiter(max_calls=5, period=2), 8, id="test_throttle"),
+        pytest.param(ratelimiter.RateLimiter(max_calls=4, period=2), 8, id="test_throttle"),
         pytest.param(ratelimiter.RateLimiter(max_calls=5, period=2), 10, id="test_throttle_2"),
     ),
 )
