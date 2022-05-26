@@ -51,7 +51,7 @@ class KeepAlive(plugin.TSPlugin):
     async def on_command_sent(self, bot: TSBot, event: TSEvent):
         self.command_sent_event.set()
 
-    @plugin.on("ready")
+    @plugin.on("start")
     async def register_keepalive_task(self, bot: TSBot, event: TSEvent):
         self.bot = bot
         self.bot.register_background_task(self._keep_alive_task, name="KeepAlive-Task")
