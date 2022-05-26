@@ -284,6 +284,14 @@ class TSBot:
         """
         logger.info("Setting up connection")
 
+        self.register_background_task(self.event_handler.handle_events_task, name="HandleEvent-Task")
+        self.register_background_task(self.cache.cache_cleanup_task, name="CacheCleanup-Task")
+        self.register_event_handler("textmessage", self.command_handler.handle_command_event)
+
+        self.load_plugin(Help(), KeepAlive())
+
+        self.emit(TSEvent(event="start"))
+
         async with self._connection:
             reader = asyncio.create_task(self._reader_task())
 
@@ -292,13 +300,6 @@ class TSBot:
 
             await self._select_server()
             await self._register_notifies()
-
-            self.register_background_task(self.event_handler.handle_events_task, name="HandleEvent-Task")
-            self.register_background_task(self.cache.cache_cleanup_task, name="CacheCleanup-Task")
-            self.register_event_handler("textmessage", self.command_handler.handle_command_event)
-
-            self.load_plugin(Help(), KeepAlive())
-
             await self.bot_info.update(self)
 
             self.emit(TSEvent(event="ready"))
