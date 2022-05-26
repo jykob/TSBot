@@ -64,7 +64,7 @@ class TSBot:
         self.server_id = server_id
 
         self.plugins: dict[str, TSPlugin] = {}
-        self._background_tasks: list[asyncio.Task[None]] = []
+        self._background_tasks: set[asyncio.Task[None]] = set()
 
         self._connection = TSConnection(
             username=username,
@@ -73,7 +73,7 @@ class TSBot:
             port=port,
         )
 
-        self.event_handler = EventHanlder(self)
+        self.event_handler = EventHanlder()
         self.command_handler = CommandHandler(invoker)
         self.cache = Cache()
         self.bot_info = TSBotInfo()
@@ -182,10 +182,24 @@ class TSBot:
         self.command_handler.register_command(command_handler)
         return command_handler
 
-    def register_background_task(self, background_handler: TBackgroundTask, *, name: str | None = None):
+    def register_background_task(
+        self, background_handler: TBackgroundTask, *, name: str | None = None
+    ) -> asyncio.Task[None]:
         """Registers a coroutine as background task"""
-        self._background_tasks.append(asyncio.create_task(background_handler(), name=name))
+        task = asyncio.create_task(background_handler(self), name=name)
+        task.add_done_callback(lambda task: self.remove_background_task(task))
+
+        self._background_tasks.add(task)
         logger.debug("Registered %r as a background task", background_handler.__qualname__)
+
+        return task
+
+    def remove_background_task(self, background_task: asyncio.Task[None]):
+        """Remove a background task from background tasks"""
+        if not background_task.done():
+            background_task.cancel()
+
+        self._background_tasks.remove(background_task)
 
     async def send(self, query: TSQuery, *, max_cache_age: int | float = 0):
         """
@@ -271,7 +285,7 @@ class TSBot:
         logger.info("Closing")
         self.emit(event_name="close")
 
-        for task in self._background_tasks:
+        for task in list(self._background_tasks):
             task.cancel()
             await task
 

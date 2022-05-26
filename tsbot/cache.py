@@ -3,9 +3,13 @@ from __future__ import annotations
 import asyncio
 import logging
 from time import time
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 from tsbot.response import TSResponse
+
+if TYPE_CHECKING:
+    from tsbot.bot import TSBot
+
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +38,7 @@ class Cache:
     def add_cache(self, cache_hash: int, response: TSResponse) -> None:
         self.cache[cache_hash] = CacheRecord(time(), response)
 
-    async def cache_cleanup_task(self) -> None:
+    async def cache_cleanup_task(self, bot: TSBot) -> None:
         try:
             while True:
                 await asyncio.sleep(self.CACHE_CLEANUP_INTERVAL)

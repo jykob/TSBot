@@ -20,9 +20,8 @@ class KeepAlive(plugin.TSPlugin):
 
     def __init__(self) -> None:
         self.command_sent_event = asyncio.Event()
-        self.bot: TSBot
 
-    async def _keep_alive_task(self) -> None:
+    async def _keep_alive_task(self, bot: TSBot) -> None:
         """
         Task to keep connection alive with the TeamSpeak server
 
@@ -42,7 +41,7 @@ class KeepAlive(plugin.TSPlugin):
                     )
                 except asyncio.TimeoutError:
                     logger.debug("Sengind keep-alive")
-                    await self.bot.send_raw(self.KEEP_ALIVE_COMMAND)
+                    await bot.send_raw(self.KEEP_ALIVE_COMMAND)
 
         except asyncio.CancelledError:
             pass
@@ -53,5 +52,4 @@ class KeepAlive(plugin.TSPlugin):
 
     @plugin.on("start")
     async def register_keepalive_task(self, bot: TSBot, event: TSEvent):
-        self.bot = bot
-        self.bot.register_background_task(self._keep_alive_task, name="KeepAlive-Task")
+        bot.register_background_task(self._keep_alive_task, name="KeepAlive-Task")
