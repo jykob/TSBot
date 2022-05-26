@@ -45,10 +45,10 @@ def test_ratelimiter_throttle(rl: ratelimiter.RateLimiter, number_of_calls: int)
         for _ in range(number_of_calls):
             await rl.wait()
 
-    now = time.perf_counter_ns()
+    now = time.monotonic()
     asyncio.run(run_wrapper())
-    elapsed = time.perf_counter_ns() - now
+    elapsed = time.monotonic() - now
 
-    time_should_have_elapsed = rl._period * (10**9)
+    time_should_have_elapsed = rl._period
 
     assert elapsed > time_should_have_elapsed
