@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from dataclasses import dataclass, field
 import inspect
 import itertools
 from typing import TYPE_CHECKING, Any
@@ -21,33 +22,17 @@ def add_check(func: TCommandHandler) -> TSCommand:
     return check_decorator  # type: ignore
 
 
+@dataclass(slots=True)
 class TSCommand:
-    def __init__(
-        self,
-        commands: tuple[str, ...],
-        handler: TCommandHandler | TPluginCommandHandler,
-        *,
-        help_text: str | None = None,
-        raw: bool = False,
-        hidden: bool = False,
-    ) -> None:
-        self.commands = commands
-        self.handler = handler
+    commands: tuple[str, ...]
+    handler: TCommandHandler | TPluginCommandHandler
+    plugin_instance: plugin.TSPlugin | None = None
 
-        self.help_text = help_text
-        self.raw = raw
-        self.hidden = hidden
+    help_text: str | None = field(default=None, repr=False, kw_only=True)
+    raw: bool = field(default=False, repr=False, kw_only=True)
+    hidden: bool = field(default=False, repr=False, kw_only=True)
 
-        self.plugin_instance: plugin.TSPlugin | None = None
-        self.checks: list[TCommandHandler] = []
-
-    def __repr__(self) -> str:
-        return (
-            f"{self.__class__.__qualname__}(commands={self.commands!r}, "
-            f"handler={self.handler.__qualname__!r}, "
-            f"plugin={self.plugin_instance.__class__.__qualname__ if self.plugin_instance else None!r}"
-            ")"
-        )
+    checks: list[TCommandHandler] = field(default_factory=list, repr=False)
 
     def add_check(self, func: TCommandHandler) -> None:
         self.checks.append(func)
@@ -81,7 +66,7 @@ class TSCommand:
 
         return f"Usage: {' | '.join(self.commands)}  {' '.join(usage)}"
 
-    async def run_checks(self, bot: TSBot, ctx: dict[str, str], *args: str, **kwargs: str):
+    async def run_checks(self, bot: TSBot, ctx: dict[str, str], *args: str, **kwargs: str) -> None:
         done, pending = await asyncio.wait(
             [check(bot, ctx, *args, **kwargs) for check in self.checks],
             return_when=asyncio.FIRST_EXCEPTION,

@@ -1,18 +1,14 @@
 from __future__ import annotations
+from dataclasses import dataclass, field
 
 from tsbot import utils
 
 
+@dataclass(slots=True, frozen=True)
 class TSEvent:
-    __slots__ = "event", "msg", "ctx"
-
-    def __init__(self, event: str, msg: str | None = None, ctx: dict[str, str] | None = None) -> None:
-        self.event = event
-        self.msg = msg
-        self.ctx: dict[str, str] = ctx or {}
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}(event={self.event!r}, msg={self.msg!r}, ctx={self.ctx!r})"
+    event: str
+    msg: str | None = None
+    ctx: dict[str, str] = field(default_factory=dict)
 
     @classmethod
     def from_server_response(cls, raw_data: str):
