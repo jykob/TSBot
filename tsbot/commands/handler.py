@@ -68,7 +68,7 @@ class CommandHandler:
             await bot.respond(event.ctx, command_handler.usage)
 
         except TSCommandError as e:
-            bot.emit(TSEvent(event="command_error", msg=f"{str(e)}", ctx=event.ctx))
+            bot.emit(event_name="command_error", msg=f"{str(e)}", ctx=event.ctx)
 
         except TSPermissionError as e:
-            bot.emit(TSEvent(event="permission_error", msg=f"{str(e)}", ctx=event.ctx))
+            bot.emit(event_name="permission_error", msg=f"{str(e)}", ctx=event.ctx)

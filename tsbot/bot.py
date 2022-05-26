@@ -110,7 +110,7 @@ class TSBot:
 
         async for data in self._connection.read():
             if data.startswith("notify"):
-                self.emit(TSEvent.from_server_response(data))
+                self.emit_event(TSEvent.from_server_response(data))
 
             elif data.startswith("error"):
                 response_buffer.append(data)
@@ -123,7 +123,12 @@ class TSBot:
 
         self._reader_ready_event.clear()
 
-    def emit(self, event: TSEvent) -> None:
+    def emit(self, event_name: str, msg: str | None = None, ctx: dict[str, str] | None = None) -> None:
+        """Builds a TSEvent object and emits it"""
+        event = TSEvent(event=event_name, msg=msg, ctx=ctx or {})
+        self.emit_event(event)
+
+    def emit_event(self, event: TSEvent) -> None:
         """Emits an event to be handled"""
         self.event_handler.event_queue.put_nowait(event)
 
@@ -233,7 +238,7 @@ class TSBot:
                 await self.ratelimiter.wait()
 
             logger.debug("Sending command: %s", command)
-            self.emit(TSEvent(event="send"))
+            self.emit(event_name="send")
             await self._connection.write(command)
 
             response: TSResponse = await self._response
@@ -264,7 +269,7 @@ class TSBot:
             return
 
         logger.info("Closing")
-        self.emit(TSEvent(event="close"))
+        self.emit(event_name="close")
 
         for task in self._background_tasks:
             task.cancel()
@@ -290,7 +295,7 @@ class TSBot:
 
         self.load_plugin(Help(), KeepAlive())
 
-        self.emit(TSEvent(event="start"))
+        self.emit(event_name="start")
 
         async with self._connection:
             reader = asyncio.create_task(self._reader_task())
@@ -302,7 +307,7 @@ class TSBot:
             await self._register_notifies()
             await self.bot_info.update(self)
 
-            self.emit(TSEvent(event="ready"))
+            self.emit(event_name="ready")
 
             await reader
             await self.close()
