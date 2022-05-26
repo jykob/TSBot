@@ -11,7 +11,6 @@ from tsbot.exceptions import TSCommandError, TSPermissionError
 
 if TYPE_CHECKING:
     from tsbot import bot
-    from tsbot.typealiases import TCommandHandler
 
 
 logger = logging.getLogger(__name__)
