@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from time import time
+import time
 from typing import TYPE_CHECKING, NamedTuple
 
 from tsbot.response import TSResponse
@@ -32,11 +32,11 @@ class Cache:
         if not cached_response:
             return None
 
-        if cached_response.timestamp + max_age > time():
+        if cached_response.timestamp + max_age > time.monotonic():
             return cached_response.record
 
     def add_cache(self, cache_hash: int, response: TSResponse) -> None:
-        self.cache[cache_hash] = CacheRecord(time(), response)
+        self.cache[cache_hash] = CacheRecord(time.monotonic(), response)
 
     async def cache_cleanup_task(self, bot: TSBot) -> None:
         try:
@@ -45,7 +45,7 @@ class Cache:
 
                 logger.debug("Running cache clean-up")
 
-                delete_timestamp: float = time() - self.CACHE_MAX_LIFETIME
+                delete_timestamp: float = time.monotonic() - self.CACHE_MAX_LIFETIME
 
                 for key, value in tuple(self.cache.items()):
                     if not value.timestamp < delete_timestamp:
@@ -53,6 +53,8 @@ class Cache:
 
                     logger.debug("Deleting key %r", key)
                     del self.cache[key]
+
+                logger.debug("Cache clean-up done")
 
         except asyncio.CancelledError:
             pass
