@@ -83,19 +83,11 @@ class TSBot:
 
         self._reader_ready_event = asyncio.Event()
 
+        self._closing_lock = asyncio.Lock()
+        self._closing_event = asyncio.Event()
+
         self._response: asyncio.Future[TSResponse]
         self._response_lock = asyncio.Lock()
-
-    async def _select_server(self) -> None:
-        """Set current virtual server"""
-        await self.send(TSQuery("use").params(sid=self.server_id))
-
-    async def _register_notifies(self) -> None:
-        """Coroutine to register server to send events to the bot"""
-
-        await self.send(TSQuery("servernotifyregister").params(event="channel", id=0))
-        for event in ("server", "textserver", "textchannel", "textprivate"):
-            await self.send(TSQuery("servernotifyregister").params(event=event))
 
     async def _reader_task(self) -> None:
         """Task to read messages from the server"""
@@ -121,7 +113,7 @@ class TSBot:
             else:
                 response_buffer.append(data)
 
-        self._reader_ready_event.clear()
+        await self.close()
 
     def emit(self, event_name: str, msg: str | None = None, ctx: dict[str, str] | None = None) -> None:
         """Builds a TSEvent object and emits it"""
@@ -194,14 +186,14 @@ class TSBot:
 
         return task
 
-    def remove_background_task(self, background_task: asyncio.Task[None]):
+    def remove_background_task(self, background_task: asyncio.Task[None]) -> None:
         """Remove a background task from background tasks"""
         if not background_task.done():
             background_task.cancel()
 
         self._background_tasks.remove(background_task)
 
-    async def send(self, query: TSQuery, *, max_cache_age: int | float = 0):
+    async def send(self, query: TSQuery, *, max_cache_age: int | float = 0) -> TSResponse:
         """
         Sends queries to the server, assuring only one of them gets sent at a time
 
@@ -282,15 +274,22 @@ class TSBot:
         if not self._connection.writer or self._connection.writer.is_closing():
             return
 
-        logger.info("Closing")
-        self.emit(event_name="close")
+        if self._closing_event.is_set():
+            return
 
-        for task in list(self._background_tasks):
-            task.cancel()
-            await task
+        async with self._closing_lock:
+            logger.info("Closing")
+            self.emit(event_name="close")
 
-        await self._connection.close()
-        logger.info("Connection closed")
+            for task in list(self._background_tasks):
+                task.cancel()
+                await task
+
+            await self.send_raw("quit")
+            await self.event_handler.run_till_empty(self)
+            logger.info("Connection closed")
+
+        self._closing_event.set()
 
     async def run(self) -> None:
         """
@@ -301,30 +300,38 @@ class TSBot:
 
         Awaits until the bot disconnects.
         """
-        logger.info("Setting up connection")
 
-        self.register_background_task(self.event_handler.handle_events_task, name="HandleEvent-Task")
+        async def _select_server() -> None:
+            """Set current virtual server"""
+            await self.send(TSQuery("use").params(sid=self.server_id))
+
+        async def _register_notifies() -> None:
+            """Coroutine to register server to send events to the bot"""
+
+            await self.send(TSQuery("servernotifyregister").params(event="channel", id=0))
+            for event in ("server", "textserver", "textchannel", "textprivate"):
+                await self.send(TSQuery("servernotifyregister").params(event=event))
+
+        self.register_background_task(self.event_handler.handle_events_task, name="HandleEvents-Task")
         self.register_background_task(self.cache.cache_cleanup_task, name="CacheCleanup-Task")
         self.register_event_handler("textmessage", self.command_handler.handle_command_event)
 
         self.load_plugin(Help(), KeepAlive())
+        self.emit(event_name="run")
 
-        self.emit(event_name="start")
-
+        logger.info("Setting up connection")
         async with self._connection:
-            reader = asyncio.create_task(self._reader_task())
+            asyncio.create_task(self._reader_task())
 
             await self._reader_ready_event.wait()
             logger.info("Connected")
 
-            await self._select_server()
-            await self._register_notifies()
+            await _select_server()
+            await _register_notifies()
             await self.bot_info.update(self)
 
             self.emit(event_name="ready")
-
-            await reader
-            await self.close()
+            await self._closing_event.wait()
 
     def load_plugin(self, *plugins: TSPlugin) -> None:
         """
