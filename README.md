@@ -7,6 +7,7 @@ Asynchronous framework to build **TeamSpeak 3 Server Query** bots
 - Uses modern Python `async` and `await` syntax
 - Secure connection through SSH
 - Ease of use query building
+- Built-in and configurable ratelimiter if no access to `whitelist.txt`
 
 ## ✏️ Examples
 
