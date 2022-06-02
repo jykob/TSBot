@@ -1,3 +1,4 @@
+# pyright: reportImportCycles=false
 from __future__ import annotations
 
 import asyncio
@@ -113,7 +114,8 @@ class TSBot:
             else:
                 response_buffer.append(data)
 
-        await self.close()
+        await self.close(graceful=False)
+        logger.debug("Reader task done")
 
     def emit(self, event_name: str, msg: str | None = None, ctx: dict[str, str] | None = None) -> None:
         """Builds a TSEvent object and emits it"""
@@ -264,20 +266,22 @@ class TSBot:
 
         return response
 
-    async def close(self) -> None:
+    async def close(self, graceful: bool = True) -> None:
         """
         Coroutine to handle closing the bot
 
         Will emit TSEvent(event="close") to notify client closing, cancel background tasks
-        and wait for the connection to be closed.
+        and send quit command.
         """
-        if not self._connection.writer or self._connection.writer.is_closing():
-            return
 
-        if self._closing_event.is_set():
+        if not graceful:
+            self._closing_event.set()
             return
 
         async with self._closing_lock:
+            if self._closing_event.is_set():
+                return
+
             logger.info("Closing")
             self.emit(event_name="close")
 
@@ -290,6 +294,7 @@ class TSBot:
             logger.info("Connection closed")
 
         self._closing_event.set()
+        logger.debug("Closing done")
 
     async def run(self) -> None:
         """
@@ -301,11 +306,11 @@ class TSBot:
         Awaits until the bot disconnects.
         """
 
-        async def _select_server() -> None:
+        async def select_server() -> None:
             """Set current virtual server"""
             await self.send(TSQuery("use").params(sid=self.server_id))
 
-        async def _register_notifies() -> None:
+        async def register_notifies() -> None:
             """Coroutine to register server to send events to the bot"""
 
             await self.send(TSQuery("servernotifyregister").params(event="channel", id=0))
@@ -319,19 +324,23 @@ class TSBot:
         self.load_plugin(Help(), KeepAlive())
         self.emit(event_name="run")
 
-        logger.info("Setting up connection")
-        async with self._connection:
-            asyncio.create_task(self._reader_task())
+        try:
+            logger.info("Setting up connection")
+            await self._connection.connect()
 
+            reader_task = asyncio.create_task(self._reader_task())
             await self._reader_ready_event.wait()
             logger.info("Connected")
 
-            await _select_server()
-            await _register_notifies()
+            await select_server()
+            await register_notifies()
             await self.bot_info.update(self)
 
             self.emit(event_name="ready")
-            await self._closing_event.wait()
+            await asyncio.gather(self._closing_event.wait(), reader_task)
+
+        finally:
+            await self._connection.close()
 
     def load_plugin(self, *plugins: TSPlugin) -> None:
         """
