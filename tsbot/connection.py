@@ -15,12 +15,12 @@ class TSConnection:
         self.address = address
         self.port = port
 
-        self.connection: asyncssh.connection.SSHClientConnection
-        self.writer: asyncssh.stream.SSHWriter[str]
-        self.reader: asyncssh.stream.SSHReader[str]
+        self._connection: asyncssh.connection.SSHClientConnection | None = None
+        self._writer: asyncssh.stream.SSHWriter[str] | None = None
+        self._reader: asyncssh.stream.SSHReader[str] | None = None
 
     async def connect(self) -> None:
-        self.connection = await asyncssh.connection.connect(
+        self._connection = await asyncssh.connection.connect(
             self.address,
             port=self.port,
             username=self.username,
@@ -28,64 +28,66 @@ class TSConnection:
             known_hosts=None,
         )
 
-        self.writer, self.reader, _ = await self.connection.open_session()  # type: ignore
+        self._writer, self._reader, _ = await self._connection.open_session()  # type: ignore
         logger.info("Connected")
 
     async def close(self) -> None:
-        if hasattr(self, "writer"):
-            self.writer.close()
-            await self.writer.wait_closed()
+        if self._writer:
+            self._writer.close()
+            await self._writer.wait_closed()
 
-        if hasattr(self, "connection"):
-            self.connection.close()
-            await self.connection.wait_closed()
+        if self._connection:
+            self._connection.close()
+            await self._connection.wait_closed()
 
         logger.info("Connection closed")
 
     async def read_lines(self, number_of_lines: int = 1) -> AsyncGenerator[str, None]:
-        try:
-            lines_read: int = 0
+        if not self._reader:
+            raise ConnectionResetError("Trying to read on a closed connection")
 
-            while not (self.reader.at_eof() or lines_read >= number_of_lines):
-                data = await self.reader.readuntil("\n\r")
+        lines_read: int = 0
 
+        while not self._reader.at_eof() and lines_read < number_of_lines:
+            try:
+                data = await self._reader.readuntil("\n\r")
+
+            except Exception as e:
+                logger.warning(e)
+
+            else:
                 if not data:
-                    return
+                    break
 
                 lines_read += 1
                 yield data.strip()
 
-        except ConnectionError as e:
-            logger.warning(e)
-
-        except Exception as e:
-            logger.warning(e)
-
     async def read(self) -> AsyncGenerator[str, None]:
-        try:
-            while not self.reader.at_eof():
-                data = await self.reader.readuntil("\n\r")
+        if not self._reader:
+            raise ConnectionResetError("Trying to read on a closed connection")
 
+        while not self._reader.at_eof():
+            try:
+                data = await self._reader.readuntil("\n\r")
+
+            except Exception as e:
+                logger.warning(e)
+
+            else:
                 if not data:
                     break
 
                 yield data.strip()
 
-        except ConnectionError as e:
-            logger.warning(e)
-
-        except Exception as e:
-            logger.warning(e)
-
         logger.debug("Reading done")
 
     async def write(self, msg: str) -> None:
-        if self.writer.is_closing():
-            return
+        if not self._writer or self._writer.is_closing():
+            raise BrokenPipeError("Trying to write on a closed connection")
 
-        self.writer.write(f"{msg}\n\r")
+        self._writer.write(f"{msg}\n\r")
 
         try:
-            await self.writer.drain()
+            await self._writer.drain()
         except ConnectionError as e:
             logger.warning(e)

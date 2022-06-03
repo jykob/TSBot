@@ -83,9 +83,8 @@ class TSBot:
         self.ratelimiter = RateLimiter(max_calls=ratelimit_calls, period=ratelimit_period)
 
         self._reader_ready_event = asyncio.Event()
-
-        self._closing_lock = asyncio.Lock()
         self._closing_event = asyncio.Event()
+        self.is_closing = False
 
         self._response: asyncio.Future[TSResponse]
         self._response_lock = asyncio.Lock()
@@ -114,7 +113,6 @@ class TSBot:
             else:
                 response_buffer.append(data)
 
-        await self.close(graceful=False)
         logger.debug("Reader task done")
 
     def emit(self, event_name: str, msg: str | None = None, ctx: dict[str, str] | None = None) -> None:
@@ -266,7 +264,7 @@ class TSBot:
 
         return response
 
-    async def close(self, graceful: bool = True) -> None:
+    async def close(self) -> None:
         """
         Coroutine to handle closing the bot
 
@@ -274,13 +272,8 @@ class TSBot:
         and send quit command.
         """
 
-        if not graceful:
-            self._closing_event.set()
-            return
-
-        async with self._closing_lock:
-            if self._closing_event.is_set():
-                return
+        if not self.is_closing:
+            self.is_closing = True
 
             logger.info("Closing")
             self.emit(event_name="close")
@@ -293,8 +286,7 @@ class TSBot:
             await self.event_handler.run_till_empty(self)
             logger.info("Connection closed")
 
-        self._closing_event.set()
-        logger.debug("Closing done")
+            self._closing_event.set()
 
     async def run(self) -> None:
         """
@@ -337,7 +329,7 @@ class TSBot:
             await self.bot_info.update(self)
 
             self.emit(event_name="ready")
-            await asyncio.gather(self._closing_event.wait(), reader_task)
+            await reader_task
 
         finally:
             await self._connection.close()
