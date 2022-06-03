@@ -20,10 +20,10 @@ class CacheRecord(NamedTuple):
 
 
 class Cache:
-    CACHE_CLEANUP_INTERVAL: int = 60 * 5
-    CACHE_MAX_LIFETIME: int = 60 * 10
+    def __init__(self, cleanup_interval: float = 60 * 5, max_lifetime: float = 60 * 10) -> None:
+        self.cleanup_interval = cleanup_interval
+        self.max_lifetime = max_lifetime
 
-    def __init__(self) -> None:
         self.cache: dict[int, CacheRecord] = {}
 
     def get_cache(self, cache_hash: int, max_age: int | float) -> TSResponse | None:
@@ -43,14 +43,14 @@ class Cache:
 
         while True:
             try:
-                await asyncio.sleep(self.CACHE_CLEANUP_INTERVAL)
+                await asyncio.sleep(self.cleanup_interval)
             except asyncio.CancelledError:
                 logger.debug("Clean-up task cancelled")
                 break
 
             logger.debug("Running cache clean-up")
 
-            delete_timestamp: float = time.monotonic() - self.CACHE_MAX_LIFETIME
+            delete_timestamp: float = time.monotonic() - self.max_lifetime
 
             for key, value in tuple(self.cache.items()):
                 if not value.timestamp < delete_timestamp:
