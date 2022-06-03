@@ -59,4 +59,4 @@ class Cache:
                 logger.debug("Deleting key %r", key)
                 del self.cache[key]
 
-            logger.debug("Cache clean-up done")
+        logger.debug("Cache clean-up done")
