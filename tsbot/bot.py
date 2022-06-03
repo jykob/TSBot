@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import sys
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -199,7 +200,13 @@ class TSBot:
         Because theres no way to distinguish between requests/responses,
         queries have to be sent to the server one at a time.
         """
+        try:
         return await self.send_raw(query.compile(), max_cache_age=max_cache_age)
+        except TSResponseError as response_error:
+            if (tb := sys.exc_info()[2]) and tb.tb_next:
+                response_error = response_error.with_traceback(tb.tb_next.tb_next)
+
+            raise response_error
 
     async def send_raw(self, command: str, *, max_cache_age: int | float = 0) -> TSResponse:
         """
@@ -208,7 +215,13 @@ class TSBot:
         Not recommended to use this if you don't know what you are doing.
         Use send() method instead.
         """
+        try:
         return await asyncio.shield(self._send(command, max_cache_age))
+        except TSResponseError as response_error:
+            if (tb := sys.exc_info()[2]) and tb.tb_next:
+                response_error = response_error.with_traceback(tb.tb_next.tb_next)
+
+            raise response_error
 
     async def _send(self, command: str, max_cache_age: int | float = 0) -> TSResponse:
         """
