@@ -39,22 +39,24 @@ class Cache:
         self.cache[cache_hash] = CacheRecord(time.monotonic(), response)
 
     async def cache_cleanup_task(self, bot: TSBot) -> None:
-        try:
-            while True:
+        logger.debug("Clean-up task started")
+
+        while True:
+            try:
                 await asyncio.sleep(self.CACHE_CLEANUP_INTERVAL)
+            except asyncio.CancelledError:
+                logger.debug("Clean-up task cancelled")
+                break
 
-                logger.debug("Running cache clean-up")
+            logger.debug("Running cache clean-up")
 
-                delete_timestamp: float = time.monotonic() - self.CACHE_MAX_LIFETIME
+            delete_timestamp: float = time.monotonic() - self.CACHE_MAX_LIFETIME
 
-                for key, value in tuple(self.cache.items()):
-                    if not value.timestamp < delete_timestamp:
-                        continue
+            for key, value in tuple(self.cache.items()):
+                if not value.timestamp < delete_timestamp:
+                    continue
 
-                    logger.debug("Deleting key %r", key)
-                    del self.cache[key]
+                logger.debug("Deleting key %r", key)
+                del self.cache[key]
 
-                logger.debug("Cache clean-up done")
-
-        except asyncio.CancelledError:
-            pass
+            logger.debug("Cache clean-up done")

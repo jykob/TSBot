@@ -31,20 +31,20 @@ class KeepAlive(plugin.TSPlugin):
         """
         logger.debug("Keep-alive task started")
 
-        try:
-            while True:
-                self.command_sent_event.clear()
-                try:
-                    await asyncio.wait_for(
-                        asyncio.shield(self.command_sent_event.wait()),
-                        timeout=self.KEEP_ALIVE_INTERVAL,
-                    )
-                except asyncio.TimeoutError:
-                    logger.debug("Sengind keep-alive")
-                    await bot.send_raw(self.KEEP_ALIVE_COMMAND)
+        while True:
+            self.command_sent_event.clear()
+            try:
+                await asyncio.wait_for(
+                    asyncio.shield(self.command_sent_event.wait()),
+                    timeout=self.KEEP_ALIVE_INTERVAL,
+                )
+            except asyncio.TimeoutError:
+                logger.debug("Sengind keep-alive")
+                await bot.send_raw(self.KEEP_ALIVE_COMMAND)
 
-        except asyncio.CancelledError:
-            pass
+            except asyncio.CancelledError:
+                logger.debug("Keep-alive task cancelled")
+                break
 
     @plugin.on("send")
     async def on_command_sent(self, bot: TSBot, event: TSEvent):
