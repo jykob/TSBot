@@ -38,6 +38,18 @@ class Cache:
     def add_cache(self, cache_hash: int, response: TSResponse) -> None:
         self.cache[cache_hash] = CacheRecord(time.monotonic(), response)
 
+    def cleanup(self):
+        logger.debug("Running cache clean-up")
+
+        delete_timestamp: float = time.monotonic() - self.max_lifetime
+
+        for key, value in tuple(self.cache.items()):
+            if not value.timestamp < delete_timestamp:
+                continue
+
+            logger.debug("Deleting key %r", key)
+            del self.cache[key]
+
     async def cache_cleanup_task(self, bot: TSBot) -> None:
         logger.debug("Clean-up task started")
 
@@ -47,16 +59,7 @@ class Cache:
             except asyncio.CancelledError:
                 logger.debug("Clean-up task cancelled")
                 break
+            else:
+                self.cleanup()
 
-            logger.debug("Running cache clean-up")
-
-            delete_timestamp: float = time.monotonic() - self.max_lifetime
-
-            for key, value in tuple(self.cache.items()):
-                if not value.timestamp < delete_timestamp:
-                    continue
-
-                logger.debug("Deleting key %r", key)
-                del self.cache[key]
-
-        logger.debug("Cache clean-up done")
+        logger.debug("Clean-up task done")

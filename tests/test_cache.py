@@ -29,73 +29,105 @@ def resp():
     )
 
 
+@pytest.fixture
+def timestamp():
+    return 1000.0
+
+
+@pytest.fixture
+def resp_hash():
+    return 1234567890
+
+
+@pytest.fixture
+def test_cache(timestamp: float, resp_hash: int, resp: response.TSResponse):
+    test_cache = cache.Cache()
+    test_cache.cache = {resp_hash: cache.CacheRecord(timestamp, resp)}
+
+    return test_cache
+
+
 def test_cache_add_record(resp: response.TSResponse):
-    c = cache.Cache()
+    test_cache = cache.Cache()
 
     query_hash = hash("clientlist")
+    test_cache.add_cache(query_hash, resp)
 
-    c.add_cache(query_hash, resp)
-
-    assert c.cache[query_hash].record == resp
+    assert test_cache.cache[query_hash].record == resp
 
 
-def test_cache_get_record(monkeypatch: pytest.MonkeyPatch, resp: response.TSResponse):
-    c = cache.Cache()
-
-    timestamp = 1000.0
-    resp_hash = 1234567890
-    c.cache = {resp_hash: cache.CacheRecord(timestamp, resp)}
-
+def test_cache_get_record(
+    monkeypatch: pytest.MonkeyPatch,
+    test_cache: cache.Cache,
+    timestamp: float,
+    resp_hash: int,
+    resp: response.TSResponse,
+):
     monkeypatch.setattr(time, "monotonic", lambda: timestamp)
 
-    cached_resp = c.get_cache(resp_hash, max_age=1)
+    cached_resp = test_cache.get_cache(resp_hash, max_age=1)
 
     assert cached_resp == resp
 
 
-def test_cache_get_expired_record(monkeypatch: pytest.MonkeyPatch, resp: response.TSResponse):
-    c = cache.Cache()
-
-    timestamp = 1000.0
-    resp_hash = 1234567890
-    c.cache = {resp_hash: cache.CacheRecord(timestamp, resp)}
-
+def test_cache_get_expired_record(
+    monkeypatch: pytest.MonkeyPatch,
+    test_cache: cache.Cache,
+    timestamp: float,
+    resp_hash: int,
+):
     monkeypatch.setattr(time, "monotonic", lambda: timestamp + 5)
 
-    cached_resp = c.get_cache(resp_hash, max_age=1)
+    cached_resp = test_cache.get_cache(resp_hash, max_age=1)
 
     assert cached_resp == None
 
 
-def test_cache_get_no_response(resp: response.TSResponse):
-    c = cache.Cache()
-
-    timestamp = 1000.0
-    resp_hash = 1234567890
-    c.cache = {resp_hash: cache.CacheRecord(timestamp, resp)}
-
-    cached_resp = c.get_cache(9876543210, max_age=1)
+def test_cache_get_no_response(resp: response.TSResponse, test_cache: cache.Cache):
+    cached_resp = test_cache.get_cache(9876543210, max_age=1)
 
     assert cached_resp == None
 
 
-def test_cleanup_task(resp: response.TSResponse):
-    c = cache.Cache(max_lifetime=2, cleanup_interval=0)
-
-    resp_hash = 1234567890
-    c.add_cache(resp_hash, resp)
+def test_cleanup(
+    monkeypatch: pytest.MonkeyPatch,
+    test_cache: cache.Cache,
+    timestamp: float,
+):
+    times = [timestamp - 1000, timestamp + 1000]
+    monkeypatch.setattr(time, "monotonic", lambda: times.pop(0))
 
     def assert_has_records():
-        assert len(c.cache) > 0
+        assert len(test_cache.cache) > 0
 
     def assert_has_no_records():
-        assert len(c.cache) == 0
+        assert len(test_cache.cache) == 0
 
-    async def run_task(c: cache.Cache):
-        task = asyncio.create_task(c.cache_cleanup_task(MockBot()))  # type:ignore
-        task.get_loop().call_later(1, assert_has_records)  # test that there are still records in cache after 1 sec
-        task.get_loop().call_later(3, task.cancel)  # cancel the task after 3 seconds
+    assert_has_records()
+
+    test_cache.cleanup()
+    assert_has_records()
+
+    test_cache.cleanup()
+    assert_has_no_records()
+
+
+def test_cleanup_task(monkeypatch: pytest.MonkeyPatch):
+    test_cache = cache.Cache(max_lifetime=0, cleanup_interval=0)
+
+    has_called_cleanup: bool = False
+
+    def set_has_called_cleanup():
+        nonlocal has_called_cleanup
+        has_called_cleanup = True
+
+    monkeypatch.setattr(test_cache, "cleanup", set_has_called_cleanup)
+
+    async def runner():
+        task = asyncio.create_task(test_cache.cache_cleanup_task(MockBot()))  # type: ignore
+        task.get_loop().call_later(0.1, task.cancel)
         await task
 
-    asyncio.run(run_task(c))
-    assert_has_no_records()
+    asyncio.run(runner())
+
+    assert has_called_cleanup
