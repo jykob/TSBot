@@ -19,5 +19,10 @@ class TSEvent:
 
     @classmethod
     def from_server_response(cls, raw_data: str):
+        """
+        Creates a TSEvent instance from server notify
+
+        Will remove the 'notify' from the beginning of the 'event'
+        """
         event, data = raw_data.split(" ", maxsplit=1)
         return cls(event=event.removeprefix("notify"), msg=None, ctx=utils.parse_line(data))
