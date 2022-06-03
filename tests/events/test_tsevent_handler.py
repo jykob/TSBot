@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from tsbot import plugin
 from tsbot.bot import TSBot
 from tsbot.events import tsevent_handler
