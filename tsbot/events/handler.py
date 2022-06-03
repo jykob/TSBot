@@ -25,7 +25,7 @@ class EventHanlder:
         for event_handler in event_handlers:
             asyncio.create_task(event_handler.run(bot, event), name="EventHandler")
 
-    async def handle_event(self, bot: TSBot, event: TSEvent):
+    def handle_event(self, bot: TSBot, event: TSEvent):
         logger.debug("Got event: %s", event)
         task = asyncio.create_task(self.start_event_handlers(bot, event), name="EventStarter")
         task.add_done_callback(lambda _: self.event_queue.task_done())
@@ -41,7 +41,7 @@ class EventHanlder:
         try:
             while True:
                 event = await self.event_queue.get()
-                await self.handle_event(bot, event)
+                self.handle_event(bot, event)
 
         except asyncio.CancelledError:
             logger.debug("Cancelling event handling")
@@ -50,7 +50,7 @@ class EventHanlder:
     async def run_till_empty(self, bot: TSBot):
         while not self.event_queue.empty():
             event = self.event_queue.get_nowait()
-            await self.handle_event(bot, event)
+            self.handle_event(bot, event)
 
     def register_event_handler(self, event_handler: TSEventHandler) -> None:
         """Registers event handlers that will be called when given event happens"""
