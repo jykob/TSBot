@@ -3,8 +3,6 @@ from __future__ import annotations
 import asyncio
 import inspect
 import itertools
-import sys
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 from tsbot import utils
@@ -23,23 +21,25 @@ def add_check(func: TCommandHandler) -> TSCommand:
     return check_decorator  # type: ignore
 
 
-dataclass_kwargs = {}
-
-if sys.version_info >= (3, 10):
-    dataclass_kwargs["slots"] = True
-
-
-@dataclass(slots=True)
 class TSCommand:
-    commands: tuple[str, ...]
-    handler: TCommandHandler | TPluginCommandHandler
-    plugin_instance: plugin.TSPlugin | None = None
+    def __init__(
+        self,
+        commands: tuple[str, ...],
+        handler: TCommandHandler | TPluginCommandHandler,
+        *,
+        help_text: str | None = None,
+        raw: bool = False,
+        hidden: bool = False,
+    ) -> None:
+        self.commands = commands
+        self.handler = handler
 
-    help_text: str | None = field(default=None, repr=False)
-    raw: bool = field(default=False, repr=False)
-    hidden: bool = field(default=False, repr=False)
+        self.help_text = help_text
+        self.raw = raw
+        self.hidden = hidden
 
-    checks: list[TCommandHandler] = field(default_factory=list, repr=False)
+        self.plugin_instance: plugin.TSPlugin | None = None
+        self.checks: list[TCommandHandler] = []
 
     def add_check(self, func: TCommandHandler) -> None:
         self.checks.append(func)
@@ -103,3 +103,6 @@ class TSCommand:
 
     def __call__(self, *args: Any, **kwargs: Any):
         return self.run(*args, **kwargs)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}(commands={self.commands!r}, handler={self.handler.__qualname__!r})"
