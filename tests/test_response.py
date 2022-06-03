@@ -71,3 +71,21 @@ def test_first_property_empty():
 )
 def test_parse_error_line(input_str: str, excepted: tuple[int, str]) -> None:
     assert response.parse_error_line(input_str) == excepted
+
+
+def test_iter_response():
+    resp = response.TSResponse(
+        data=[
+            {"clid": "378", "cid": "23", "client_database_id": "21", "client_type": "0"},
+            {"clid": "377", "cid": "31", "client_database_id": "549", "client_type": "0"},
+            {"clid": "375", "cid": "31", "client_database_id": "46", "client_type": "0"},
+            {"clid": "371", "cid": "31", "client_database_id": "385", "client_type": "0"},
+            {"clid": "333", "cid": "45", "client_database_id": "27", "client_type": "0"},
+            {"clid": "3", "cid": "31", "client_database_id": "160", "client_type": "0"},
+        ],
+        error_id=0,
+        msg="ok",
+    )
+
+    for client in resp:
+        assert isinstance(client, dict)
