@@ -19,7 +19,7 @@ class TSEvent:
         Will remove the 'notify' from the beginning of the 'event'
         """
         event, data = raw_data.split(" ", maxsplit=1)
-        return cls(event=event.removeprefix("notify"), msg=None, ctx=utils.parse_line(data))
+        return cls(event=utils.remove_prefix("notify", event), msg=None, ctx=utils.parse_line(data))
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(event={self.event!r}, msg={self.msg!r}, ctx={self.ctx!r})"

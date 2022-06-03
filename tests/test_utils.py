@@ -6,6 +6,18 @@ from tsbot import utils
 
 
 @pytest.mark.parametrize(
+    ("prefix", "target_str", "excepted"),
+    (
+        pytest.param("!", "!hello user", "hello user", id="test_remove"),
+        pytest.param("notify", "notifycliententerview", "cliententerview", id="test_remove_notify"),
+        pytest.param("!", "hello user", "hello user", id="test_no_match"),
+    ),
+)
+def test_remove_prefix(prefix: str, target_str: str, excepted: tuple[str, str]) -> None:
+    assert utils.remove_prefix(prefix, target_str) == excepted
+
+
+@pytest.mark.parametrize(
     ("input_str", "excepted"),
     (
         pytest.param("", [], id="test_empty"),

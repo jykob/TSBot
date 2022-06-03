@@ -1,6 +1,13 @@
 from __future__ import annotations
 
 
+def remove_prefix(prefix: str, target: str) -> str:
+    if target.startswith(prefix):
+        return target[len(prefix) :]
+
+    return target
+
+
 def parse_data(input_str: str) -> list[dict[str, str]]:
     if not input_str:
         return []
@@ -42,7 +49,7 @@ def parse_args_kwargs(msg: str) -> tuple[tuple[str, ...], dict[str, str]]:
         item = msg_list.pop(0)
 
         if item.startswith("-"):
-            key = item.removeprefix("-")
+            key = remove_prefix("-", item)
             value = ""
             if len(msg_list) and not msg_list[0].startswith("-"):
                 value = msg_list.pop(0)

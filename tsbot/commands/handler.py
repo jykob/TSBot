@@ -5,6 +5,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from tsbot import enums
+from tsbot import utils
 from tsbot.commands.tscommand import TSCommand
 from tsbot.events.tsevent import TSEvent
 from tsbot.exceptions import TSCommandError, TSPermissionError
@@ -44,7 +45,7 @@ class CommandHandler:
             if not msg.startswith(self.invoker):
                 return
 
-        msg = msg.removeprefix(self.invoker)
+        msg = utils.remove_prefix(self.invoker, msg)
 
         command: str
         msg: str
