@@ -20,7 +20,6 @@ def test_tsevent_handler_creation():
 
 
 def test_tsevent_plugin_handler_creation():
-
     event_handler = tsevent_handler.TSEventHandler("clientmove", Plugin.handler)
 
     assert event_handler.event == "clientmove"

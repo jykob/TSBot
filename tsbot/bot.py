@@ -47,8 +47,6 @@ class TSBotInfo:
 
 
 class TSBot:
-    SKIP_WELCOME_MESSAGE: int = 2
-
     def __init__(
         self,
         username: str,
@@ -92,7 +90,9 @@ class TSBot:
     async def _reader_task(self) -> None:
         """Task to read messages from the server"""
 
-        async for data in self._connection.read_lines(self.SKIP_WELCOME_MESSAGE):
+        WELCOME_MESSAGE_LENGTH = 2
+
+        async for data in self._connection.read_lines(WELCOME_MESSAGE_LENGTH):
             pass
         logger.debug("Skipped welcome message")
 
