@@ -201,7 +201,7 @@ class TSBot:
         queries have to be sent to the server one at a time.
         """
         try:
-        return await self.send_raw(query.compile(), max_cache_age=max_cache_age)
+            return await self.send_raw(query.compile(), max_cache_age=max_cache_age)
         except TSResponseError as response_error:
             if (tb := sys.exc_info()[2]) and tb.tb_next:
                 response_error = response_error.with_traceback(tb.tb_next.tb_next)
@@ -216,7 +216,7 @@ class TSBot:
         Use send() method instead.
         """
         try:
-        return await asyncio.shield(self._send(command, max_cache_age))
+            return await asyncio.shield(self._send(command, max_cache_age))
         except TSResponseError as response_error:
             if (tb := sys.exc_info()[2]) and tb.tb_next:
                 response_error = response_error.with_traceback(tb.tb_next.tb_next)
@@ -290,15 +290,18 @@ class TSBot:
             logger.info("Closing")
             self.emit(event_name="close")
 
+            cancelled_tasks = asyncio.gather(*self._background_tasks)
+
             for task in list(self._background_tasks):
                 task.cancel()
-                await task
+
+            await cancelled_tasks
 
             await self.send_raw("quit")
             await self.event_handler.run_till_empty(self)
-            logger.info("Connection closed")
 
             self._closing_event.set()
+            logger.info("Closing done")
 
     async def run(self) -> None:
         """
