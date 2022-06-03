@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass, field
 import inspect
 import itertools
+import sys
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 from tsbot import utils
@@ -22,15 +23,21 @@ def add_check(func: TCommandHandler) -> TSCommand:
     return check_decorator  # type: ignore
 
 
+dataclass_kwargs = {}
+
+if sys.version_info >= (3, 10):
+    dataclass_kwargs["slots"] = True
+
+
 @dataclass(slots=True)
 class TSCommand:
     commands: tuple[str, ...]
     handler: TCommandHandler | TPluginCommandHandler
     plugin_instance: plugin.TSPlugin | None = None
 
-    help_text: str | None = field(default=None, repr=False, kw_only=True)
-    raw: bool = field(default=False, repr=False, kw_only=True)
-    hidden: bool = field(default=False, repr=False, kw_only=True)
+    help_text: str | None = field(default=None, repr=False)
+    raw: bool = field(default=False, repr=False)
+    hidden: bool = field(default=False, repr=False)
 
     checks: list[TCommandHandler] = field(default_factory=list, repr=False)
 

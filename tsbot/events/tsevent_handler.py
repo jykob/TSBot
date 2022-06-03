@@ -1,5 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
+import sys
 
 from typing import TYPE_CHECKING, Any
 
@@ -10,7 +11,13 @@ if TYPE_CHECKING:
     from tsbot.typealiases import TEventHandler, TPluginEventHandler
 
 
-@dataclass(slots=True)
+dataclass_kwargs = {}
+
+if sys.version_info >= (3, 10):
+    dataclass_kwargs["slots"] = True
+
+
+@dataclass(**dataclass_kwargs)
 class TSEventHandler:
     event: str
     handler: TEventHandler | TPluginEventHandler

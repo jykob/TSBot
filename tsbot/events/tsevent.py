@@ -1,10 +1,17 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
+import sys
 
 from tsbot import utils
 
 
-@dataclass(slots=True, frozen=True)
+dataclass_kwargs = {"frozen": True}
+
+if sys.version_info >= (3, 10):
+    dataclass_kwargs["slots"] = True
+
+
+@dataclass(**dataclass_kwargs)
 class TSEvent:
     event: str
     msg: str | None = None
