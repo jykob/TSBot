@@ -1,4 +1,3 @@
-# pyright: reportPrivateUsage=false, reportUnknownMemberType=false
 from __future__ import annotations
 
 import asyncio
@@ -7,6 +6,8 @@ import time
 import pytest
 
 from tsbot import ratelimiter
+
+# pyright: reportPrivateUsage=false, reportUnknownMemberType=false
 
 
 def test_ratelimiter_call():

@@ -1,9 +1,11 @@
-# pyright: reportPrivateUsage=false
 from __future__ import annotations
 
 import pytest
 
 from tsbot.query import TSQuery, query
+
+
+# pyright: reportPrivateUsage=false
 
 
 def test_add_options():
