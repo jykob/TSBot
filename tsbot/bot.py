@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-@dataclass(slots=True)
+@dataclass
 class TSBotInfo:
     clid: str = field(init=False)
     database_id: str = field(init=False)
