@@ -45,7 +45,7 @@ asyncio.run(bot.run())
 
 ## 📦 Installation
 
-**Python 3.8 or higher is required**
+**Python 3.10 or higher is required**
 
 Installing with pip:
 
