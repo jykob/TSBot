@@ -24,10 +24,10 @@ def allow_only_uids(*uid: str):
 
 
 @commands.add_check(allow_only_uids("v8t+Jw6+qNDl1KHuDfS7zVjKSws="))
-@bot.command("eval")
-async def eval_(bot: TSBot, ctx: dict[str, str]) -> None:
+@bot.command("eval", raw=True)
+async def eval_(bot: TSBot, ctx: dict[str, str], eval_str: str) -> None:
     try:
-        response = eval(ctx["invoker_removed"])
+        response = eval(eval_str)
     except Exception as e:
         response = f"{e.__class__.__name__}: {e}"
 
