@@ -298,7 +298,7 @@ class TSBot:
             await cancelled_tasks
 
             await self.send_raw("quit")
-            await self.event_handler.run_till_empty(self)
+            self.event_handler.run_till_empty(self)
 
             self._closing_event.set()
             logger.info("Closing done")
