@@ -45,7 +45,7 @@ class CommandHandler:
             if not msg.startswith(self.invoker):
                 return
 
-        msg = utils.remove_prefix(self.invoker, msg)
+        msg = msg.removeprefix(self.invoker)
 
         command: str
         msg: str
