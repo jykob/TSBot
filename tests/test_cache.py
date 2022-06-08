@@ -126,7 +126,7 @@ def test_cleanup_task(monkeypatch: pytest.MonkeyPatch):
     async def runner():
         task = asyncio.create_task(test_cache.cache_cleanup_task(MockBot()))  # type: ignore
         task.get_loop().call_later(0.1, task.cancel)
-        await task
+        await asyncio.wait_for(task, timeout=1)
 
     asyncio.run(runner())
 
