@@ -226,8 +226,6 @@ class TSBot:
     async def _send(self, command: str, max_cache_age: int | float = 0) -> TSResponse:
         """
         Method responsibe for actually sending the data
-
-        This method should't be ever cancalled!
         """
 
         cache_hash = hash(command)
@@ -259,7 +257,7 @@ class TSBot:
             self.emit(event_name="send")
             await self._connection.write(command)
 
-            response: TSResponse = await self._response
+            response: TSResponse = await asyncio.wait_for(asyncio.shield(self._response), 5.0)
 
             logger.debug("Got a response: %s", response)
 
