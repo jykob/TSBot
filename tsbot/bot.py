@@ -329,10 +329,9 @@ class TSBot:
         self.load_plugin(Help(), KeepAlive())
         self.emit(event_name="run")
 
-        try:
-            logger.info("Setting up connection")
-            await self._connection.connect()
-
+        logger.info("Setting up connection")
+        
+        async with self._connection:
             reader_task = asyncio.create_task(self._reader_task())
             await self._reader_ready_event.wait()
             logger.info("Connected")
@@ -343,9 +342,6 @@ class TSBot:
 
             self.emit(event_name="ready")
             await reader_task
-
-        finally:
-            await self._connection.close()
 
     def load_plugin(self, *plugins: TSPlugin) -> None:
         """

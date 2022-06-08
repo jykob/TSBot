@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 import logging
-from typing import AsyncGenerator
+from typing import Any, AsyncGenerator
 
 import asyncssh
 
@@ -62,8 +63,7 @@ class TSConnection:
         try:
             data = await self._reader.readuntil("\n\r")
 
-        except Exception as e:
-            logger.warning(e)
+        except asyncio.IncompleteReadError:
             return None
 
         else:
@@ -79,3 +79,9 @@ class TSConnection:
             await self._writer.drain()
         except Exception as e:
             logger.warning(e)
+
+    async def __aenter__(self):
+        await self.connect()
+
+    async def __aexit__(self, *args: Any, **kwargs: Any):
+        await self.close()

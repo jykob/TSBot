@@ -23,13 +23,15 @@ def conn_info():
     return ConnectionInfo("testuser", "password", "localhost", 10022)
 
 
-@pytest.fixture
-def conn(conn_info: ConnectionInfo):
-    return connection.TSConnection(conn_info.username, conn_info.password, conn_info.address, conn_info.port)
-
-
 async def mock_connect(*args: Any, **kwargs: Any):
     return MockClientConnection()
+
+
+@pytest.fixture
+def conn(monkeypatch: pytest.MonkeyPatch, conn_info: ConnectionInfo):
+    monkeypatch.setattr(asyncssh.connection, "connect", mock_connect)
+
+    return connection.TSConnection(conn_info.username, conn_info.password, conn_info.address, conn_info.port)
 
 
 @pytest.fixture
@@ -232,11 +234,9 @@ def test_internal_read(connected_conn: connection.TSConnection):
     assert line == "line 1\n\r"
 
 
-def test_internal_read_excpetion_while_reading(
-    monkeypatch: pytest.MonkeyPatch, connected_conn: connection.TSConnection
-):
-    def readuntil():
-        raise Exception("test exception")
+def test_internal_read_exception_incomplete(monkeypatch: pytest.MonkeyPatch, connected_conn: connection.TSConnection):
+    def readuntil(*args: Any, **kwargs: Any):
+        raise asyncio.IncompleteReadError(b"test exception", expected=0)
 
     monkeypatch.setattr(connected_conn._reader, "readuntil", readuntil)
 
@@ -289,3 +289,15 @@ def test_write_on_closed_channel(conn: connection.TSConnection, connected_conn: 
 
     with pytest.raises(BrokenPipeError):
         asyncio.run(conn.write("hello"))
+
+
+def test_connection_context_manager(conn: connection.TSConnection):
+    async def async_wrapper():
+        async with conn:
+            assert conn._writer
+            assert conn._reader
+
+        assert conn._writer.is_closing()
+        assert isinstance(conn._connection, MockClientConnection) and conn._connection._closed
+
+    asyncio.run(async_wrapper())
