@@ -4,13 +4,10 @@ import itertools
 import logging
 from typing import TYPE_CHECKING
 
-from tsbot import enums
-from tsbot.exceptions import TSCommandError, TSPermissionError
+from tsbot import enums, exceptions
 
 if TYPE_CHECKING:
-    from tsbot import bot
-    from tsbot.commands.tscommand import TSCommand
-    from tsbot.events.tsevent import TSEvent
+    from tsbot import bot, commands, events
 
 
 logger = logging.getLogger(__name__)
@@ -19,16 +16,16 @@ logger = logging.getLogger(__name__)
 class CommandHandler:
     def __init__(self, invoker: str = "!") -> None:
         self.invoker = invoker
-        self.commands: dict[str, TSCommand] = {}
+        self.commands: dict[str, commands.TSCommand] = {}
 
-    def register_command(self, command: TSCommand):
+    def register_command(self, command: commands.TSCommand):
 
         for command_name in command.commands:
             self.commands[command_name] = command
 
         logger.debug(f"Registered '{', '.join(command.commands)}' command to execute {command.handler.__qualname__!r}")
 
-    async def handle_command_event(self, bot: bot.TSBot, event: TSEvent) -> None:
+    async def handle_command_event(self, bot: bot.TSBot, event: events.TSEvent) -> None:
         """Logic to handle commands"""
 
         # If sender is the bot, return:
@@ -67,8 +64,8 @@ class CommandHandler:
         except TypeError:
             await bot.respond(event.ctx, command_handler.usage)
 
-        except TSCommandError as e:
+        except exceptions.TSCommandError as e:
             bot.emit(event_name="command_error", msg=str(e), ctx=event.ctx)
 
-        except TSPermissionError as e:
+        except exceptions.TSPermissionError as e:
             bot.emit(event_name="permission_error", msg=str(e), ctx=event.ctx)

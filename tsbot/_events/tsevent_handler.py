@@ -3,21 +3,18 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from tsbot.bot import TSBot
-    from tsbot.events.tsevent import TSEvent
-    from tsbot.plugin import TSPlugin
-    from tsbot.typealiases import TEventHandler, TPluginEventHandler
+    from tsbot import bot, events, plugin, typealiases
 
 
 class TSEventHandler:
     __slots__ = "event", "handler", "plugin_instance"
 
-    def __init__(self, event: str, handler: TEventHandler | TPluginEventHandler) -> None:
+    def __init__(self, event: str, handler: typealiases.TEventHandler | typealiases.TPluginEventHandler) -> None:
         self.event = event
         self.handler = handler
-        self.plugin_instance: TSPlugin | None = None
+        self.plugin_instance: plugin.TSPlugin | None = None
 
-    async def run(self, bot: TSBot, event: TSEvent) -> None:
+    async def run(self, bot: bot.TSBot, event: events.TSEvent) -> None:
         event_args = (bot, event) if not self.plugin_instance else (self.plugin_instance, bot, event)
 
         await self.handler(*event_args)  # type: ignore

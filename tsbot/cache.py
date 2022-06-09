@@ -5,10 +5,10 @@ import logging
 import time
 from typing import TYPE_CHECKING, NamedTuple
 
-from tsbot.response import TSResponse
+from tsbot import response
 
 if TYPE_CHECKING:
-    from tsbot.bot import TSBot
+    from tsbot import bot
 
 
 logger = logging.getLogger(__name__)
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class CacheRecord(NamedTuple):
     timestamp: float
-    record: TSResponse
+    record: response.TSResponse
 
 
 class Cache:
@@ -26,7 +26,7 @@ class Cache:
 
         self.cache: dict[int, CacheRecord] = {}
 
-    def get_cache(self, cache_hash: int, max_age: int | float) -> TSResponse | None:
+    def get_cache(self, cache_hash: int, max_age: int | float) -> response.TSResponse | None:
         cached_response = self.cache.get(cache_hash)
 
         if not cached_response:
@@ -37,7 +37,7 @@ class Cache:
 
         return cached_response.record
 
-    def add_cache(self, cache_hash: int, response: TSResponse) -> None:
+    def add_cache(self, cache_hash: int, response: response.TSResponse) -> None:
         self.cache[cache_hash] = CacheRecord(time.monotonic(), response)
 
     def cleanup(self):
@@ -52,7 +52,7 @@ class Cache:
             logger.debug("Deleting key %r", key)
             del self.cache[key]
 
-    async def cache_cleanup_task(self, bot: TSBot) -> None:
+    async def cache_cleanup_task(self, bot: bot.TSBot) -> None:
         logger.debug("Clean-up task started")
 
         while True:

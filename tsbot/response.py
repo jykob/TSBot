@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Generator
 
-from tsbot.utils import parse_data, parse_line
+from tsbot import utils
 
 
 class TSResponse:
@@ -26,10 +26,10 @@ class TSResponse:
     @classmethod
     def from_server_response(cls, raw_data: list[str]):
         error_id, msg = parse_error_line(raw_data.pop())
-        data = parse_data("".join(raw_data))
+        data = utils.parse_data("".join(raw_data))
         return cls(data=data, error_id=error_id, msg=msg)
 
 
 def parse_error_line(input_str: str) -> tuple[int, str]:
-    data = parse_line(input_str)
+    data = utils.parse_line(input_str)
     return int(data["id"]), data["msg"]

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TypeVar, Union
 
-from tsbot.utils import escape
+from tsbot import utils
 
 TTSQuery = TypeVar("TTSQuery", bound="TSQuery")
 TStringable = Union[str, int, float, bytes]
@@ -40,13 +40,13 @@ class TSQuery:
         compiled = self.command
 
         if self._parameters:
-            compiled += f" {' '.join(f'{k}={escape(v)}' for k, v in self._parameters.items())}"
+            compiled += f" {' '.join(f'{k}={utils.escape(v)}' for k, v in self._parameters.items())}"
 
         if self._parameter_blocks:
             compiled_blocks: list[str] = []
 
             for parameters in self._parameter_blocks:
-                compiled_blocks.append(" ".join(f"{k}={escape(v)}" for k, v in parameters.items()))
+                compiled_blocks.append(" ".join(f"{k}={utils.escape(v)}" for k, v in parameters.items()))
 
             compiled += f" {'|'.join(compiled_blocks)}"
 
