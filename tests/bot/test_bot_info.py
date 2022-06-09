@@ -2,9 +2,7 @@ import asyncio
 
 import pytest
 
-from tsbot.bot import TSBot, TSBotInfo
-from tsbot.response import TSResponse
-
+from tsbot import bot, response
 
 whoami_data = {
     "virtualserver_status": "online",
@@ -22,16 +20,16 @@ whoami_data = {
 
 
 @pytest.mark.usefixtures("whoami_data")
-class MockBot(TSBot):
+class MockBot(bot.TSBot):
     async def send_raw(self, command: str, *, max_cache_age: int | float = 0):
         if command == "whoami":
-            return TSResponse([whoami_data], error_id=0, msg="ok")
+            return response.TSResponse([whoami_data], error_id=0, msg="ok")
 
         raise NotImplementedError
 
 
 def test_ts_bot_info_creation():
-    ts_info = TSBotInfo()
+    ts_info = bot.TSBotInfo()
 
     assert not hasattr(ts_info, "clid")
     assert not hasattr(ts_info, "database_id")
@@ -41,7 +39,7 @@ def test_ts_bot_info_creation():
 
 
 def test_ts_bot_info_update():
-    ts_info = TSBotInfo()
+    ts_info = bot.TSBotInfo()
 
     asyncio.run(ts_info.update(MockBot("", "", "")))
 
