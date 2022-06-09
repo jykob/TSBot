@@ -97,11 +97,9 @@ class TSCommand:
         if self.checks:
             await self.run_checks(bot, ctx, *args, **kwargs)
 
-        command_args = (bot, ctx)
-        if self.plugin_instance:
-            command_args = (self.plugin_instance, *command_args)
+        command_args = (bot, ctx) if not self.plugin_instance else (self.plugin_instance, bot, ctx)
 
-        await self.handler(*command_args, *args, **kwargs)
+        await self.handler(*command_args, *args, **kwargs)  # type: ignore
 
     def __call__(self, *args: Any, **kwargs: Any):
         return self.run(*args, **kwargs)
