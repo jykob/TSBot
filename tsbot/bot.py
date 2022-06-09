@@ -363,13 +363,13 @@ class TSBot:
 
             self.plugins[plugin.__class__.__name__] = plugin
 
-    async def respond(self, ctx: dict[str, str], message: str, *, in_dms: bool = False):
+    async def respond(self, ctx: TCtx, message: str, *, in_dms: bool = False):
         """
         Respond in text channel
 
         Will respond in same text channel where 'ctx' was made, unless 'in_dms' flag given.
         """
-        target = 0
+        target = "0"
         target_mode = enums.TextMessageTargetMode(int(ctx["targetmode"]))
 
         if in_dms or target_mode == enums.TextMessageTargetMode.CLIENT:
