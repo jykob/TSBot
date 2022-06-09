@@ -18,12 +18,9 @@ class TSEventHandler:
         self.plugin_instance: TSPlugin | None = None
 
     async def run(self, bot: TSBot, event: TSEvent) -> None:
-        event_args = (bot, event)
+        event_args = (bot, event) if not self.plugin_instance else (self.plugin_instance, bot, event)
 
-        if self.plugin_instance:
-            event_args = (self.plugin_instance, *event_args)
-
-        await self.handler(*event_args)
+        await self.handler(*event_args)  # type: ignore
 
     def __call__(self, *args: Any, **kwargs: Any):
         return self.run(*args, **kwargs)

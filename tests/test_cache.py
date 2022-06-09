@@ -83,7 +83,7 @@ def test_cache_get_expired_record(
     assert cached_resp == None
 
 
-def test_cache_get_no_response(resp: response.TSResponse, test_cache: cache.Cache):
+def test_cache_get_no_response(test_cache: cache.Cache):
     cached_resp = test_cache.get_cache(9876543210, max_age=1)
 
     assert cached_resp == None
@@ -126,7 +126,7 @@ def test_cleanup_task(monkeypatch: pytest.MonkeyPatch):
     async def runner():
         task = asyncio.create_task(test_cache.cache_cleanup_task(MockBot()))  # type: ignore
         task.get_loop().call_later(0.1, task.cancel)
-        await task
+        await asyncio.wait_for(task, timeout=1)
 
     asyncio.run(runner())
 

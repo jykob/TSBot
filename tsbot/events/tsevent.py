@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from tsbot import utils
+
+if TYPE_CHECKING:
+    from tsbot.typealiases import TCtx
 
 
 class TSEvent:
     __slots__ = "event", "msg", "ctx"
 
-    def __init__(self, event: str, msg: str | None = None, ctx: dict[str, str] | None = None) -> None:
+    def __init__(self, event: str, msg: str | None = None, ctx: TCtx | None = None) -> None:
         self.event = event
         self.msg = msg
         self.ctx = ctx or {}

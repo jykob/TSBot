@@ -8,7 +8,7 @@ from tsbot.utils import parse_data, parse_line
 class TSResponse:
     __slots__ = "data", "error_id", "msg"
 
-    def __init__(self, data: list[dict[str, str]], error_id: int, msg: str) -> None:
+    def __init__(self, data: list[dict[str, str]], error_id: int, msg: str | None = None) -> None:
         self.data = data
         self.error_id = error_id
         self.msg = msg

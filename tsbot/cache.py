@@ -32,8 +32,10 @@ class Cache:
         if not cached_response:
             return None
 
-        if cached_response.timestamp + max_age > time.monotonic():
-            return cached_response.record
+        if cached_response.timestamp + max_age < time.monotonic():
+            return None
+
+        return cached_response.record
 
     def add_cache(self, cache_hash: int, response: TSResponse) -> None:
         self.cache[cache_hash] = CacheRecord(time.monotonic(), response)

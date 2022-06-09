@@ -10,7 +10,7 @@ from tsbot import utils
 if TYPE_CHECKING:
     from tsbot import plugin
     from tsbot.bot import TSBot
-    from tsbot.typealiases import TCommandHandler, TPluginCommandHandler
+    from tsbot.typealiases import TCommandHandler, TPluginCommandHandler, TCtx
 
 
 def add_check(func: TCommandHandler) -> TSCommand:
@@ -73,7 +73,7 @@ class TSCommand:
 
         return f"Usage: {' | '.join(self.commands)}  {' '.join(usage)}"
 
-    async def run_checks(self, bot: TSBot, ctx: dict[str, str], *args: str, **kwargs: str) -> None:
+    async def run_checks(self, bot: TSBot, ctx: TCtx, *args: str, **kwargs: str) -> None:
         done, pending = await asyncio.wait(
             [check(bot, ctx, *args, **kwargs) for check in self.checks],
             return_when=asyncio.FIRST_EXCEPTION,
@@ -85,7 +85,9 @@ class TSCommand:
             if exception := done_task.exception():
                 raise exception
 
-    async def run(self, bot: TSBot, ctx: dict[str, str], msg: str) -> None:
+    async def run(self, bot: TSBot, ctx: TCtx, msg: str) -> None:
+        kwargs: dict[str, str]
+        args: tuple[str, ...]
 
         if self.raw:
             args, kwargs = (msg,), {}
@@ -95,11 +97,9 @@ class TSCommand:
         if self.checks:
             await self.run_checks(bot, ctx, *args, **kwargs)
 
-        command_args = (bot, ctx)
-        if self.plugin_instance:
-            command_args = (self.plugin_instance, *command_args)
+        command_args = (bot, ctx) if not self.plugin_instance else (self.plugin_instance, bot, ctx)
 
-        await self.handler(*command_args, *args, **kwargs)
+        await self.handler(*command_args, *args, **kwargs)  # type: ignore
 
     def __call__(self, *args: Any, **kwargs: Any):
         return self.run(*args, **kwargs)

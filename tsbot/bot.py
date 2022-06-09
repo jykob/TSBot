@@ -23,14 +23,14 @@ from tsbot.response import TSResponse
 
 if TYPE_CHECKING:
     from tsbot.plugin import TSPlugin
-    from tsbot.typealiases import TBackgroundTask, TCommandHandler, TEventHandler
+    from tsbot.typealiases import TBackgroundTask, TCommandHandler, TEventHandler, TCtx
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(slots=True)
 class TSBotInfo:
-    clid: str = field(init=False)
+    client_id: str = field(init=False)
     database_id: str = field(init=False)
     login_name: str = field(init=False)
     nickname: str = field(init=False)
@@ -39,7 +39,7 @@ class TSBotInfo:
     async def update(self, bot: TSBot):
         response = await bot.send_raw("whoami")
 
-        self.clid = response.first["client_id"]
+        self.client_id = response.first["client_id"]
         self.database_id = response.first["client_database_id"]
         self.login_name = response.first["client_login_name"]
         self.nickname = response.first["client_nickname"]
@@ -115,7 +115,7 @@ class TSBot:
 
         logger.debug("Reader task done")
 
-    def emit(self, event_name: str, msg: str | None = None, ctx: dict[str, str] | None = None) -> None:
+    def emit(self, event_name: str, msg: str | None = None, ctx: TCtx | None = None) -> None:
         """Builds a TSEvent object and emits it"""
         event = TSEvent(event=event_name, msg=msg, ctx=ctx or {})
         self.emit_event(event)
@@ -226,8 +226,6 @@ class TSBot:
     async def _send(self, command: str, max_cache_age: int | float = 0) -> TSResponse:
         """
         Method responsibe for actually sending the data
-
-        This method should't be ever cancalled!
         """
 
         cache_hash = hash(command)
@@ -259,7 +257,7 @@ class TSBot:
             self.emit(event_name="send")
             await self._connection.write(command)
 
-            response: TSResponse = await self._response
+            response: TSResponse = await asyncio.wait_for(asyncio.shield(self._response), 5.0)
 
             logger.debug("Got a response: %s", response)
 
@@ -298,7 +296,7 @@ class TSBot:
             await cancelled_tasks
 
             await self.send_raw("quit")
-            await self.event_handler.run_till_empty(self)
+            self.event_handler.run_till_empty(self)
 
             self._closing_event.set()
             logger.info("Closing done")
@@ -331,10 +329,9 @@ class TSBot:
         self.load_plugin(Help(), KeepAlive())
         self.emit(event_name="run")
 
-        try:
-            logger.info("Setting up connection")
-            await self._connection.connect()
+        logger.info("Setting up connection")
 
+        async with self._connection:
             reader_task = asyncio.create_task(self._reader_task())
             await self._reader_ready_event.wait()
             logger.info("Connected")
@@ -345,9 +342,6 @@ class TSBot:
 
             self.emit(event_name="ready")
             await reader_task
-
-        finally:
-            await self._connection.close()
 
     def load_plugin(self, *plugins: TSPlugin) -> None:
         """
@@ -369,13 +363,13 @@ class TSBot:
 
             self.plugins[plugin.__class__.__name__] = plugin
 
-    async def respond(self, ctx: dict[str, str], message: str, *, in_dms: bool = False):
+    async def respond(self, ctx: TCtx, message: str, *, in_dms: bool = False):
         """
         Respond in text channel
 
         Will respond in same text channel where 'ctx' was made, unless 'in_dms' flag given.
         """
-        target = 0
+        target = "0"
         target_mode = enums.TextMessageTargetMode(int(ctx["targetmode"]))
 
         if in_dms or target_mode == enums.TextMessageTargetMode.CLIENT:

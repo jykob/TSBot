@@ -8,6 +8,7 @@ from tsbot.exceptions import TSCommandError
 
 if TYPE_CHECKING:
     from tsbot.bot import TSBot
+    from tsbot.typealiases import TCtx
 
 
 logger = logging.getLogger(__name__)
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class Help(plugin.TSPlugin):
     @plugin.command("help")
-    async def help_command(self, bot: TSBot, ctx: dict[str, str], command: str):
+    async def help_command(self, bot: TSBot, ctx: TCtx, command: str):
         command_handler = bot.command_handler.commands.get(command)
 
         if not command_handler or command_handler.hidden:

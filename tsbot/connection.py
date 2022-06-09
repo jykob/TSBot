@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 import logging
-from typing import AsyncGenerator
+from typing import Any, AsyncGenerator
 
 import asyncssh
 
@@ -43,43 +44,30 @@ class TSConnection:
         logger.info("Connection closed")
 
     async def read_lines(self, number_of_lines: int = 1) -> AsyncGenerator[str, None]:
-        if not self._reader:
-            raise ConnectionResetError("Trying to read on a closed connection")
+        lines_read = 0
 
-        lines_read: int = 0
-
-        while not self._reader.at_eof() and lines_read < number_of_lines:
-            try:
-                data = await self._reader.readuntil("\n\r")
-
-            except Exception as e:
-                logger.warning(e)
-
-            else:
-                if not data:
-                    break
-
-                lines_read += 1
-                yield data.strip()
+        while lines_read < number_of_lines and (data := await self._read()):
+            lines_read += 1
+            yield data.strip()
 
     async def read(self) -> AsyncGenerator[str, None]:
+        while data := await self._read():
+            yield data.strip()
+
+        logger.debug("Reading done")
+
+    async def _read(self) -> str | None:
         if not self._reader:
             raise ConnectionResetError("Trying to read on a closed connection")
 
-        while not self._reader.at_eof():
-            try:
-                data = await self._reader.readuntil("\n\r")
+        try:
+            data = await self._reader.readuntil("\n\r")
 
-            except Exception as e:
-                logger.warning(e)
+        except asyncio.IncompleteReadError:
+            return None
 
-            else:
-                if not data:
-                    break
-
-                yield data.strip()
-
-        logger.debug("Reading done")
+        else:
+            return data
 
     async def write(self, msg: str) -> None:
         if not self._writer or self._writer.is_closing():
@@ -89,5 +77,11 @@ class TSConnection:
 
         try:
             await self._writer.drain()
-        except ConnectionError as e:
+        except Exception as e:
             logger.warning(e)
+
+    async def __aenter__(self):
+        await self.connect()
+
+    async def __aexit__(self, *args: Any, **kwargs: Any):
+        await self.close()

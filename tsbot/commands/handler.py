@@ -5,13 +5,12 @@ import logging
 from typing import TYPE_CHECKING
 
 from tsbot import enums
-from tsbot import utils
-from tsbot.commands.tscommand import TSCommand
-from tsbot.events.tsevent import TSEvent
 from tsbot.exceptions import TSCommandError, TSPermissionError
 
 if TYPE_CHECKING:
     from tsbot import bot
+    from tsbot.commands.tscommand import TSCommand
+    from tsbot.events.tsevent import TSEvent
 
 
 logger = logging.getLogger(__name__)
@@ -37,20 +36,20 @@ class CommandHandler:
             return
 
         msg = event.ctx.get("msg", "").strip()
-        target_mode = int(event.ctx.get("targetmode", 0))
+        target_mode = enums.TextMessageTargetMode(int(event.ctx.get("targetmode", 0)))
 
         # Test if message in channel or server chat and starts with the invoker
-        # If these conditions are met, omit the invoker from the beginning
         if target_mode in (enums.TextMessageTargetMode.CHANNEL, enums.TextMessageTargetMode.SERVER):
             if not msg.startswith(self.invoker):
                 return
 
+        # Remove invoker from the beginning
         msg = msg.removeprefix(self.invoker)
 
         command: str
-        msg: str
+        msg_rest: str
 
-        command, msg = (v or d for v, d in itertools.zip_longest(msg.split(" ", maxsplit=1), ("", "")))
+        command, msg_rest = (v or d for v, d in itertools.zip_longest(msg.split(" ", maxsplit=1), ("", "")))
         command_handler = self.commands.get(command)
 
         if not command_handler:
@@ -58,18 +57,18 @@ class CommandHandler:
 
         # inject usefull information into ctx
         event.ctx["command"] = command
-        event.ctx["raw_msg"] = msg
+        event.ctx["raw_msg"] = msg_rest
 
-        logger.debug("%s executed command %s(%r)", event.ctx["invokername"], command, msg)
+        logger.debug("%r executed command %r -> %r", event.ctx["invokername"], command, msg_rest)
 
         try:
-            await command_handler.run(bot, event.ctx, msg)
+            await command_handler.run(bot, event.ctx, msg_rest)
 
         except TypeError:
             await bot.respond(event.ctx, command_handler.usage)
 
         except TSCommandError as e:
-            bot.emit(event_name="command_error", msg=f"{str(e)}", ctx=event.ctx)
+            bot.emit(event_name="command_error", msg=str(e), ctx=event.ctx)
 
         except TSPermissionError as e:
-            bot.emit(event_name="permission_error", msg=f"{str(e)}", ctx=event.ctx)
+            bot.emit(event_name="permission_error", msg=str(e), ctx=event.ctx)

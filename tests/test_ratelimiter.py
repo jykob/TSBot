@@ -10,29 +10,32 @@ from tsbot import ratelimiter
 # pyright: reportPrivateUsage=false, reportUnknownMemberType=false
 
 
-def test_ratelimiter_call():
-    rl = ratelimiter.RateLimiter(max_calls=10, period=3)
+@pytest.fixture
+def default_rl():
+    return ratelimiter.RateLimiter(max_calls=10, period=3)
 
-    asyncio.run(rl.wait())
 
-    assert rl._calls == 1
+def test_ratelimiter_call(default_rl: ratelimiter.RateLimiter):
+    asyncio.run(default_rl.wait())
+
+    assert default_rl._calls == 1
 
 
 @pytest.mark.parametrize(
-    ("rl", "number_of_calls"),
+    ("number_of_calls"),
     (
-        pytest.param(ratelimiter.RateLimiter(max_calls=10, period=3), 3, id="test_n_of_calls_3"),
-        pytest.param(ratelimiter.RateLimiter(max_calls=10, period=3), 8, id="test_n_of_calls_8"),
+        pytest.param(3, id="test_n_of_calls_3"),
+        pytest.param(8, id="test_n_of_calls_8"),
     ),
 )
-def test_ratelimiter_multiple_calls(rl: ratelimiter.RateLimiter, number_of_calls: int):
+def test_ratelimiter_multiple_calls(default_rl: ratelimiter.RateLimiter, number_of_calls: int):
     async def run_wrapper():
         for _ in range(number_of_calls):
-            await rl.wait()
+            await default_rl.wait()
 
     asyncio.run(run_wrapper())
 
-    assert rl._calls == number_of_calls
+    assert default_rl._calls == number_of_calls
 
 
 @pytest.mark.parametrize(
