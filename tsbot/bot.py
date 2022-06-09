@@ -23,7 +23,7 @@ from tsbot.response import TSResponse
 
 if TYPE_CHECKING:
     from tsbot.plugin import TSPlugin
-    from tsbot.typealiases import TBackgroundTask, TCommandHandler, TEventHandler
+    from tsbot.typealiases import TBackgroundTask, TCommandHandler, TEventHandler, TCtx
 
 logger = logging.getLogger(__name__)
 
@@ -115,7 +115,7 @@ class TSBot:
 
         logger.debug("Reader task done")
 
-    def emit(self, event_name: str, msg: str | None = None, ctx: dict[str, str] | None = None) -> None:
+    def emit(self, event_name: str, msg: str | None = None, ctx: TCtx | None = None) -> None:
         """Builds a TSEvent object and emits it"""
         event = TSEvent(event=event_name, msg=msg, ctx=ctx or {})
         self.emit_event(event)
