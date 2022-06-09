@@ -13,6 +13,8 @@ Asynchronous framework to build **TeamSpeak 3 Server Query** bots
 ## ✏️ Examples
 
 ```python
+from __future__ import annotations
+
 import asyncio
 
 from tsbot import TSBot
