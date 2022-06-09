@@ -92,3 +92,8 @@ def test_iter_response():
 
     for client in resp:
         assert isinstance(client, dict)
+
+
+def test_response_repr():
+    resp = response.TSResponse([{"ip": "0.0.0.0"}, {"ip": "::"}], 0, "ok")
+    assert repr(resp)
