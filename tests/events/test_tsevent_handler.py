@@ -2,15 +2,15 @@ from __future__ import annotations
 
 from tsbot import plugin
 from tsbot.bot import TSBot
-from tsbot.events import tsevent_handler
+from tsbot.events import tsevent_handler, TSEvent
 
 
-def handler(bot: TSBot, ctx: dict[str, str]):
+async def handler(bot: TSBot, event: TSEvent):
     pass
 
 
 class Plugin(plugin.TSPlugin):
-    def handler(self, bot: TSBot, ctx: dict[str, str]):
+    async def handler(self, bot: TSBot, event: TSEvent):
         pass
 
 
