@@ -28,9 +28,9 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(slots=True)
 class TSBotInfo:
-    clid: str = field(init=False)
+    client_id: str = field(init=False)
     database_id: str = field(init=False)
     login_name: str = field(init=False)
     nickname: str = field(init=False)
@@ -39,7 +39,7 @@ class TSBotInfo:
     async def update(self, bot: TSBot):
         response = await bot.send_raw("whoami")
 
-        self.clid = response.first["client_id"]
+        self.client_id = response.first["client_id"]
         self.database_id = response.first["client_database_id"]
         self.login_name = response.first["client_login_name"]
         self.nickname = response.first["client_nickname"]
@@ -330,7 +330,7 @@ class TSBot:
         self.emit(event_name="run")
 
         logger.info("Setting up connection")
-        
+
         async with self._connection:
             reader_task = asyncio.create_task(self._reader_task())
             await self._reader_ready_event.wait()
