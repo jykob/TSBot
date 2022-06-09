@@ -17,4 +17,4 @@ def test_ts_response_error(error_id: int, message: str):
     assert error.error_id == error_id
     assert error.message == message
 
-    assert str(error) == f"Error {error_id}: {message}"
+    assert str(error)

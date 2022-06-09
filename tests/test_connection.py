@@ -105,9 +105,7 @@ def test_create_connection(conn_info: ConnectionInfo):
     assert conn._reader == None
 
 
-def test_connection_connect(monkeypatch: pytest.MonkeyPatch, conn: connection.TSConnection):
-
-    monkeypatch.setattr(asyncssh.connection, "connect", mock_connect)
+def test_connection_connect(conn: connection.TSConnection):
 
     asyncio.run(conn.connect())
 
@@ -159,8 +157,8 @@ def test_read_lines(monkeypatch: pytest.MonkeyPatch, connected_conn: connection.
     ("number_of_lines", "break_at"),
     (
         pytest.param(5, 2, id="test_read_lines_break_at=5"),
-        pytest.param(5, 10, id="test_read_lines_break_at=10"),
         pytest.param(8, 8, id="test_read_lines_break_at=8"),
+        pytest.param(5, 10, id="test_read_lines_break_at=10"),
     ),
 )
 def test_read_lines_break_on_empty(
