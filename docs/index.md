@@ -1,10 +1,10 @@
 
 ```{toctree}
 :hidden:
-:maxdepth: 2
+:maxdepth: 1
 
 installation
-quickstart
+getting_started
 
 commands
 events

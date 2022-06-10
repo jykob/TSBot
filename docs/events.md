@@ -1,3 +1,3 @@
 # Events
 
-test
+Page all about the events and event system.
