@@ -14,7 +14,7 @@ bot = TSBot(
 
 @bot.command("hello")
 async def hello_world(bot: TSBot, ctx: dict[str, str]):
-    await bot.respond(ctx, "Hello World!")
+    await bot.respond(ctx, f"Hello {ctx['invokername']}!")
 
 
 @bot.on("cliententerview")
