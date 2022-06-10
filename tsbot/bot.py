@@ -15,21 +15,22 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True)
-class TSBotInfo:
-    client_id: str = field(init=False)
-    database_id: str = field(init=False)
-    login_name: str = field(init=False)
-    nickname: str = field(init=False)
-    unique_identifier: str = field(init=False)
+class TSClientInfo:
+    client_id: str = field(compare=False)
+    database_id: str = field(compare=False)
+    login_name: str = field(compare=False)
+    nickname: str = field(compare=False)
+    unique_identifier: str = field(compare=True)
 
-    async def update(self, bot: TSBot):
-        response = await bot.send_raw("whoami")
-
-        self.client_id = response.first["client_id"]
-        self.database_id = response.first["client_database_id"]
-        self.login_name = response.first["client_login_name"]
-        self.nickname = response.first["client_nickname"]
-        self.unique_identifier = response.first["client_unique_identifier"]
+    @classmethod
+    def from_client_info(cls, resp: response.TSResponse):
+        return cls(
+            client_id=resp.first["client_id"],
+            database_id=resp.first["client_database_id"],
+            login_name=resp.first["client_login_name"],
+            nickname=resp.first["client_nickname"],
+            unique_identifier=resp.first["client_unique_identifier"],
+        )
 
 
 class TSBot:
@@ -47,6 +48,7 @@ class TSBot:
         ratelimit_period: float = 3,
     ) -> None:
         self.server_id = server_id
+        self.bot_info: TSClientInfo
 
         self.plugins: dict[str, plugin.TSPlugin] = {}
         self._background_tasks: set[asyncio.Task[None]] = set()
@@ -61,7 +63,6 @@ class TSBot:
         self.event_handler = events.EventHanlder()
         self.command_handler = commands.CommandHandler(invoker)
         self.cache = cache.Cache()
-        self.bot_info = TSBotInfo()
 
         self.is_ratelimited = ratelimited
         self.ratelimiter = ratelimiter.RateLimiter(max_calls=ratelimit_calls, period=ratelimit_period)
@@ -130,7 +131,11 @@ class TSBot:
         return event_handler
 
     def command(
-        self, *command: str, help_text: str | None = None, raw: bool = False, hidden: bool = False
+        self,
+        *command: str,
+        help_text: str | None = None,
+        raw: bool = False,
+        hidden: bool = False,
     ) -> commands.TSCommand:
         """Decorator to register coroutines on command"""
 
@@ -161,7 +166,10 @@ class TSBot:
         return command_handler
 
     def register_background_task(
-        self, background_handler: typealiases.TBackgroundTask, *, name: str | None = None
+        self,
+        background_handler: typealiases.TBackgroundTask,
+        *,
+        name: str | None = None,
     ) -> asyncio.Task[None]:
         """Registers a coroutine as background task"""
         task = asyncio.create_task(background_handler(self), name=name)
@@ -196,10 +204,9 @@ class TSBot:
 
     async def send_raw(self, command: str, *, max_cache_age: int | float = 0) -> response.TSResponse:
         """
-        Send raw commands to the server
+        Sends raw commands to the server.
 
-        Not recommended to use this if you don't know what you are doing.
-        Use send() method instead.
+        Its recommended to use builtin query builder and :func:`send()<tsbot.TSBot.send()>` instead of this
         """
         try:
             return await asyncio.shield(self._send(command, max_cache_age))
@@ -323,8 +330,8 @@ class TSBot:
             logger.info("Connected")
 
             await select_server()
+            await self.update_info()
             await register_notifies()
-            await self.bot_info.update(self)
 
             self.emit(event_name="ready")
             await reader_task
@@ -348,6 +355,11 @@ class TSBot:
                     self.command_handler.register_command(member)
 
             self.plugins[plugin.__class__.__name__] = plugin
+
+    async def update_info(self):
+        """Update the bot_info instance"""
+        resp = await self.send_raw("whoami")
+        self.bot_info = TSClientInfo.from_client_info(resp)
 
     async def respond(self, ctx: typealiases.TCtx, message: str, *, in_dms: bool = False):
         """
