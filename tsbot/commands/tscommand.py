@@ -69,7 +69,7 @@ class TSCommand:
                     f"""{f" ({param.default or '?'!r})" if param.default is not param.empty else ''}"""
                 )
 
-        return f"Usage: {' | '.join(self.commands)}  {' '.join(usage)}"
+        return f"Usage: {' | '.join(self.commands)} {' '.join(usage)}"
 
     async def run_checks(self, bot: bot.TSBot, ctx: typealiases.TCtx, *args: str, **kwargs: str) -> None:
         done, pending = await asyncio.wait(
