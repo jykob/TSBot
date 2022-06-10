@@ -258,7 +258,7 @@ class TSBot:
                 await self.ratelimiter.wait()
 
             logger.debug("Sending command: %s", command)
-            self.emit(event_name="send")
+            self.emit(event_name="send", ctx={"command": command})
             await self._connection.write(command)
 
             response: response.TSResponse = await asyncio.wait_for(asyncio.shield(self._response), 5.0)
