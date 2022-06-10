@@ -1,7 +1,7 @@
 # Api Reference
 
-
 ## TSBot
+
 ```{eval-rst}
 
 .. autoclass:: tsbot.TSBot
@@ -14,6 +14,7 @@
 ```
 
 ## TSClientInfo
+
 ```{eval-rst}
 
 .. autoclass:: tsbot.bot.TSClientInfo
@@ -21,6 +22,7 @@
 ```
 
 ## TSEvent
+
 ```{eval-rst}
 
 .. autoclass:: tsbot.events.TSEvent
@@ -28,16 +30,18 @@
 ```
 
 ## TSQuery
+
 ```{eval-rst}
 
-.. autofunction:: tsbot.query.query()
+.. autofunction:: tsbot.query()
 
-.. autoclass:: tsbot.query.TSQuery
+.. autoclass:: tsbot.query_builder.TSQuery
     :members:
 
 ```
 
 ## TSResponse
+
 ```{eval-rst}
 
 .. autoclass:: tsbot.response.TSResponse
@@ -45,6 +49,7 @@
 ```
 
 ## Exceptions
+
 ```{eval-rst}
 
 .. autoexception:: tsbot.exceptions.TSException

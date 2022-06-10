@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from tsbot.query import TSQuery, query
+from tsbot.query_builder import TSQuery, query
 
 
 # pyright: reportPrivateUsage=false

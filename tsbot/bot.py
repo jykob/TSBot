@@ -6,7 +6,18 @@ import sys
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from tsbot import cache, commands, connection, default_plugins, enums, events, exceptions, query, ratelimiter, response
+from tsbot import (
+    cache,
+    commands,
+    connection,
+    default_plugins,
+    enums,
+    events,
+    exceptions,
+    query_builder,
+    ratelimiter,
+    response,
+)
 
 if TYPE_CHECKING:
     from tsbot import plugin, typealiases
@@ -187,7 +198,7 @@ class TSBot:
 
         self._background_tasks.remove(background_task)
 
-    async def send(self, query: query.TSQuery, *, max_cache_age: int | float = 0) -> response.TSResponse:
+    async def send(self, query: query_builder.TSQuery, *, max_cache_age: int | float = 0) -> response.TSResponse:
         """
         Sends queries to the server, assuring only one of them gets sent at a time
 
@@ -306,14 +317,14 @@ class TSBot:
 
         async def select_server() -> None:
             """Set current virtual server"""
-            await self.send(query.TSQuery("use").params(sid=self.server_id))
+            await self.send(query_builder.TSQuery("use").params(sid=self.server_id))
 
         async def register_notifies() -> None:
             """Coroutine to register server to send events to the bot"""
 
-            await self.send(query.TSQuery("servernotifyregister").params(event="channel", id=0))
+            await self.send(query_builder.TSQuery("servernotifyregister").params(event="channel", id=0))
             for event in ("server", "textserver", "textchannel", "textprivate"):
-                await self.send(query.TSQuery("servernotifyregister").params(event=event))
+                await self.send(query_builder.TSQuery("servernotifyregister").params(event=event))
 
         self.register_background_task(self.event_handler.handle_events_task, name="HandleEvents-Task")
         self.register_background_task(self.cache.cache_cleanup_task, name="CacheCleanup-Task")
@@ -374,5 +385,5 @@ class TSBot:
             target, target_mode = ctx["invokerid"], enums.TextMessageTargetMode.CLIENT
 
         await self.send(
-            query.TSQuery("sendtextmessage").params(targetmode=target_mode.value, target=target, msg=message)
+            query_builder.TSQuery("sendtextmessage").params(targetmode=target_mode.value, target=target, msg=message)
         )

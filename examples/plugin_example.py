@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import asyncio
 
-from tsbot import plugin, TSBot
+from tsbot import TSBot, plugin, query
 from tsbot.events import TSEvent
-from tsbot.query import query
 
 
 class TestPlugin(plugin.TSPlugin):
