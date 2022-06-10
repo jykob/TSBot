@@ -12,4 +12,4 @@ TPluginCommandHandler: TypeAlias = Callable[[plugin.TSPlugin, bot.TSBot, TCtx], 
 TEventHandler: TypeAlias = Callable[[bot.TSBot, events.TSEvent], Awaitable[None]]
 TPluginEventHandler: TypeAlias = Callable[[plugin.TSPlugin, bot.TSBot, events.TSEvent], Awaitable[None]]
 
-TBackgroundTask: TypeAlias = Callable[..., Coroutine[None, None, None]]
+TBackgroundTask: TypeAlias = Callable[[bot.TSBot], Coroutine[None, None, None]]
