@@ -5,7 +5,11 @@
 
 installation
 quickstart
+
+commands
+events
 plugins
+
 api
 ```
 

@@ -13,6 +13,13 @@
     .. autodecorator:: tsbot.TSBot.command()
 ```
 
+## TSClientInfo
+```{eval-rst}
+
+.. autoclass:: tsbot.bot.TSClientInfo
+    :members:
+```
+
 ## TSEvent
 ```{eval-rst}
 
@@ -22,8 +29,26 @@
 
 ## TSQuery
 ```{eval-rst}
+
 .. autofunction:: tsbot.query.query()
 
 .. autoclass:: tsbot.query.TSQuery
     :members:
+
+```
+
+## TSResponse
+```{eval-rst}
+
+.. autoclass:: tsbot.response.TSResponse
+    :members:
+```
+
+## Exceptions
+```{eval-rst}
+
+.. autoexception:: tsbot.exceptions.TSException
+.. autoexception:: tsbot.exceptions.TSResponseError
+.. autoexception:: tsbot.exceptions.TSCommandError
+.. autoexception:: tsbot.exceptions.TSPermissionError
 ```
