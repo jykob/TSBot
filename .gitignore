@@ -126,3 +126,5 @@ dmypy.json
 
 todo*
 test.py
+tsconfig.json
+simple_example_filled.py
