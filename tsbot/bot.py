@@ -34,7 +34,7 @@ class TSClientInfo:
     unique_identifier: str = field(compare=True)
 
     @classmethod
-    def from_client_info(cls, resp: response.TSResponse):
+    def from_whoami(cls, resp: response.TSResponse):
         return cls(
             client_id=resp.first["client_id"],
             database_id=resp.first["client_database_id"],
@@ -301,6 +301,7 @@ class TSBot:
 
             await self.send_raw("quit")
             self.event_handler.run_till_empty(self)
+            await self.event_handler.event_queue.join()
 
             self._closing_event.set()
             logger.info("Closing done")
@@ -370,7 +371,7 @@ class TSBot:
     async def update_info(self):
         """Update the bot_info instance"""
         resp = await self.send_raw("whoami")
-        self.bot_info = TSClientInfo.from_client_info(resp)
+        self.bot_info = TSClientInfo.from_whoami(resp)
 
     async def respond(self, ctx: typealiases.TCtx, message: str, *, in_dms: bool = False):
         """
