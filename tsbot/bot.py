@@ -3,13 +3,13 @@ from __future__ import annotations
 import asyncio
 import logging
 import sys
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from tsbot import (
     cache,
     commands,
     connection,
+    client_info,
     default_plugins,
     enums,
     events,
@@ -23,25 +23,6 @@ if TYPE_CHECKING:
     from tsbot import plugin, typealiases
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass(slots=True)
-class TSClientInfo:
-    client_id: str = field(compare=False)
-    database_id: str = field(compare=False)
-    login_name: str = field(compare=False)
-    nickname: str = field(compare=False)
-    unique_identifier: str = field(compare=True)
-
-    @classmethod
-    def from_whoami(cls, resp: response.TSResponse):
-        return cls(
-            client_id=resp.first["client_id"],
-            database_id=resp.first["client_database_id"],
-            login_name=resp.first["client_login_name"],
-            nickname=resp.first["client_nickname"],
-            unique_identifier=resp.first["client_unique_identifier"],
-        )
 
 
 class TSBot:
@@ -59,7 +40,7 @@ class TSBot:
         ratelimit_period: float = 3,
     ) -> None:
         self.server_id = server_id
-        self.bot_info: TSClientInfo
+        self.bot_info: client_info.TSClientInfo
 
         self.plugins: dict[str, plugin.TSPlugin] = {}
         self._background_tasks: set[asyncio.Task[None]] = set()
@@ -371,7 +352,7 @@ class TSBot:
     async def update_info(self):
         """Update the bot_info instance"""
         resp = await self.send_raw("whoami")
-        self.bot_info = TSClientInfo.from_whoami(resp)
+        self.bot_info = client_info.TSClientInfo.from_whoami(resp)
 
     async def respond(self, ctx: typealiases.TCtx, message: str, *, in_dms: bool = False):
         """
