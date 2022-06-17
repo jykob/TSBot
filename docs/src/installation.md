@@ -1,6 +1,6 @@
 # Installation
 
-The easiest way to install 
+The easiest way to install TSBot is to use `pip`
 
 ```shell
 # Linux/macOS

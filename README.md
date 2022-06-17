@@ -21,9 +21,9 @@ from tsbot import TSBot, events, query
 
 
 bot = TSBot(
-    username="TestBot",
-    password="C2hjHZ2p",
-    address="localhost",
+    username="USERNAME",
+    password="PASSWORD",
+    address="ADDRESS",
 )
 
 

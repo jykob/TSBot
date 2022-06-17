@@ -11,7 +11,7 @@ It's recommended to create new identity for your bot account. This isn't stricty
 Launch your TeamSpeak Client and head on to:  
 `Tools → Identities`
 
-```{image} img/getting_started/teamspeak_identities.png
+```{image} ../img/getting_started/teamspeak_identities.png
 :alt: "Open Identities window: Tools → Identities"
 :align: center
 :class: margin-bottom
@@ -19,7 +19,7 @@ Launch your TeamSpeak Client and head on to:
 
 Here we create a new identity for your bot account
 
-```{image} img/getting_started/create_identity.png
+```{image} ../img/getting_started/create_identity.png
 :alt: Create identity
 ```
 
@@ -35,13 +35,13 @@ Now you are ready to connect to a server with your **_Bot Account_** identity.
 Now that we have an identity for your **_Bot Account_**, You can use it to connect to your server:  
 `Connections → Connect`
 
-```{image} img/getting_started/teamspeak_connect.png
+```{image} ../img/getting_started/teamspeak_connect.png
 :alt: Connections → Connect
 ```
 
 To change your connection identity:
 
-```{image} img/getting_started/change_identity.png
+```{image} ../img/getting_started/change_identity.png
 :alt: Change connection identity
 ```
 
@@ -69,8 +69,8 @@ Recommended ways to give these permissions are:
 
 | Permission name                              | Reason                                           |
 | -------------------------------------------- | ------------------------------------------------ |
-| ``b_client_create_modify_serverquery_login`` | To create/modify ***Server Query*** accounts     |
-| ``b_serverquery_login``                      | To Login as a ***Server Query*** client          |
+| ``b_client_create_modify_serverquery_login`` | To create/modify ***ServerQuery*** accounts     |
+| ``b_serverquery_login``                      | To Login as a ***ServerQuery*** client          |
 | ``b_virtualserver_select``                   | To select which virtual server to connect to     |
 | ``b_virtualserver_notify_register``          | To register the server to send events to the bot |
 ```
@@ -84,18 +84,18 @@ Recommended ways to give these permissions are:
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | ``b_client_server_textmessage_send``   | To send messages in Server chat                                                                               |
 | ``b_client_channel_textmessage_send``  | To send messages in Channel chat                                                                              |
-| ``i_client_private_textmessage_power`` | To send messages in Private chat. Should match the highest<br />``i_client_needed_private_textmessage_power`` |
+| ``i_client_private_textmessage_power`` | To send messages in Private chat.<br />Should match the highest<br />``i_client_needed_private_textmessage_power`` |
 ```
 
 ---
 
-## Creating Server Query login
+## Creating ServerQuery login
 
-Now that we are connected, we are ready create the login for your **_Server Query_** account.  
+Now that we are connected, we are ready create the login for your **_ServerQuery_** account.  
 `Tools → ServerQuery Login`
 
-```{image} img/getting_started/serverquery_login.png
-:alt: "Create Server Query login: Tools → ServerQuery Login"
+```{image} ../img/getting_started/serverquery_login.png
+:alt: "Create ServerQuery login: Tools → ServerQuery Login"
 :align: center
 ```
 
@@ -106,8 +106,8 @@ Check [](#setting-up-permissions) for more information.
 
 This will prompt you for a **_ServerQuery_** login. Enter a suitable login name for your bot.
 
-```{image} img/getting_started/login_promt.png
-:alt: Enter your server query login name
+```{image} ../img/getting_started/login_promt.png
+:alt: Enter your ServerQuery login name
 :align: center
 :class: margin-bottom
 ```
@@ -120,8 +120,8 @@ This can cause you to be unable to login.
 After clicking `OK`, you will be prompted with _Your ServerQuery Login_.  
 Take a note of the `Name` and `Password`, these are your `username` and `password` when logging in.
 
-```{image} img/getting_started/login_password.png
-:alt: Generated Server Query login
+```{image} ../img/getting_started/login_password.png
+:alt: Generated ServerQuery login
 :align: center
 :class: margin-bottom
 ```
@@ -138,7 +138,7 @@ This will generate you a new login.
 By default, TeamSpeak doesn't show connected query clients.  
 To enable this feature you need to add the server to your **_Bookmarks_** and editing the bookmark.
 
-```{image} img/getting_started/bookmarks.png
+```{image} ../img/getting_started/bookmarks.png
 :alt: Toggle 'Show ServerQuery Clients'
 :align: center
 :class: margin-bottom
@@ -146,7 +146,7 @@ To enable this feature you need to add the server to your **_Bookmarks_** and ed
 
 After reconnect to the server using the bookmark and you'll see the connected ServerQuery clients.
 
-```{image} img/getting_started/example_clients.png
+```{image} ../img/getting_started/example_clients.png
 :alt: Example of a shown ServerQuery client
 :align: center
 :class: margin-bottom
@@ -168,7 +168,7 @@ If you still don't see the ServerQuery client, check permissions.
 
 ---
 
-## Creating Server Query bot
+## Creating ServerQuery bot with TSBot
 
 To create our first TSBot, we can use the [examples/simple_example.py](https://github.com/0x4aK/TSBot/blob/master/examples/simple_example.py)
 
@@ -178,46 +178,41 @@ Let's copy the example and modify the script to fit our needs:
 10. Replace `PASSWORD` with your ServerQuery Password.
 11. Replace `ADDRESS` with your TeamSpeak server address.
 
-```{literalinclude} ../examples/simple_example.py
+```{literalinclude} ../../examples/simple_example.py
 :linenos: true
 :emphasize-lines: 9, 10, 11
 ```
 
 Now run the script. A **_ServerQuery client_** should join to your server.
 
-```{image} img/getting_started/example_clients.png
+```{image} ../img/getting_started/example_clients.png
 :alt: Example of a shown ServerQuery client
 :align: center
 :class: margin-bottom
 ```
 
-<div>
-
 ---
 
-  <div class="d-flex flex-row">
+<div class="d-flex flex-row">
 
 As long as the script is running, Everytime someone joins the server, they will get poked with this:
 
-```{image} img/getting_started/example_event.png
+```{image} ../img/getting_started/example_event.png
 :alt: Example of client joining getting poked
-:class: max-width-50
+:class: max-width-50 height-max-content
 ```
 
-  </div>
-
----
-
-  <div class="d-flex flex-row">
-
-And you can use command `!hello` to say hello to the bot
-
-```{image} img/getting_started/example_command.png
-:alt: Example of using command !hello
-:class: max-width-50
-```
-
-  </div>
 </div>
 
 ---
+
+<div class="d-flex flex-row">
+
+And you can use command `!hello` to say hello to the bot
+
+```{image} ../img/getting_started/example_command.png
+:alt: Example of using command !hello
+:class: max-width-50 height-max-content
+```
+
+</div>

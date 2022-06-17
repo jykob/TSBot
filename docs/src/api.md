@@ -16,24 +16,20 @@
 ## TSClientInfo
 
 ```{eval-rst}
-
-.. autoclass:: tsbot.bot.TSClientInfo
-    :members:
+.. autoclass:: tsbot.client_info.TSClientInfo
 ```
 
 ## TSEvent
 
 ```{eval-rst}
-
 .. autoclass:: tsbot.events.TSEvent
-
 ```
 
 ## TSQuery
 
 ```{eval-rst}
 
-.. autofunction:: tsbot.query()
+.. autofunction:: tsbot.query_builder.query()
 
 .. autoclass:: tsbot.query_builder.TSQuery
     :members:
@@ -53,7 +49,11 @@
 ```{eval-rst}
 
 .. autoexception:: tsbot.exceptions.TSException
+    :show-inheritance:
 .. autoexception:: tsbot.exceptions.TSResponseError
+    :show-inheritance:
 .. autoexception:: tsbot.exceptions.TSCommandError
+    :show-inheritance:
 .. autoexception:: tsbot.exceptions.TSPermissionError
+    :show-inheritance:
 ```

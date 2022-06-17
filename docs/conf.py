@@ -28,7 +28,13 @@ author = "0x4aK"
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["myst_parser", "sphinx.ext.autodoc", "sphinx_autodoc_typehints"]
+extensions = [
+    "sphinx.ext.intersphinx",
+    "myst_parser",
+    "sphinx.ext.autodoc",
+    "sphinx_autodoc_typehints",
+]
+root_doc = "src/index"
 
 source_suffix = {
     ".rst": "restructuredtext",
@@ -36,10 +42,16 @@ source_suffix = {
     ".md": "markdown",
 }
 
+# -- AutoDoc Options --------------------
 autodoc_typehints = "both"
 autodoc_preserve_defaults = True
 
+
+# -- MyST Options -----------------------
 myst_heading_anchors = 3
+
+# -- Intersphinx Options ----------------
+intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
