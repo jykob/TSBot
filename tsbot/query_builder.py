@@ -8,6 +8,11 @@ TTSQuery = TypeVar("TTSQuery", bound="TSQuery")
 TStringable = Union[str, int, float, bytes]
 
 
+def query(command: str) -> TSQuery:
+    """Function to create :class:`TSQuery<tsbot.query_builder.TSQuery>` instances"""
+    return TSQuery(command)
+
+
 class TSQuery:
     def __init__(self, command: str) -> None:
         if not command:
@@ -52,8 +57,3 @@ class TSQuery:
             compiled += f" {' '.join(f'-{option}' for option in self._options)}"
 
         return compiled
-
-
-def query(command: str) -> TSQuery:
-    """Function to create :class:`TSQuery<tsbot.query.TSQuery>` instances"""
-    return TSQuery(command)
