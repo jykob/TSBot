@@ -23,6 +23,9 @@ class TSQuery:
         self._parameters: dict[str, str] = {}
         self._parameter_blocks: list[dict[str, str]] = []
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}({self.command!r})"
+
     def option(self: TTSQuery, *args: TStringable) -> TTSQuery:
         """Add options to the command eg. ``-groups``"""
         self._options.extend(str(arg) for arg in args)
