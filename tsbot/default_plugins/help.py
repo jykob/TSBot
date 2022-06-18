@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class Help(plugin.TSPlugin):
-    @plugin.command("help")
+    @plugin.command("help", help_text="Prints out the help text of a given command and usage")
     async def help_command(self, bot: bot.TSBot, ctx: typealiases.TCtx, command: str):
         command_handler = bot.command_handler.commands.get(command)
 
