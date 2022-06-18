@@ -12,7 +12,12 @@ class TSPlugin:
     """Base class for plugins"""
 
 
-def command(*command: str, help_text: str | None = None, raw: bool = False, hidden: bool = False) -> commands.TSCommand:
+def command(
+    *command: str,
+    help_text: str | None = None,
+    raw: bool = False,
+    hidden: bool = False,
+) -> commands.TSCommand:
     """Decorator to register coroutines on commands"""
 
     def command_decorator(func: typealiases.TCommandHandler) -> commands.TSCommand:

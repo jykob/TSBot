@@ -129,7 +129,7 @@ class TSBot:
         raw: bool = False,
         hidden: bool = False,
     ) -> commands.TSCommand:
-        """Decorator to register coroutines on command"""
+        """Decorator to register coroutines on commands"""
 
         def command_decorator(func: typealiases.TCommandHandler) -> commands.TSCommand:
             return self.register_command(command, func, help_text=help_text, raw=raw, hidden=hidden)
