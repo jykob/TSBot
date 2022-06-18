@@ -49,6 +49,9 @@ autodoc_preserve_defaults = True
 
 # -- MyST Options -----------------------
 myst_heading_anchors = 3
+myst_enable_extensions = [
+    "substitution",
+]
 
 # -- Intersphinx Options ----------------
 intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
