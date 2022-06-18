@@ -4,9 +4,9 @@ In this tutorial we are going to get you started with TSBot.
 
 ---
 
-## Creating new TeamSpeak identity
+## Creating a new TeamSpeak identity
 
-It's recommended to create new identity for your bot account. This isn't stricty necessary but separating your **_Main Identity_** from a **_Bot Identity_** allows you to set different **Permissions** and **server**/**channel** groups. Basically this allows the server to treat you and your bot differently.
+It's recommended to create a new identity for your bot account. This isn't stricty necessary but separating your **_Main Identity_** from a **_Bot Identity_** allows you to set different **Permissions** and **server**/**channel** groups. Basically this allows the server to treat you and your bot differently.
 
 Launch your TeamSpeak Client and head on to:  
 `Tools → Identities`
