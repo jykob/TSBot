@@ -4,7 +4,7 @@
 
 ```{eval-rst}
 
-.. autoclass:: tsbot.TSBot
+.. autoclass:: tsbot.bot.TSBot
     :members:
     :exclude-members: on, command
 
@@ -42,6 +42,16 @@
 
 .. autoclass:: tsbot.response.TSResponse
     :members:
+```
+
+## Plugins
+
+```{eval-rst}
+
+.. autoclass:: tsbot.plugin.TSPlugin
+
+.. autofunction:: tsbot.plugin.command()
+.. autofunction:: tsbot.plugin.on()
 ```
 
 ## Exceptions

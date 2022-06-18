@@ -125,7 +125,7 @@ example_query = (
 )
 ```
 
-### Compiling your command
+### Compiling commands
 
 If you want to see the raw command produced by the `TSQuery` object, you can [compile()](<tsbot.query_builder.TSQuery.compile()>) it.
 This returns the raw command that will be sent to the server.
