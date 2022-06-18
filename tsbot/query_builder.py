@@ -4,7 +4,7 @@ from typing import TypeVar, Union
 
 from tsbot import utils
 
-TTSQuery = TypeVar("TTSQuery", bound="TSQuery")
+T = TypeVar("T", bound="TSQuery")
 TStringable = Union[str, int, float, bytes]
 
 
@@ -14,6 +14,15 @@ def query(command: str) -> TSQuery:
 
 
 class TSQuery:
+    __slots__ = (
+        "command",
+        "_cached_command",
+        "_dirty",
+        "_options",
+        "_parameters",
+        "_parameter_blocks",
+    )
+
     def __init__(self, command: str) -> None:
         if not command:
             raise ValueError("Command cannot be empty")
@@ -30,21 +39,21 @@ class TSQuery:
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}({self.command!r})"
 
-    def option(self: TTSQuery, *args: TStringable) -> TTSQuery:
+    def option(self: T, *args: TStringable) -> T:
         """Add options to the command eg. ``-groups``"""
         self._dirty = True
 
         self._options.extend(str(arg) for arg in args)
         return self
 
-    def params(self: TTSQuery, **kwargs: TStringable) -> TTSQuery:
+    def params(self: T, **kwargs: TStringable) -> T:
         """Add parameters to the command eg. ``cldbid=12``"""
         self._dirty = True
 
         self._parameters.update({k: str(v) for k, v in kwargs.items()})
         return self
 
-    def param_block(self: TTSQuery, **kwargs: TStringable) -> TTSQuery:
+    def param_block(self: T, **kwargs: TStringable) -> T:
         """Add parameter blocks eg. ``clid=1 | clid=2 | clid=3`` to the command"""
         self._dirty = True
 
