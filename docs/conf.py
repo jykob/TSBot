@@ -34,7 +34,6 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx_autodoc_typehints",
 ]
-root_doc = "src/index"
 
 source_suffix = {
     ".rst": "restructuredtext",
