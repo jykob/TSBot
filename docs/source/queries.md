@@ -149,7 +149,7 @@ You can just send the query again and again via [send()](<tsbot.bot.TSBot.send()
 
 Now that we know how to use {{TSQuery}} objects, let's see some real life examples how to use them.
 
-All these examples are from **TeamSpeak _ServerQuery_ manual**.
+All of these examples are from **TeamSpeak _ServerQuery_ manual**.
 
 ---
 

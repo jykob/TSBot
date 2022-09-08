@@ -14,6 +14,10 @@ plugins
 api
 ```
 
+```{attention}
+Documentation under construction
+```
+
 ```{include} ../../README.md
 
 ```
