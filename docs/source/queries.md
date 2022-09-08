@@ -141,7 +141,7 @@ raw_command = example_query.compile()
 Once `TSQuery` object has been compiled, it will cache the results.
 If `TSQuery` is compiled again without modifications, it will return the cached results.
 This means that you don't have to cache the commands yourself for example in a variable.
-You can just send the query again and again via [send()](<tsbot.TSBot.send()>)
+You can just send the query again and again via [send()](<tsbot.bot.TSBot.send()>)
 
 ---
 

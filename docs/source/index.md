@@ -11,7 +11,7 @@ queries
 sending_commands
 plugins
 
-./api
+api
 ```
 
 ```{include} ../../README.md
