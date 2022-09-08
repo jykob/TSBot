@@ -242,22 +242,22 @@ class TSBot:
             self.emit(event_name="send", ctx={"command": command})
             await self._connection.write(command)
 
-            response: response.TSResponse = await asyncio.wait_for(asyncio.shield(self._response), 5.0)
+            server_response: response.TSResponse = await asyncio.wait_for(asyncio.shield(self._response), 5.0)
 
-            logger.debug("Got a response: %s", response)
+            logger.debug("Got a response: %s", server_response)
 
-        if response.error_id != 0:
-            raise exceptions.TSResponseError(f"{response.msg}", error_id=int(response.error_id))
+        if server_response.error_id != 0:
+            raise exceptions.TSResponseError(f"{server_response.msg}", error_id=int(server_response.error_id))
 
-        if response.data:
-            self.cache.add_cache(cache_hash, response)
+        if server_response.data:
+            self.cache.add_cache(cache_hash, server_response)
             logger.debug(
                 "Added %r response to cache. Hash: %s",
                 command if len(command) < 50 else f"{command[:50]}...",
                 cache_hash,
             )
 
-        return response
+        return server_response
 
     async def close(self) -> None:
         """
