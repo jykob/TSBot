@@ -1,0 +1,27 @@
+.rst-content .margin-bottom {
+  margin-bottom: 1em;
+}
+
+.rst-content .text-right {
+  text-align: right;
+}
+
+.rst-content .text-center {
+  text-align: center;
+}
+
+.rst-content .max-width-50 {
+  max-width: 50%;
+}
+
+.rst-content .height-max-content {
+  height: max-content;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.flex-row {
+  flex-direction: row;
+}

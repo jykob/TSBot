@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from tsbot.query import TSQuery, query
+from tsbot.query_builder import TSQuery, query
 
 
 # pyright: reportPrivateUsage=false
@@ -80,3 +80,44 @@ def test_query_compile(input_query: TSQuery, excepted: str) -> None:
 def test_empty_query():
     with pytest.raises(ValueError):
         query("")
+
+
+def test_caching():
+    q = query("channelmove")
+    q.params(cid=16, cpid=1, order=0)
+
+    first_compile = q.compile()
+
+    assert q._dirty == False
+    assert q._cached_command
+
+    assert first_compile == q.compile()
+
+
+def test_cache_invalid(q: TSQuery):
+    first_compile = q.compile()
+
+    q.option("continueonerror")
+
+    assert q._dirty == True
+    assert first_compile != q.compile()
+
+
+@pytest.fixture
+def q():
+    return query("channelmove").params(cid=16, cpid=1, order=0)
+
+
+@pytest.mark.parametrize(
+    ("method", "args", "kwargs"),
+    (
+        pytest.param("option", ("continueonerror",), {}, id="test_option"),
+        pytest.param("params", (), {"cldbid": 16}, id="test_option"),
+        pytest.param("param_block", (), {"cldbid": 16}, id="test_option"),
+    ),
+)
+def test_sets_dirty_bit(q: TSQuery, method: str, args: tuple[str, ...], kwargs: dict[str, str]):
+    q._dirty = False
+    getattr(q, method)(*args, **kwargs)
+
+    assert q._dirty == True

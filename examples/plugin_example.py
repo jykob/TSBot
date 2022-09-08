@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-from tsbot import plugin, TSBot
-from tsbot.events import TSEvent
-from tsbot.query import query
+from tsbot import TSBot, events, plugin, query
 
 
 class TestPlugin(plugin.TSPlugin):
@@ -12,14 +10,14 @@ class TestPlugin(plugin.TSPlugin):
         self.message = "Hello from plugin"
         self.move_message = "{username} has moved"
 
-    @plugin.command("plugin-hello")
+    @plugin.command("pluginhello")
     async def plugin_hello(self, bot: TSBot, ctx: dict[str, str]):
         await bot.respond(ctx, message=self.message)
 
-    @plugin.on("clientmove")
-    async def plugin_move(self, bot: TSBot, event: TSEvent):
+    @plugin.on("clientmoved")
+    async def plugin_move(self, bot: TSBot, event: events.TSEvent):
         info_query = query("clientinfo").params(clid=event.ctx["clid"])
-        resp = await bot.send(info_query)
+        resp = await bot.send(info_query, max_cache_age=5)
 
         print(self.move_message.format(username=resp.first["client_nickname"]))
 
@@ -31,6 +29,5 @@ bot = TSBot(
 )
 
 bot.load_plugin(TestPlugin())
-
 
 asyncio.run(bot.run())

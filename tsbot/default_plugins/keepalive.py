@@ -7,8 +7,7 @@ from typing import TYPE_CHECKING
 from tsbot import plugin
 
 if TYPE_CHECKING:
-    from tsbot.bot import TSBot
-    from tsbot.events.tsevent import TSEvent
+    from tsbot import bot, events
 
 
 logger = logging.getLogger(__name__)
@@ -21,7 +20,7 @@ class KeepAlive(plugin.TSPlugin):
     def __init__(self) -> None:
         self.command_sent_event = asyncio.Event()
 
-    async def _keep_alive_task(self, bot: TSBot) -> None:
+    async def _keep_alive_task(self, bot: bot.TSBot) -> None:
         """
         Task to keep connection alive with the TeamSpeak server
 
@@ -47,9 +46,9 @@ class KeepAlive(plugin.TSPlugin):
                 break
 
     @plugin.on("send")
-    async def on_command_sent(self, bot: TSBot, event: TSEvent):
+    async def on_command_sent(self, bot: bot.TSBot, event: events.TSEvent):
         self.command_sent_event.set()
 
     @plugin.on("run")
-    async def register_keepalive_task(self, bot: TSBot, event: TSEvent):
+    async def register_keepalive_task(self, bot: bot.TSBot, event: events.TSEvent):
         bot.register_background_task(self._keep_alive_task, name="KeepAlive-Task")

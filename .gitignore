@@ -125,4 +125,5 @@ venv.bak/
 dmypy.json
 
 todo*
-test.py
+tests/example*
+tsconfig.json

@@ -1,9 +1,9 @@
 class TSException(Exception):
-    """Exception related to tsbot"""
+    """Exception related to TSBot"""
 
 
 class TSResponseError(TSException):
-    """Raised when response from server has error_id set to other than 0."""
+    """Raised when a response from server has error_id set to other than 0."""
 
     def __init__(self, message: str, error_id: int) -> None:
         self.message = message
@@ -26,7 +26,3 @@ class TSPermissionError(TSException):
     that the user running this command doesn't have the
     proper permissions.
     """
-
-
-class TSEventError(TSException):
-    """Exception happend during event handling"""

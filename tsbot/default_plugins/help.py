@@ -3,24 +3,22 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from tsbot import plugin
-from tsbot.exceptions import TSCommandError
+from tsbot import exceptions, plugin
 
 if TYPE_CHECKING:
-    from tsbot.bot import TSBot
-    from tsbot.typealiases import TCtx
+    from tsbot import bot, typealiases
 
 
 logger = logging.getLogger(__name__)
 
 
 class Help(plugin.TSPlugin):
-    @plugin.command("help")
-    async def help_command(self, bot: TSBot, ctx: TCtx, command: str):
+    @plugin.command("help", help_text="Prints out the help text of a given command and usage")
+    async def help_command(self, bot: bot.TSBot, ctx: typealiases.TCtx, command: str):
         command_handler = bot.command_handler.commands.get(command)
 
         if not command_handler or command_handler.hidden:
-            raise TSCommandError("Command not found")
+            raise exceptions.TSCommandError("Command not found")
 
         response_text = "\n"
 

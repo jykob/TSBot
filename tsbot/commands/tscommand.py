@@ -8,12 +8,10 @@ from typing import TYPE_CHECKING, Any
 from tsbot import utils
 
 if TYPE_CHECKING:
-    from tsbot import plugin
-    from tsbot.bot import TSBot
-    from tsbot.typealiases import TCommandHandler, TPluginCommandHandler, TCtx
+    from tsbot import bot, plugin, typealiases
 
 
-def add_check(func: TCommandHandler) -> TSCommand:
+def add_check(func: typealiases.TCommandHandler) -> TSCommand:
     def check_decorator(command_handler: TSCommand) -> TSCommand:
         command_handler.add_check(func)
         return command_handler
@@ -25,7 +23,7 @@ class TSCommand:
     def __init__(
         self,
         commands: tuple[str, ...],
-        handler: TCommandHandler | TPluginCommandHandler,
+        handler: typealiases.TCommandHandler | typealiases.TPluginCommandHandler,
         *,
         help_text: str | None = None,
         raw: bool = False,
@@ -39,9 +37,9 @@ class TSCommand:
         self.hidden = hidden
 
         self.plugin_instance: plugin.TSPlugin | None = None
-        self.checks: list[TCommandHandler] = []
+        self.checks: list[typealiases.TCommandHandler] = []
 
-    def add_check(self, func: TCommandHandler) -> None:
+    def add_check(self, func: typealiases.TCommandHandler) -> None:
         self.checks.append(func)
 
     @property
@@ -71,9 +69,9 @@ class TSCommand:
                     f"""{f" ({param.default or '?'!r})" if param.default is not param.empty else ''}"""
                 )
 
-        return f"Usage: {' | '.join(self.commands)}  {' '.join(usage)}"
+        return f"Usage: {' | '.join(self.commands)} {' '.join(usage)}"
 
-    async def run_checks(self, bot: TSBot, ctx: TCtx, *args: str, **kwargs: str) -> None:
+    async def run_checks(self, bot: bot.TSBot, ctx: typealiases.TCtx, *args: str, **kwargs: str) -> None:
         done, pending = await asyncio.wait(
             [check(bot, ctx, *args, **kwargs) for check in self.checks],
             return_when=asyncio.FIRST_EXCEPTION,
@@ -85,7 +83,7 @@ class TSCommand:
             if exception := done_task.exception():
                 raise exception
 
-    async def run(self, bot: TSBot, ctx: TCtx, msg: str) -> None:
+    async def run(self, bot: bot.TSBot, ctx: typealiases.TCtx, msg: str) -> None:
         kwargs: dict[str, str]
         args: tuple[str, ...]
 

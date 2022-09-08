@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-from tsbot import TSBot, events
-from tsbot.query import query
+from tsbot import TSBot, events, query
 
 
 bot = TSBot(
@@ -15,7 +14,7 @@ bot = TSBot(
 
 @bot.command("hello")
 async def hello_world(bot: TSBot, ctx: dict[str, str]):
-    await bot.respond(ctx, "Hello World!")
+    await bot.respond(ctx, f"Hello {ctx['invokername']}!")
 
 
 @bot.on("cliententerview")

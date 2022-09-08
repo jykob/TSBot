@@ -1,1 +1,2 @@
-from tsbot.commands.tscommand import add_check
+from tsbot.commands.handler import CommandHandler
+from tsbot.commands.tscommand import TSCommand, add_check

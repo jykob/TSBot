@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-from tsbot import TSBot, events
-from tsbot.query import query
+from tsbot import TSBot, events, query
 
 
 async def hello_world(bot: TSBot, ctx: dict[str, str]):

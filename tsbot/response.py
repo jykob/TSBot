@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Generator
+from typing import Iterator
 
-from tsbot.utils import parse_data, parse_line
+from tsbot import utils
 
 
 class TSResponse:
@@ -16,20 +16,22 @@ class TSResponse:
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}(data={self.data!r}, error_id={self.error_id!r}, msg={self.msg!r})"
 
-    def __iter__(self) -> Generator[dict[str, str], None, None]:
+    def __iter__(self) -> Iterator[dict[str, str]]:
+        """Iterates through all the datapoints in data"""
         yield from self.data
 
     @property
-    def first(self):
+    def first(self) -> dict[str, str]:
+        """Returns the first datapoint from the response"""
         return self.data[0]
 
     @classmethod
     def from_server_response(cls, raw_data: list[str]):
         error_id, msg = parse_error_line(raw_data.pop())
-        data = parse_data("".join(raw_data))
+        data = utils.parse_data("".join(raw_data))
         return cls(data=data, error_id=error_id, msg=msg)
 
 
 def parse_error_line(input_str: str) -> tuple[int, str]:
-    data = parse_line(input_str)
+    data = utils.parse_line(input_str)
     return int(data["id"]), data["msg"]
