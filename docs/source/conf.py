@@ -36,9 +36,9 @@ extensions = [
 ]
 
 source_suffix = {
-    ".rst": "restructuredtext",
-    ".txt": "markdown",
     ".md": "markdown",
+    ".txt": "markdown",
+    ".rst": "restructuredtext",
 }
 
 # -- AutoDoc Options --------------------
