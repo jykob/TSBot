@@ -1,6 +1,6 @@
 # Getting started
 
-In this tutorial we are going to get you started with TSBot.
+In this chapter we are going to get you started with TSBot.
 
 ---
 
@@ -70,8 +70,6 @@ Recommended ways to give these permissions are:
 | Permission name                              | Reason                                           |
 | -------------------------------------------- | ------------------------------------------------ |
 | ``b_client_create_modify_serverquery_login`` | To create/modify ***ServerQuery*** accounts     |
-| ``b_serverquery_login``                      | To Login as a ***ServerQuery*** client          |
-| ``b_virtualserver_select``                   | To select which virtual server to connect to     |
 | ``b_virtualserver_notify_register``          | To register the server to send events to the bot |
 ```
 

@@ -1,3 +1,7 @@
 # Events
 
-Page all about the events and event system.
+Chapter all about the events and event system.
+
+```{attention}
+Under construction
+```

@@ -1,3 +1,7 @@
 # Sending commands
 
-Section about send() and send_raw(), response caching, rate limiting
+Chapter about send() and send_raw(), response caching, rate limiting
+
+```{attention}
+Under construction
+```

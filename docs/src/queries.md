@@ -7,7 +7,7 @@ myst:
 
 # Queries
 
-{{env.config.project}} implements a query builder to ease the use of sending commands to the server.  
+{{env.config.project}} implements a query builder to ease the use of building commands.  
 In this chapter you will learn how to use the query system in {{env.config.project}}
 
 ---
