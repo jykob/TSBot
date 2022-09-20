@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import sys
 from typing import TYPE_CHECKING
@@ -60,7 +61,6 @@ class TSBot:
         self.ratelimiter = ratelimiter.RateLimiter(max_calls=ratelimit_calls, period=ratelimit_period)
 
         self._reader_ready_event = asyncio.Event()
-        self._closing_event = asyncio.Event()
         self.is_closing = False
 
         self._response: asyncio.Future[response.TSResponse]
@@ -242,7 +242,7 @@ class TSBot:
             self.emit(event_name="send", ctx={"command": command})
             await self._connection.write(command)
 
-            server_response: response.TSResponse = await asyncio.wait_for(asyncio.shield(self._response), 5.0)
+            server_response: response.TSResponse = await asyncio.wait_for(asyncio.shield(self._response), 2.0)
 
             logger.debug("Got a response: %s", server_response)
 
@@ -273,18 +273,17 @@ class TSBot:
             logger.info("Closing")
             self.emit(event_name="close")
 
-            cancelled_tasks = asyncio.gather(*self._background_tasks)
-
             for task in list(self._background_tasks):
                 task.cancel()
 
-            await cancelled_tasks
+            await asyncio.wait(self._background_tasks, timeout=5.0)
 
-            await self.send_raw("quit")
+            with contextlib.suppress(Exception):
+                await self.send_raw("quit")
+
             self.event_handler.run_till_empty(self)
             await self.event_handler.event_queue.join()
 
-            self._closing_event.set()
             logger.info("Closing done")
 
     async def run(self) -> None:
@@ -317,7 +316,9 @@ class TSBot:
 
         logger.info("Setting up connection")
 
-        async with self._connection:
+        try:
+            await self._connection.connect()
+
             reader_task = asyncio.create_task(self._reader_task())
             await self._reader_ready_event.wait()
             logger.info("Connected")
@@ -327,7 +328,12 @@ class TSBot:
             await register_notifies()
 
             self.emit(event_name="ready")
+
             await reader_task
+
+        finally:
+            await self.close()
+            await self._connection.close()
 
     def load_plugin(self, *plugins: plugin.TSPlugin) -> None:
         """

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import itertools
 import logging
 from typing import TYPE_CHECKING
 
@@ -29,7 +28,7 @@ class CommandHandler:
         """Logic to handle commands"""
 
         # If sender is the bot, return:
-        if event.ctx.get("invokeruid") in (None, bot.bot_info.unique_identifier):
+        if event.ctx.get("invokeruid") == bot.bot_info.unique_identifier:
             return
 
         msg = event.ctx.get("msg", "").strip()
@@ -43,10 +42,7 @@ class CommandHandler:
         # Remove invoker from the beginning
         msg = msg.removeprefix(self.invoker)
 
-        command: str
-        msg_rest: str
-
-        command, msg_rest = (v or d for v, d in itertools.zip_longest(msg.split(" ", maxsplit=1), ("", "")))
+        command, msg_rest = d if len(d := msg.split(" ", maxsplit=1)) > 1 else (d[0], "")
         command_handler = self.commands.get(command)
 
         if not command_handler:

@@ -78,7 +78,7 @@ class TSConnection:
         try:
             await self._writer.drain()
         except Exception as e:
-            logger.warning(e)
+            logger.warning("%s: %s", e.__class__.__qualname__, e)
 
     async def __aenter__(self):
         await self.connect()
