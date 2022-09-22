@@ -1,12 +1,11 @@
 from __future__ import annotations
+
 import asyncio
 from typing import Any, NamedTuple
 
-import pytest
 import asyncssh
-
+import pytest
 from tsbot import connection
-
 
 # pyright: reportPrivateUsage=false
 

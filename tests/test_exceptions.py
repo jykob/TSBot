@@ -1,6 +1,4 @@
 import pytest
-
-
 from tsbot import exceptions
 
 

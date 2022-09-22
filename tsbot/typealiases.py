@@ -1,8 +1,14 @@
 from __future__ import annotations
 
-from typing import Awaitable, Callable, Coroutine, TypeAlias
+from typing import Awaitable, Callable, Coroutine, Protocol, TypeAlias
 
 from tsbot import bot, events, plugin
+
+
+class Stringable(Protocol):
+    def __str__(self) -> str:
+        ...
+
 
 TCtx: TypeAlias = dict[str, str]
 

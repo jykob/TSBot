@@ -4,7 +4,6 @@ import asyncio
 import time
 
 import pytest
-
 from tsbot import ratelimiter
 
 # pyright: reportPrivateUsage=false, reportUnknownMemberType=false

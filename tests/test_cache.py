@@ -4,9 +4,7 @@ import asyncio
 import time
 
 import pytest
-
-from tsbot import cache
-from tsbot import response
+from tsbot import cache, response
 
 
 class MockBot:

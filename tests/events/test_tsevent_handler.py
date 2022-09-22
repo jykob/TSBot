@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from tsbot import plugin, events, TSBot
+from tsbot import plugin, events, bot
 
 
-async def handler(bot: TSBot, event: events.TSEvent):
+async def handler(bot: bot.TSBot, event: events.TSEvent):
     pass
 
 
 class Plugin(plugin.TSPlugin):
-    async def handler(self, bot: TSBot, event: events.TSEvent):
+    async def handler(self, bot: bot.TSBot, event: events.TSEvent):
         pass
 
 
