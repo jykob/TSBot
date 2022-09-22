@@ -87,10 +87,7 @@ class TSCommand:
         kwargs: dict[str, str]
         args: tuple[str, ...]
 
-        if self.raw:
-            args, kwargs = (msg,), {}
-        else:
-            args, kwargs = utils.parse_args_kwargs(msg)
+        args, kwargs = ((msg,), {}) if self.raw else utils.parse_args_kwargs(msg)
 
         if self.checks:
             await self.run_checks(bot, ctx, *args, **kwargs)

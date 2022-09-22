@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 
+KWARG_INDICATOR = "-"
+
+
 def parse_data(input_str: str) -> list[dict[str, str]]:
     if not input_str:
         return []
@@ -31,25 +34,63 @@ def parse_value(input_str: str) -> tuple[str, str]:
     return key, unescape(value)
 
 
+def _parse_quoted_arg(unparsed: str) -> tuple[str, str]:
+    quote, unparsed_len = unparsed[0], len(unparsed)
+
+    if (quote_end := unparsed.find(quote, 1)) < 0:
+        return _parse_arg(unparsed)
+
+    while quote_end + 1 < unparsed_len:
+        if unparsed[quote_end + 1].isspace():
+            break
+
+        if (quote_end := unparsed.find(quote, quote_end + 1)) < 0:
+            return _parse_arg(unparsed)
+
+    return unparsed[1:quote_end], unparsed[quote_end + 1 :].lstrip()
+
+
+def _parse_arg(unparsed: str) -> tuple[str, str]:
+    end, unparsed_len = 0, len(unparsed)
+
+    while end < unparsed_len and not unparsed[end].isspace():
+        end += 1
+
+    return unparsed[:end], unparsed[end:].lstrip()
+
+
+def _parse_kwarg(unparsed: str) -> tuple[str, str, str]:
+    key, unparsed = _parse_arg(unparsed[len(KWARG_INDICATOR) :])
+
+    if unparsed.startswith(KWARG_INDICATOR):
+        return key, "", unparsed
+
+    if unparsed.startswith(('"', "'")):
+        return key, *_parse_quoted_arg(unparsed)
+
+    return key, *_parse_arg(unparsed)
+
+
 def parse_args_kwargs(msg: str) -> tuple[tuple[str, ...], dict[str, str]]:
-    """Parses message in to given command, its arguments and keyword arguments"""
-    msg_list = msg.split()
+    """Parses a message in to arguments and keyword arguments"""
 
     args: list[str] = []
     kwargs: dict[str, str] = {}
 
-    while msg_list:
-        item = msg_list.pop(0)
+    unparsed = msg.strip()
 
-        if item.startswith("-"):
-            key = item.removeprefix("-")
-            value = ""
-            if len(msg_list) and not msg_list[0].startswith("-"):
-                value = msg_list.pop(0)
-
+    while unparsed:
+        if unparsed.startswith(KWARG_INDICATOR):
+            key, value, unparsed = _parse_kwarg(unparsed)
             kwargs[key] = value
+
+        elif unparsed.startswith(('"', "'")):
+            value, unparsed = _parse_quoted_arg(unparsed)
+            args.append(value)
+
         else:
-            args.append(item)
+            value, unparsed = _parse_arg(unparsed)
+            args.append(value)
 
     return tuple(args), kwargs
 

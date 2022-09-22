@@ -194,8 +194,40 @@ def test_unescape(input_str: str, excepted: str) -> None:
     (
         pytest.param("123 asd test", ("123", "asd", "test"), {}, id="test_args"),
         pytest.param("-asd test -name test_account", (), {"asd": "test", "name": "test_account"}, id="test_kwargs"),
-        pytest.param("-asd -name test_account", (), {"asd": "", "name": "test_account"}, id="test_kwargs_2"),
+        pytest.param("-asd -name test_account", (), {"asd": "", "name": "test_account"}, id="test_kwargs_with_flags"),
         pytest.param("asd -name test_account 123", ("asd", "123"), {"name": "test_account"}, id="test_args_kwargs"),
+        pytest.param(
+            '-name "test account" "1 2 3" "123"', ("1 2 3", "123"), {"name": "test account"}, id="test_double_quotes"
+        ),
+        pytest.param(
+            "-name 'test account' '1 2 3' '123'", ("1 2 3", "123"), {"name": "test account"}, id="test_single_quotes"
+        ),
+        pytest.param(
+            """'test "quote" test' -test "test 'quote' test" """,
+            ('test "quote" test',),
+            {"test": "test 'quote' test"},
+            id="test_quote_in_a_quote",
+        ),
+        pytest.param(
+            '-name "test account "1 2', ("account", '"1', "2"), {"name": '"test'}, id="test_missmatch_double_quote"
+        ),
+        pytest.param(
+            "-name 'test account '1 2", ("account", "'1", "2"), {"name": "'test"}, id="test_missmatch_single_quote"
+        ),
+        pytest.param(
+            """" ->'test account'<- " -other ' ->"test account"<- '""",
+            (" ->'test account'<- ",),
+            {"other": ' ->"test account"<- '},
+            id="test_mixed_quotes",
+        ),
+        pytest.param("-amount '-14' '-123'", ("-123",), {"amount": "-14"}, id="test_negative_numbers"),
+        pytest.param(
+            '''-text 'lorem ipsum\ntest\nnewline' 'asd\nasd' -other "asd\nasd\tasd"''',
+            ("asd\nasd",),
+            {"text": "lorem ipsum\ntest\nnewline", "other": "asd\nasd\tasd"},
+            id="test_multiline_quotes",
+        ),
+        pytest.param("asd '", ("asd", "'"), {}, id="test_ending_in_quote"),
     ),
 )
 def test_parse_args_kwargs(input_str: str, excepted_args: tuple[str], excepted_kwargs: dict[str, str]):
