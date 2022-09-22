@@ -42,7 +42,7 @@ class CommandHandler:
         # Remove invoker from the beginning
         msg = msg.removeprefix(self.invoker)
 
-        command, msg_rest = d if len(d := msg.split(" ", maxsplit=1)) > 1 else (d[0], "")
+        command, args = d if len(d := msg.split(" ", maxsplit=1)) > 1 else (d[0], "")
         command_handler = self.commands.get(command)
 
         if not command_handler:
@@ -50,12 +50,12 @@ class CommandHandler:
 
         # inject usefull information into ctx
         event.ctx["command"] = command
-        event.ctx["raw_msg"] = msg_rest
+        event.ctx["raw_args"] = args
 
-        logger.debug("%r executed command %r -> %r", event.ctx["invokername"], command, msg_rest)
+        logger.debug("%r executed command %r -> %r", event.ctx["invokername"], command, args)
 
         try:
-            await command_handler.run(bot, event.ctx, msg_rest)
+            await command_handler.run(bot, event.ctx, args)
 
         except TypeError:
             await bot.respond(event.ctx, command_handler.usage)
