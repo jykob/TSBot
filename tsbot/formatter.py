@@ -1,56 +1,100 @@
 from __future__ import annotations
 
-from typing import Sequence
-
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 
 if TYPE_CHECKING:
     from tsbot import typealiases
 
 
-def url(url_link: str, url_text: typealiases.Stringable | None = None) -> str:
-    return f"[URL={url_link}]{url_text}[/URL]" if url_text else f"[URL]{url_link}[/URL]"
+hr = "[HR]"
+
+
+def link(url: str, link_text: typealiases.Stringable | None = None) -> str:
+    """
+    Formats a URL to a link.
+
+    If no link text given, the URL will be used as the text.
+    """
+    return f"[URL={url}]{link_text}[/URL]" if link_text else f"[URL]{url}[/URL]"
 
 
 def img(image_url: str) -> str:
+    """Formats a URL to embed an image"""
     return f"[IMG]{image_url}[/IMG]"
 
 
-def size(font_size: int, string: typealiases.Stringable) -> str:
+def size(font_size: int | str, string: typealiases.Stringable) -> str:
+    """
+    Formats the given text to a specific font size.
+
+    Font size can be relative to the current size by indicating with '+' or '-'
+
+    Example:
+        - size(font_size='+2', '...')
+        - size(font_size='-2', '...')
+    """
+
     return f"[SIZE={font_size}]{string}[/SIZE]"
 
 
-def bold(string: typealiases.Stringable) -> str:
-    return f"[B]{string}[/B]"
-
-
 def color(color_code: str, string: typealiases.Stringable) -> str:
+    """
+    Formats the given text to have color.
+
+    Available color formats:
+        - HTML Color Name (e.g. "red", "SpringGreen")
+        - Hex Triplet (e.g. "#f00", "#ff0000")
+    """
+
     return f"[COLOR={color_code}]{string}[/COLOR]"
 
 
+def bold(string: typealiases.Stringable) -> str:
+    """Bolden the given text"""
+    return f"[B]{string}[/B]"
+
+
 def italic(string: typealiases.Stringable) -> str:
+    """Italicize the given text"""
     return f"[I]{string}[/I]"
 
 
 def underline(string: typealiases.Stringable) -> str:
+    """Underlines the given text"""
     return f"[U]{string}[/U]"
 
 
+def strike(string: typealiases.Stringable) -> str:
+    """Strikethrough the given text"""
+    return f"[S]{string}[/S]"
+
+
 def center(string: typealiases.Stringable) -> str:
+    """Floats the given text to the center"""
     return f"[CENTER]{string}[/CENTER]"
 
 
-def numeric_list(*list_members: tuple[typealiases.Stringable]) -> str:
+def left(string: typealiases.Stringable) -> str:
+    """Floats the given text to the left"""
+    return f"[LEFT]{string}[/LEFT]"
+
+
+def right(string: typealiases.Stringable) -> str:
+    """Floats the given text to the right"""
+    return f"[RIGHT]{string}[/RIGHT]"
+
+
+def list_(*list_members: typealiases.Stringable, style: Literal["1", "a", "i", "A", "I"] | None = None) -> str:
+    """Formats a list. Will default to bullet style list if none provided.
+
+    Other available styles:
+        - Numeric list: '1'
+        - Lower alphabetical list: 'a'
+        - Lower Roman numeral list: 'i'
+        - Upper alphabetical list: 'A'
+        - Upper Roman numeral list: 'I'
+    """
+
     items = "\n".join(f"[*]{item}" for item in list_members)
-    return f"""[LIST=1]\n{items}\n[/LIST]"""
-
-
-def upper_list(*list_members: tuple[typealiases.Stringable]) -> str:
-    items = "\n".join(f"[*]{item}" for item in list_members)
-    return f"""[LIST=A]\n{items}\n[/LIST]"""
-
-
-def lower_list(*list_members: tuple[typealiases.Stringable]) -> str:
-    items = "\n".join(f"[*]{item}" for item in list_members)
-    return f"""[LIST=a]\n{items}\n[/LIST]"""
+    return f"""{'[LIST]' if style is None else f'[LIST={style}]'}\n{items}\n[/LIST]"""
