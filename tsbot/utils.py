@@ -55,7 +55,7 @@ def _parse_quoted_arg(unparsed: str) -> tuple[str, str]:
 
 def _parse_arg(unparsed: str) -> tuple[str, str]:
     """Parse an argument out of unparsed message, return it and unparsed part."""
-    arg, unparsed = d if len(d := unparsed.split(maxsplit=1)) > 1 else (d[0], "")
+    arg, unparsed = d if len(d := unparsed.split(maxsplit=1)) > 1 else (d[0] if d else "", "")
 
     return arg, unparsed
 
