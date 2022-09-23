@@ -35,15 +35,18 @@ def parse_value(input_str: str) -> tuple[str, str]:
 
 
 def _parse_quoted_arg(unparsed: str) -> tuple[str, str]:
+    """
+    Parses a quoted argument, returns it and unparsed part.
+
+    If a qoute doesn't have a whitespace behind it, that part is not considered a quote end.
+    If a valid quote is not found, parse as normal argument.
+    """
     quote, unparsed_len = unparsed[0], len(unparsed)
 
     if (quote_end := unparsed.find(quote, 1)) < 0:
         return _parse_arg(unparsed)
 
-    while quote_end + 1 < unparsed_len:
-        if unparsed[quote_end + 1].isspace():
-            break
-
+    while quote_end + 1 < unparsed_len and not unparsed[quote_end + 1].isspace():
         if (quote_end := unparsed.find(quote, quote_end + 1)) < 0:
             return _parse_arg(unparsed)
 
@@ -51,15 +54,14 @@ def _parse_quoted_arg(unparsed: str) -> tuple[str, str]:
 
 
 def _parse_arg(unparsed: str) -> tuple[str, str]:
-    end, unparsed_len = 0, len(unparsed)
+    """Parse an argument out of unparsed message, return it and unparsed part."""
+    arg, unparsed = d if len(d := unparsed.split(maxsplit=1)) > 1 else (d[0], "")
 
-    while end < unparsed_len and not unparsed[end].isspace():
-        end += 1
-
-    return unparsed[:end], unparsed[end:].lstrip()
+    return arg, unparsed
 
 
 def _parse_kwarg(unparsed: str) -> tuple[str, str, str]:
+    """Parse an key-value argument"""
     key, unparsed = _parse_arg(unparsed[len(KWARG_INDICATOR) :])
 
     if unparsed.startswith(KWARG_INDICATOR):
@@ -113,18 +115,14 @@ ESCAPE_MAP = [
 
 
 def escape(input_str: str) -> str:
-    """
-    Escapes characters that need escaping according to ESCAPE_MAP
-    """
+    """Escapes characters that need escaping according to ESCAPE_MAP"""
     for char, replacement in ESCAPE_MAP:
         input_str = input_str.replace(char, replacement)
     return input_str
 
 
 def unescape(input_str: str) -> str:
-    """
-    Undo escaping of characters according to ESCAPE_MAP
-    """
+    """Undo escaping of characters according to ESCAPE_MAP"""
     for replacement, char in reversed(ESCAPE_MAP):
         input_str = input_str.replace(char, replacement)
     return input_str
