@@ -21,7 +21,7 @@ class EventHanlder:
         logger.debug("Got event: %s", event)
 
         if handlers := self.event_handlers.get(event.event):
-            tasks = [asyncio.create_task(h(bot, event), name="EventHandler") for h in handlers]
+            tasks = [asyncio.create_task(h.run(bot, event), name="EventHandler") for h in handlers]
 
             task = asyncio.create_task(asyncio.wait(tasks), name="EventWatcher")
             task.add_done_callback(lambda _: self.event_queue.task_done())
