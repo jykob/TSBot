@@ -343,17 +343,17 @@ class TSBot:
         This method sets the plugin instance on these objects.
         """
 
-        for plugin in plugins:
-            for member in plugin.__class__.__dict__.values():
+        for p in plugins:
+            for member in p.__class__.__dict__.values():
                 if isinstance(member, events.TSEventHandler):
-                    member.plugin_instance = plugin
+                    member.handler = member.handler.__get__(p, p.__class__)
                     self.event_handler.register_event_handler(member)
 
                 elif isinstance(member, commands.TSCommand):
-                    member.plugin_instance = plugin
+                    member.handler = member.handler.__get__(p, p.__class__)
                     self.command_handler.register_command(member)
 
-            self.plugins[plugin.__class__.__name__] = plugin
+            self.plugins[p.__class__.__name__] = p
 
     async def update_info(self):
         """Update the bot_info instance"""

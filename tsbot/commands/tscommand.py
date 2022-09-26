@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 from tsbot import utils
 
 if TYPE_CHECKING:
-    from tsbot import bot, plugin, typealiases
+    from tsbot import bot, typealiases
 
 
 def add_check(func: typealiases.TCommandHandler) -> TSCommand:
@@ -23,7 +23,7 @@ class TSCommand:
     def __init__(
         self,
         commands: tuple[str, ...],
-        handler: typealiases.TCommandHandler | typealiases.TPluginCommandHandler,
+        handler: typealiases.TCommandHandler,
         *,
         help_text: str | None = None,
         raw: bool = False,
@@ -36,7 +36,6 @@ class TSCommand:
         self.raw = raw
         self.hidden = hidden
 
-        self.plugin_instance: plugin.TSPlugin | None = None
         self.checks: list[typealiases.TCommandHandler] = []
 
     def add_check(self, func: typealiases.TCommandHandler) -> None:
@@ -45,9 +44,8 @@ class TSCommand:
     @property
     def call_signature(self) -> tuple[inspect.Parameter, ...]:
         signature = inspect.signature(self.handler)
-        params_to_discard = 3 if self.plugin_instance else 2
 
-        return tuple(itertools.islice(signature.parameters.values(), params_to_discard, None))
+        return tuple(itertools.islice(signature.parameters.values(), 2, None))
 
     @property
     def usage(self) -> str:
@@ -84,17 +82,12 @@ class TSCommand:
                 raise exception
 
     async def run(self, bot: bot.TSBot, ctx: typealiases.TCtx, msg: str) -> None:
-        kwargs: dict[str, str]
-        args: tuple[str, ...]
-
         args, kwargs = ((msg,), {}) if self.raw else utils.parse_args_kwargs(msg)
 
         if self.checks:
             await self.run_checks(bot, ctx, *args, **kwargs)
 
-        command_args = (bot, ctx) if not self.plugin_instance else (self.plugin_instance, bot, ctx)
-
-        await self.handler(*command_args, *args, **kwargs)  # type: ignore
+        await self.handler(bot, ctx, *args, **kwargs)
 
     def __call__(self, *args: Any, **kwargs: Any):
         return self.run(*args, **kwargs)
