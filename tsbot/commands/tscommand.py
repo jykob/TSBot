@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 import itertools
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 from tsbot import utils
@@ -11,32 +12,16 @@ if TYPE_CHECKING:
     from tsbot import bot, typealiases
 
 
-def add_check(func: typealiases.TCommandHandler) -> TSCommand:
-    def check_decorator(command_handler: TSCommand) -> TSCommand:
-        command_handler.add_check(func)
-        return command_handler
-
-    return check_decorator  # type: ignore
-
-
+@dataclass()
 class TSCommand:
-    def __init__(
-        self,
-        commands: tuple[str, ...],
-        handler: typealiases.TCommandHandler,
-        *,
-        help_text: str | None = None,
-        raw: bool = False,
-        hidden: bool = False,
-    ) -> None:
-        self.commands = commands
-        self.handler = handler
+    commands: tuple[str]
+    handler: typealiases.TCommandHandler
 
-        self.help_text = help_text
-        self.raw = raw
-        self.hidden = hidden
+    help_text: str = field(repr=False)
+    raw: bool = field(repr=False)
+    hidden: bool = field(repr=False)
 
-        self.checks: list[typealiases.TCommandHandler] = []
+    checks: list[typealiases.TCommandHandler] = field(default_factory=list, repr=False)
 
     def add_check(self, func: typealiases.TCommandHandler) -> None:
         self.checks.append(func)
@@ -91,6 +76,3 @@ class TSCommand:
 
     def __call__(self, *args: Any, **kwargs: Any):
         return self.run(*args, **kwargs)
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}(commands={self.commands!r}, handler={self.handler.__qualname__!r})"

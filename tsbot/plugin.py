@@ -14,14 +14,15 @@ class TSPlugin:
 
 def command(
     *command: str,
-    help_text: str | None = None,
+    help_text: str = "",
     raw: bool = False,
     hidden: bool = False,
+    checks: list[typealiases.TCommandHandler] | None = None,
 ) -> commands.TSCommand:
     """Decorator to register coroutines on commands"""
 
     def command_decorator(func: typealiases.TCommandHandler) -> commands.TSCommand:
-        return commands.TSCommand(command, func, help_text=help_text, raw=raw, hidden=hidden)
+        return commands.TSCommand(command, func, help_text, raw, hidden, checks or [])
 
     return command_decorator  # type: ignore
 

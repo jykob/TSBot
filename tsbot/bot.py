@@ -103,11 +103,12 @@ class TSBot:
         """Emits an event to be handled"""
         self.event_handler.event_queue.put_nowait(event)
 
-    def on(self, event_type: str) -> events.TSEventHandler:
+    def on(self, event_type: str):
         """Decorator to register coroutines on events"""
 
-        def event_decorator(func: typealiases.TEventHandler) -> events.TSEventHandler:
-            return self.register_event_handler(event_type, func)
+        def event_decorator(func: typealiases.TEventHandler) -> typealiases.TEventHandler:
+            self.register_event_handler(event_type, func)
+            return func
 
         return event_decorator  # type: ignore
 
@@ -125,14 +126,16 @@ class TSBot:
     def command(
         self,
         *command: str,
-        help_text: str | None = None,
+        help_text: str = "",
         raw: bool = False,
         hidden: bool = False,
-    ) -> commands.TSCommand:
+        checks: list[typealiases.TCommandHandler] | None = None,
+    ):
         """Decorator to register coroutines on commands"""
 
-        def command_decorator(func: typealiases.TCommandHandler) -> commands.TSCommand:
-            return self.register_command(command, func, help_text=help_text, raw=raw, hidden=hidden)
+        def command_decorator(func: typealiases.TCommandHandler) -> typealiases.TCommandHandler:
+            self.register_command(command, func, help_text=help_text, raw=raw, hidden=hidden, checks=checks)
+            return func
 
         return command_decorator  # type: ignore
 
@@ -141,9 +144,10 @@ class TSBot:
         command: str | tuple[str, ...],
         handler: typealiases.TCommandHandler,
         *,
-        help_text: str | None = None,
+        help_text: str = "",
         raw: bool = False,
         hidden: bool = False,
+        checks: list[typealiases.TCommandHandler] | None = None,
     ) -> commands.TSCommand:
         """
         Register Coroutines to be ran on specific command
@@ -153,7 +157,7 @@ class TSBot:
         if isinstance(command, str):
             command = (command,)
 
-        command_handler = commands.TSCommand(command, handler, help_text=help_text, raw=raw, hidden=hidden)
+        command_handler = commands.TSCommand(command, handler, help_text, raw, hidden, checks or [])
         self.command_handler.register_command(command_handler)
         return command_handler
 
