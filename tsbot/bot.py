@@ -343,21 +343,24 @@ class TSBot:
         """
         Loads TSPlugin instances into the bot instance
 
-        If TSEventHandler and TSCommand are in a plugin instance, they need to know about it.
-        This method sets the plugin instance on these objects.
-        """
+        Loops through every instance attribute and checks if its a TSEventHandler or TSCommand.
+        If one is found, bind the handler to the instance and register them with the bot.
 
-        for p in plugins:
-            for member in p.__class__.__dict__.values():
+        Will also add a record of the instance in self.plugins dict
+        """
+        import inspect
+
+        for plugin_to_be_loaded in plugins:
+            for _, member in inspect.getmembers(plugin_to_be_loaded):
                 if isinstance(member, events.TSEventHandler):
-                    member.handler = member.handler.__get__(p, p.__class__)
+                    member.handler = member.handler.__get__(plugin_to_be_loaded, plugin_to_be_loaded.__class__)
                     self.event_handler.register_event_handler(member)
 
                 elif isinstance(member, commands.TSCommand):
-                    member.handler = member.handler.__get__(p, p.__class__)
+                    member.handler = member.handler.__get__(plugin_to_be_loaded, plugin_to_be_loaded.__class__)
                     self.command_handler.register_command(member)
 
-            self.plugins[p.__class__.__name__] = p
+            self.plugins[plugin_to_be_loaded.__class__.__name__] = plugin_to_be_loaded
 
     async def update_info(self):
         """Update the bot_info instance"""
