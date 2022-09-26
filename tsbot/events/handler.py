@@ -35,7 +35,7 @@ class EventHanlder:
 
     async def handle_events_task(self, bot: bot.TSBot) -> None:
         """
-        Task to run events put into the self._event_queue
+        Task to run events put into the self.event_queue
 
         if task is cancelled, it will try to run all the events
         still in the queue until empty
