@@ -2,15 +2,16 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import inspect
 import logging
 import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Awaitable, Callable, Concatenate, ParamSpec, TypeVar
 
 from tsbot import (
     cache,
+    client_info,
     commands,
     connection,
-    client_info,
     default_plugins,
     enums,
     events,
@@ -22,6 +23,9 @@ from tsbot import (
 
 if TYPE_CHECKING:
     from tsbot import plugin, typealiases
+
+    T = TypeVar("T")
+    P = ParamSpec("P")
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +114,7 @@ class TSBot:
             self.register_event_handler(event_type, func)
             return func
 
-        return event_decorator  # type: ignore
+        return event_decorator
 
     def register_event_handler(self, event_type: str, handler: typealiases.TEventHandler) -> events.TSEventHandler:
         """
@@ -129,25 +133,27 @@ class TSBot:
         help_text: str = "",
         raw: bool = False,
         hidden: bool = False,
-        checks: list[typealiases.TCommandHandler] | None = None,
+        checks: list[Callable[..., Awaitable[None]]] | None = None,
     ):
         """Decorator to register coroutines on commands"""
 
-        def command_decorator(func: typealiases.TCommandHandler) -> typealiases.TCommandHandler:
+        def command_decorator(
+            func: Callable[Concatenate[TSBot, dict[str, str], P], Awaitable[None]]
+        ) -> Callable[Concatenate[TSBot, dict[str, str], P], Awaitable[None]]:
             self.register_command(command, func, help_text=help_text, raw=raw, hidden=hidden, checks=checks)
             return func
 
-        return command_decorator  # type: ignore
+        return command_decorator
 
     def register_command(
         self,
         command: str | tuple[str, ...],
-        handler: typealiases.TCommandHandler,
+        handler: Callable[Concatenate[TSBot, dict[str, str], P], Awaitable[None]],
         *,
         help_text: str = "",
         raw: bool = False,
         hidden: bool = False,
-        checks: list[typealiases.TCommandHandler] | None = None,
+        checks: list[Callable[..., Awaitable[None]]] | None = None,
     ) -> commands.TSCommand:
         """
         Register Coroutines to be ran on specific command

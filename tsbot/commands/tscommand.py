@@ -4,7 +4,7 @@ import asyncio
 import inspect
 import itertools
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Awaitable, Callable
 
 from tsbot import utils
 
@@ -15,16 +15,13 @@ if TYPE_CHECKING:
 @dataclass()
 class TSCommand:
     commands: tuple[str, ...]
-    handler: typealiases.TCommandHandler
+    handler: Callable[..., Awaitable[None]]
 
     help_text: str = field(repr=False)
     raw: bool = field(repr=False)
     hidden: bool = field(repr=False)
 
-    checks: list[typealiases.TCommandHandler] = field(default_factory=list, repr=False)
-
-    def add_check(self, func: typealiases.TCommandHandler) -> None:
-        self.checks.append(func)
+    checks: list[Callable[..., Awaitable[None]]] = field(default_factory=list, repr=False)
 
     @property
     def call_signature(self) -> tuple[inspect.Parameter, ...]:
@@ -73,6 +70,3 @@ class TSCommand:
             await self.run_checks(bot, ctx, *args, **kwargs)
 
         await self.handler(bot, ctx, *args, **kwargs)
-
-    def __call__(self, *args: Any, **kwargs: Any):
-        return self.run(*args, **kwargs)

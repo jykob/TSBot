@@ -12,8 +12,5 @@ class SupportsStr(Protocol):
 
 TCtx: TypeAlias = dict[str, str]
 
-TCommandHandler: TypeAlias = Callable[[bot.TSBot, TCtx], Awaitable[None]]
-
 TEventHandler: TypeAlias = Callable[[bot.TSBot, events.TSEvent], Awaitable[None]]
-
 TBackgroundTask: TypeAlias = Callable[[bot.TSBot], Coroutine[None, None, None]]
