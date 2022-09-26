@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 hr = "[HR]"
 
 
-def link(url: str, link_text: typealiases.Stringable | None = None) -> str:
+def link(url: str, link_text: typealiases.SupportsStr | None = None) -> str:
     """
     Formats a URL to a link.
 
@@ -24,7 +24,7 @@ def img(image_url: str) -> str:
     return f"[IMG]{image_url}[/IMG]"
 
 
-def size(font_size: int | str, string: typealiases.Stringable) -> str:
+def size(font_size: int | str, string: typealiases.SupportsStr) -> str:
     """
     Formats the given text to a specific font size.
 
@@ -38,7 +38,7 @@ def size(font_size: int | str, string: typealiases.Stringable) -> str:
     return f"[SIZE={font_size}]{string}[/SIZE]"
 
 
-def color(color_code: str, string: typealiases.Stringable) -> str:
+def color(color_code: str, string: typealiases.SupportsStr) -> str:
     """
     Formats the given text to have color.
 
@@ -50,42 +50,42 @@ def color(color_code: str, string: typealiases.Stringable) -> str:
     return f"[COLOR={color_code}]{string}[/COLOR]"
 
 
-def bold(string: typealiases.Stringable) -> str:
+def bold(string: typealiases.SupportsStr) -> str:
     """Bolden the given text"""
     return f"[B]{string}[/B]"
 
 
-def italic(string: typealiases.Stringable) -> str:
+def italic(string: typealiases.SupportsStr) -> str:
     """Italicize the given text"""
     return f"[I]{string}[/I]"
 
 
-def underline(string: typealiases.Stringable) -> str:
+def underline(string: typealiases.SupportsStr) -> str:
     """Underlines the given text"""
     return f"[U]{string}[/U]"
 
 
-def strike(string: typealiases.Stringable) -> str:
+def strike(string: typealiases.SupportsStr) -> str:
     """Strikethrough the given text"""
     return f"[S]{string}[/S]"
 
 
-def center(string: typealiases.Stringable) -> str:
+def center(string: typealiases.SupportsStr) -> str:
     """Floats the given text to the center"""
     return f"[CENTER]{string}[/CENTER]"
 
 
-def left(string: typealiases.Stringable) -> str:
+def left(string: typealiases.SupportsStr) -> str:
     """Floats the given text to the left"""
     return f"[LEFT]{string}[/LEFT]"
 
 
-def right(string: typealiases.Stringable) -> str:
+def right(string: typealiases.SupportsStr) -> str:
     """Floats the given text to the right"""
     return f"[RIGHT]{string}[/RIGHT]"
 
 
-def list_(*list_members: typealiases.Stringable, style: Literal["1", "a", "i", "A", "I"] | None = None) -> str:
+def list_(*list_members: typealiases.SupportsStr, style: Literal["1", "a", "i", "A", "I"] | None = None) -> str:
     """Formats a list. Will default to bullet style list if none provided.
 
     Other available styles:

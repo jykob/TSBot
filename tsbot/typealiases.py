@@ -5,7 +5,7 @@ from typing import Awaitable, Callable, Coroutine, Protocol, TypeAlias
 from tsbot import bot, events, plugin
 
 
-class Stringable(Protocol):
+class SupportsStr(Protocol):
     def __str__(self) -> str:
         ...
 
