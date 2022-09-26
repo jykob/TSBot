@@ -1,20 +1,16 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Iterator
 
 from tsbot import utils
 
 
+@dataclass(slots=True, frozen=True)
 class TSResponse:
-    __slots__ = "data", "error_id", "msg"
-
-    def __init__(self, data: list[dict[str, str]], error_id: int, msg: str | None = None) -> None:
-        self.data = data
-        self.error_id = error_id
-        self.msg = msg
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__qualname__}(data={self.data!r}, error_id={self.error_id!r}, msg={self.msg!r})"
+    data: list[dict[str, str]]
+    error_id: int
+    msg: str | None = None
 
     def __iter__(self) -> Iterator[dict[str, str]]:
         """Iterates through all the datapoints in data"""
