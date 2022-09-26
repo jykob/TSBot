@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 @dataclass()
 class TSCommand:
-    commands: tuple[str]
+    commands: tuple[str, ...]
     handler: typealiases.TCommandHandler
 
     help_text: str = field(repr=False)
