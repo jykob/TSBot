@@ -27,9 +27,6 @@ class TSQuery:
     )
 
     def __init__(self, command: str) -> None:
-        if not command:
-            raise ValueError("Command cannot be empty")
-
         self.command = command
 
         self._cached_command: str = ""
