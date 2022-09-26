@@ -348,17 +348,18 @@ class TSBot:
 
         Will also add a record of the instance in self.plugins dict
         """
-        import inspect
+
+        command_args: plugin.PluginCommandArgs | None
+        event_args: str | None
 
         for plugin_to_be_loaded in plugins:
             for _, member in inspect.getmembers(plugin_to_be_loaded):
-                if isinstance(member, events.TSEventHandler):
-                    member.handler = member.handler.__get__(plugin_to_be_loaded, plugin_to_be_loaded.__class__)
-                    self.event_handler.register_event_handler(member)
 
-                elif isinstance(member, commands.TSCommand):
-                    member.handler = member.handler.__get__(plugin_to_be_loaded, plugin_to_be_loaded.__class__)
-                    self.command_handler.register_command(member)
+                if command_args := getattr(member, "__ts_command__", None):
+                    self.register_command(handler=member, **command_args)
+
+                if event_args := getattr(member, "__ts_event__", None):
+                    self.register_event_handler(event_args, member)
 
             self.plugins[plugin_to_be_loaded.__class__.__name__] = plugin_to_be_loaded
 
