@@ -94,9 +94,9 @@ class TSBot:
 
         logger.debug("Reader task done")
 
-    def emit(self, event_name: str, msg: str | None = None, ctx: typealiases.TCtx | None = None) -> None:
+    def emit(self, event_name: str, ctx: typealiases.TCtx | None = None) -> None:
         """Builds a TSEvent object and emits it"""
-        event = events.TSEvent(event=event_name, msg=msg, ctx=ctx or {})
+        event = events.TSEvent(event=event_name, ctx=ctx or {})
         self.emit_event(event)
 
     def emit_event(self, event: events.TSEvent) -> None:
