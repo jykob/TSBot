@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple
 
 from tsbot import utils
 
@@ -9,10 +8,9 @@ if TYPE_CHECKING:
     from tsbot import typealiases
 
 
-@dataclass(slots=True, frozen=True, eq=False)
-class TSEvent:
+class TSEvent(NamedTuple):
     event: str
-    ctx: typealiases.TCtx = field(default_factory=dict)
+    ctx: typealiases.TCtx
 
     @classmethod
     def from_server_response(cls, raw_data: str):
