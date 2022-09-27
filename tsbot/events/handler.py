@@ -21,7 +21,7 @@ class EventHanlder:
         logger.debug("Got event: %s", event)
 
         if handlers := self.event_handlers.get(event.event):
-            tasks = [asyncio.create_task(h(bot, event), name="EventHandler") for h in handlers]
+            tasks = [asyncio.create_task(h.run(bot, event), name="EventHandler") for h in handlers]
 
             task = asyncio.create_task(asyncio.wait(tasks), name="EventWatcher")
             task.add_done_callback(lambda _: self.event_queue.task_done())
@@ -35,7 +35,7 @@ class EventHanlder:
 
     async def handle_events_task(self, bot: bot.TSBot) -> None:
         """
-        Task to run events put into the self._event_queue
+        Task to run events put into the self.event_queue
 
         if task is cancelled, it will try to run all the events
         still in the queue until empty

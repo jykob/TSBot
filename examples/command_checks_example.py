@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-from tsbot import TSBot, commands
+from tsbot import TSBot
 from tsbot.exceptions import TSPermissionError
 
 
@@ -23,8 +23,7 @@ def allow_only_uids(*uid: str):
     return check_uid
 
 
-@commands.add_check(allow_only_uids("v8t+Jw6+qNDl1KHuDfS7zVjKSws="))
-@bot.command("eval", raw=True)
+@bot.command("eval", raw=True, checks=[allow_only_uids("v8t+Jw6+qNDl1KHuDfS7zVjKSws=")])
 async def eval_(bot: TSBot, ctx: dict[str, str], eval_str: str) -> None:
     try:
         response = eval(eval_str)

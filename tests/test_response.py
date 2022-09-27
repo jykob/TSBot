@@ -32,7 +32,6 @@ def test_from_server_response(input_list: list[str], excepted_values: dict[str, 
 
     assert resp.data == excepted_values["data"]
     assert resp.error_id == excepted_values["error_id"]
-    assert resp.msg == excepted_values["msg"]
 
 
 def test_first_property():

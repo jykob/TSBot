@@ -1,6 +1,32 @@
 [build-system]
-requires = ["setuptools>=42","wheel"]
+requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.pyright]
 reportImportCycles = false
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+minversion = 3.8.0
+envlist = py310, mypy
+isolated_build = true
+
+[gh-actions]
+python =
+    3.10: py310, mypy
+
+[testenv]
+setenv =
+    PYTHONPATH = {toxinidir}
+deps =
+    -r{toxinidir}/requirements-dev.txt
+commands =
+    pytest --basetemp={envtmpdir} --cov
+
+[testenv:mypy]
+basepython = python3.10
+deps =
+    -r{toxinidir}/requirements-dev.txt
+commands = mypy tsbot
+"""

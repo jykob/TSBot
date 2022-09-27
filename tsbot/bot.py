@@ -2,15 +2,16 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import inspect
 import logging
 import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Awaitable, Callable, Concatenate, ParamSpec, TypeVar
 
 from tsbot import (
     cache,
+    client_info,
     commands,
     connection,
-    client_info,
     default_plugins,
     enums,
     events,
@@ -22,6 +23,9 @@ from tsbot import (
 
 if TYPE_CHECKING:
     from tsbot import plugin, typealiases
+
+    T = TypeVar("T")
+    P = ParamSpec("P")
 
 logger = logging.getLogger(__name__)
 
@@ -46,12 +50,7 @@ class TSBot:
         self.plugins: dict[str, plugin.TSPlugin] = {}
         self._background_tasks: set[asyncio.Task[None]] = set()
 
-        self._connection = connection.TSConnection(
-            username=username,
-            password=password,
-            address=address,
-            port=port,
-        )
+        self.connection = connection.TSConnection(username, password, address, port)
 
         self.event_handler = events.EventHanlder()
         self.command_handler = commands.CommandHandler(invoker)
@@ -60,56 +59,28 @@ class TSBot:
         self.is_ratelimited = ratelimited
         self.ratelimiter = ratelimiter.RateLimiter(max_calls=ratelimit_calls, period=ratelimit_period)
 
-        self._reader_ready_event = asyncio.Event()
         self.is_closing = False
 
-        self._response: asyncio.Future[response.TSResponse]
-        self._response_lock = asyncio.Lock()
+        self.response: asyncio.Future[response.TSResponse]
+        self._sending_lock = asyncio.Lock()
 
-    async def _reader_task(self) -> None:
-        """Task to read messages from the server"""
-
-        WELCOME_MESSAGE_LENGTH = 2
-
-        async for data in self._connection.read_lines(WELCOME_MESSAGE_LENGTH):
-            pass
-        logger.debug("Skipped welcome message")
-
-        self._reader_ready_event.set()
-
-        response_buffer: list[str] = []
-
-        async for data in self._connection.read():
-            if data.startswith("notify"):
-                self.emit_event(events.TSEvent.from_server_response(data))
-
-            elif data.startswith("error"):
-                response_buffer.append(data)
-                resp = response.TSResponse.from_server_response(response_buffer)
-                self._response.set_result(resp)
-                response_buffer.clear()
-
-            else:
-                response_buffer.append(data)
-
-        logger.debug("Reader task done")
-
-    def emit(self, event_name: str, msg: str | None = None, ctx: typealiases.TCtx | None = None) -> None:
+    def emit(self, event_name: str, ctx: typealiases.TCtx | None = None) -> None:
         """Builds a TSEvent object and emits it"""
-        event = events.TSEvent(event=event_name, msg=msg, ctx=ctx or {})
+        event = events.TSEvent(event=event_name, ctx=ctx or {})
         self.emit_event(event)
 
     def emit_event(self, event: events.TSEvent) -> None:
         """Emits an event to be handled"""
         self.event_handler.event_queue.put_nowait(event)
 
-    def on(self, event_type: str) -> events.TSEventHandler:
+    def on(self, event_type: str):
         """Decorator to register coroutines on events"""
 
-        def event_decorator(func: typealiases.TEventHandler) -> events.TSEventHandler:
-            return self.register_event_handler(event_type, func)
+        def event_decorator(func: typealiases.TEventHandler) -> typealiases.TEventHandler:
+            self.register_event_handler(event_type, func)
+            return func
 
-        return event_decorator  # type: ignore
+        return event_decorator
 
     def register_event_handler(self, event_type: str, handler: typealiases.TEventHandler) -> events.TSEventHandler:
         """
@@ -125,25 +96,30 @@ class TSBot:
     def command(
         self,
         *command: str,
-        help_text: str | None = None,
+        help_text: str = "",
         raw: bool = False,
         hidden: bool = False,
-    ) -> commands.TSCommand:
+        checks: list[Callable[..., Awaitable[None]]] | None = None,
+    ):
         """Decorator to register coroutines on commands"""
 
-        def command_decorator(func: typealiases.TCommandHandler) -> commands.TSCommand:
-            return self.register_command(command, func, help_text=help_text, raw=raw, hidden=hidden)
+        def command_decorator(
+            func: Callable[Concatenate[TSBot, dict[str, str], P], Awaitable[None]]
+        ) -> Callable[Concatenate[TSBot, dict[str, str], P], Awaitable[None]]:
+            self.register_command(command, func, help_text=help_text, raw=raw, hidden=hidden, checks=checks)
+            return func
 
-        return command_decorator  # type: ignore
+        return command_decorator
 
     def register_command(
         self,
         command: str | tuple[str, ...],
-        handler: typealiases.TCommandHandler,
+        handler: Callable[Concatenate[TSBot, dict[str, str], P], Awaitable[None]],
         *,
-        help_text: str | None = None,
+        help_text: str = "",
         raw: bool = False,
         hidden: bool = False,
+        checks: list[Callable[..., Awaitable[None]]] | None = None,
     ) -> commands.TSCommand:
         """
         Register Coroutines to be ran on specific command
@@ -153,7 +129,7 @@ class TSBot:
         if isinstance(command, str):
             command = (command,)
 
-        command_handler = commands.TSCommand(command, handler, help_text=help_text, raw=raw, hidden=hidden)
+        command_handler = commands.TSCommand(command, handler, help_text, raw, hidden, checks or [])
         self.command_handler.register_command(command_handler)
         return command_handler
 
@@ -194,66 +170,66 @@ class TSBot:
 
             raise response_error
 
-    async def send_raw(self, command: str, *, max_cache_age: int | float = 0) -> response.TSResponse:
+    async def send_raw(self, raw_query: str, *, max_cache_age: int | float = 0) -> response.TSResponse:
         """
         Sends raw commands to the server.
 
         Its recommended to use builtin query builder and :func:`send()<tsbot.TSBot.send()>` instead of this
         """
         try:
-            return await asyncio.shield(self._send(command, max_cache_age))
+            return await asyncio.shield(self._send(raw_query, max_cache_age))
         except exceptions.TSResponseError as response_error:
             if (tb := sys.exc_info()[2]) and tb.tb_next:
                 response_error = response_error.with_traceback(tb.tb_next.tb_next)
 
             raise response_error
 
-    async def _send(self, command: str, max_cache_age: int | float = 0) -> response.TSResponse:
+    async def _send(self, raw_query: str, max_cache_age: int | float = 0) -> response.TSResponse:
         """
         Method responsibe for actually sending the data
         """
 
-        cache_hash = hash(command)
+        cache_hash = hash(raw_query)
 
         if max_cache_age and (cached_response := self.cache.get_cache(cache_hash, max_cache_age)):
             logger.debug(
                 "Got cache hit for %r. hash: %s",
-                command if len(command) < 50 else f"{command[:50]}...",
+                raw_query if len(raw_query) < 50 else f"{raw_query[:50]}...",
                 cache_hash,
             )
             return cached_response
 
-        async with self._response_lock:
+        async with self._sending_lock:
             # Check cache again to be sure if previous requests added something to the cache
             if max_cache_age and (cached_response := self.cache.get_cache(cache_hash, max_cache_age)):
                 logger.debug(
                     "Got cache hit for %r. hash: %s",
-                    command if len(command) < 50 else f"{command[:50]}...",
+                    raw_query if len(raw_query) < 50 else f"{raw_query[:50]}...",
                     cache_hash,
                 )
                 return cached_response
 
-            self._response = asyncio.Future()
+            self.response = asyncio.Future()
 
             if self.is_ratelimited:
                 await self.ratelimiter.wait()
 
-            logger.debug("Sending command: %s", command)
-            self.emit(event_name="send", ctx={"command": command})
-            await self._connection.write(command)
+            logger.debug("Sending query: %s", raw_query)
+            self.emit(event_name="send", ctx={"query": raw_query})
+            await self.connection.write(raw_query)
 
-            server_response: response.TSResponse = await asyncio.wait_for(asyncio.shield(self._response), 2.0)
+            server_response: response.TSResponse = await asyncio.wait_for(asyncio.shield(self.response), 2.0)
 
             logger.debug("Got a response: %s", server_response)
 
         if server_response.error_id != 0:
-            raise exceptions.TSResponseError(f"{server_response.msg}", error_id=int(server_response.error_id))
+            raise exceptions.TSResponseError(server_response.msg, error_id=int(server_response.error_id))
 
         if server_response.data:
             self.cache.add_cache(cache_hash, server_response)
             logger.debug(
                 "Added %r response to cache. Hash: %s",
-                command if len(command) < 50 else f"{command[:50]}...",
+                raw_query if len(raw_query) < 50 else f"{raw_query[:50]}...",
                 cache_hash,
             )
 
@@ -267,24 +243,26 @@ class TSBot:
         and send quit command.
         """
 
-        if not self.is_closing:
-            self.is_closing = True
+        if self.is_closing:
+            return
 
-            logger.info("Closing")
-            self.emit(event_name="close")
+        self.is_closing = True
 
-            for task in list(self._background_tasks):
-                task.cancel()
+        logger.info("Closing")
+        self.emit(event_name="close")
 
-            await asyncio.wait(self._background_tasks, timeout=5.0)
+        for task in list(self._background_tasks):
+            task.cancel()
 
-            with contextlib.suppress(Exception):
-                await self.send_raw("quit")
+        await asyncio.wait(self._background_tasks, timeout=5.0)
 
-            self.event_handler.run_till_empty(self)
-            await self.event_handler.event_queue.join()
+        with contextlib.suppress(Exception):
+            await self.send_raw("quit")
 
-            logger.info("Closing done")
+        self.event_handler.run_till_empty(self)
+        await self.event_handler.event_queue.join()
+
+        logger.info("Closing done")
 
     async def run(self) -> None:
         """
@@ -307,6 +285,13 @@ class TSBot:
             for event in ("server", "textserver", "textchannel", "textprivate"):
                 await self.send(query_builder.TSQuery("servernotifyregister").params(event=event))
 
+        async def get_reader_task() -> asyncio.Task[None]:
+            reader_ready = asyncio.Event()
+            reader = asyncio.create_task(_reader_task(self, reader_ready))
+            await reader_ready.wait()
+
+            return reader
+
         self.register_background_task(self.event_handler.handle_events_task, name="HandleEvents-Task")
         self.register_background_task(self.cache.cache_cleanup_task, name="CacheCleanup-Task")
         self.register_event_handler("textmessage", self.command_handler.handle_command_event)
@@ -317,10 +302,9 @@ class TSBot:
         logger.info("Setting up connection")
 
         try:
-            await self._connection.connect()
+            await self.connection.connect()
+            reader_task = await get_reader_task()
 
-            reader_task = asyncio.create_task(self._reader_task())
-            await self._reader_ready_event.wait()
             logger.info("Connected")
 
             await select_server()
@@ -333,27 +317,31 @@ class TSBot:
 
         finally:
             await self.close()
-            await self._connection.close()
+            await self.connection.close()
 
     def load_plugin(self, *plugins: plugin.TSPlugin) -> None:
         """
         Loads TSPlugin instances into the bot instance
 
-        If TSEventHandler and TSCommand are in a plugin instance, they need to know about it.
-        This method sets the plugin instance on these objects.
+        Loops through every instance attribute and checks if its a TSEventHandler or TSCommand.
+        If one is found, register them with the bot.
+
+        Will also add a record of the instance in self.plugins dict
         """
 
-        for plugin in plugins:
-            for member in plugin.__class__.__dict__.values():
-                if isinstance(member, events.TSEventHandler):
-                    member.plugin_instance = plugin
-                    self.event_handler.register_event_handler(member)
+        command_args: plugin.PluginCommandArgs | None
+        event_args: str | None
 
-                elif isinstance(member, commands.TSCommand):
-                    member.plugin_instance = plugin
-                    self.command_handler.register_command(member)
+        for plugin_to_be_loaded in plugins:
+            for _, member in inspect.getmembers(plugin_to_be_loaded):
 
-            self.plugins[plugin.__class__.__name__] = plugin
+                if command_args := getattr(member, "__ts_command__", None):
+                    self.register_command(handler=member, **command_args)
+
+                if event_args := getattr(member, "__ts_event__", None):
+                    self.register_event_handler(event_args, member)
+
+            self.plugins[plugin_to_be_loaded.__class__.__name__] = plugin_to_be_loaded
 
     async def update_info(self):
         """Update the bot_info instance"""
@@ -375,3 +363,32 @@ class TSBot:
         await self.send(
             query_builder.TSQuery("sendtextmessage").params(targetmode=target_mode.value, target=target, msg=message)
         )
+
+
+async def _reader_task(bot: TSBot, ready_event: asyncio.Event):
+    """Task to read messages from the server"""
+
+    WELCOME_MESSAGE_LENGTH = 2
+
+    async for data in bot.connection.read_lines(WELCOME_MESSAGE_LENGTH):
+        pass
+
+    logger.debug("Skipped welcome message")
+    ready_event.set()
+
+    response_buffer: list[str] = []
+
+    async for data in bot.connection.read():
+        if data.startswith("notify"):
+            bot.emit_event(events.TSEvent.from_server_response(data))
+
+        elif data.startswith("error"):
+            response_buffer.append(data)
+            resp = response.TSResponse.from_server_response(response_buffer)
+            bot.response.set_result(resp)
+            response_buffer.clear()
+
+        else:
+            response_buffer.append(data)
+
+    logger.debug("Reader task done")
