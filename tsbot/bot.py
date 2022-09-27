@@ -245,7 +245,7 @@ class TSBot:
 
         if self.is_closing:
             return
-            
+
         self.is_closing = True
 
         logger.info("Closing")
@@ -324,7 +324,7 @@ class TSBot:
         Loads TSPlugin instances into the bot instance
 
         Loops through every instance attribute and checks if its a TSEventHandler or TSCommand.
-        If one is found, bind the handler to the instance and register them with the bot.
+        If one is found, register them with the bot.
 
         Will also add a record of the instance in self.plugins dict
         """
