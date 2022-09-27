@@ -10,7 +10,7 @@ from tsbot import utils
 class TSResponse:
     data: list[dict[str, str]]
     error_id: int
-    msg: str | None = None
+    msg: str
 
     def __iter__(self) -> Iterator[dict[str, str]]:
         """Iterates through all the datapoints in data"""
