@@ -63,11 +63,11 @@ class CommandHandler:
         except exceptions.TSCommandError as e:
             bot.emit(
                 event_name="command_error",
-                ctx={"exception": e.__class__.__qualname__, "exception_msg": str(e)} | event.ctx,
+                ctx={"exception": e.__class__.__name__, "exception_msg": str(e)} | event.ctx,
             )
 
         except exceptions.TSPermissionError as e:
             bot.emit(
                 event_name="permission_error",
-                ctx={"exception": e.__class__.__qualname__, "exception_msg": str(e)} | event.ctx,
+                ctx={"exception": e.__class__.__name__, "exception_msg": str(e)} | event.ctx,
             )

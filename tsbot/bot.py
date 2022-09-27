@@ -50,12 +50,7 @@ class TSBot:
         self.plugins: dict[str, plugin.TSPlugin] = {}
         self._background_tasks: set[asyncio.Task[None]] = set()
 
-        self._connection = connection.TSConnection(
-            username=username,
-            password=password,
-            address=address,
-            port=port,
-        )
+        self._connection = connection.TSConnection(username, password, address, port)
 
         self.event_handler = events.EventHanlder()
         self.command_handler = commands.CommandHandler(invoker)
@@ -204,31 +199,31 @@ class TSBot:
 
             raise response_error
 
-    async def send_raw(self, command: str, *, max_cache_age: int | float = 0) -> response.TSResponse:
+    async def send_raw(self, raw_query: str, *, max_cache_age: int | float = 0) -> response.TSResponse:
         """
         Sends raw commands to the server.
 
         Its recommended to use builtin query builder and :func:`send()<tsbot.TSBot.send()>` instead of this
         """
         try:
-            return await asyncio.shield(self._send(command, max_cache_age))
+            return await asyncio.shield(self._send(raw_query, max_cache_age))
         except exceptions.TSResponseError as response_error:
             if (tb := sys.exc_info()[2]) and tb.tb_next:
                 response_error = response_error.with_traceback(tb.tb_next.tb_next)
 
             raise response_error
 
-    async def _send(self, command: str, max_cache_age: int | float = 0) -> response.TSResponse:
+    async def _send(self, raw_query: str, max_cache_age: int | float = 0) -> response.TSResponse:
         """
         Method responsibe for actually sending the data
         """
 
-        cache_hash = hash(command)
+        cache_hash = hash(raw_query)
 
         if max_cache_age and (cached_response := self.cache.get_cache(cache_hash, max_cache_age)):
             logger.debug(
                 "Got cache hit for %r. hash: %s",
-                command if len(command) < 50 else f"{command[:50]}...",
+                raw_query if len(raw_query) < 50 else f"{raw_query[:50]}...",
                 cache_hash,
             )
             return cached_response
@@ -238,7 +233,7 @@ class TSBot:
             if max_cache_age and (cached_response := self.cache.get_cache(cache_hash, max_cache_age)):
                 logger.debug(
                     "Got cache hit for %r. hash: %s",
-                    command if len(command) < 50 else f"{command[:50]}...",
+                    raw_query if len(raw_query) < 50 else f"{raw_query[:50]}...",
                     cache_hash,
                 )
                 return cached_response
@@ -248,9 +243,9 @@ class TSBot:
             if self.is_ratelimited:
                 await self.ratelimiter.wait()
 
-            logger.debug("Sending command: %s", command)
-            self.emit(event_name="send", ctx={"command": command})
-            await self._connection.write(command)
+            logger.debug("Sending query: %s", raw_query)
+            self.emit(event_name="send", ctx={"query": raw_query})
+            await self._connection.write(raw_query)
 
             server_response: response.TSResponse = await asyncio.wait_for(asyncio.shield(self._response), 2.0)
 
@@ -263,7 +258,7 @@ class TSBot:
             self.cache.add_cache(cache_hash, server_response)
             logger.debug(
                 "Added %r response to cache. Hash: %s",
-                command if len(command) < 50 else f"{command[:50]}...",
+                raw_query if len(raw_query) < 50 else f"{raw_query[:50]}...",
                 cache_hash,
             )
 
