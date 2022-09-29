@@ -50,7 +50,7 @@ class TSBot:
         self.plugins: dict[str, plugin.TSPlugin] = {}
         self._background_tasks: set[asyncio.Task[None]] = set()
 
-        self.connection = connection.TSConnection(username, password, address, port)
+        self._connection = connection.TSConnection(username, password, address, port)
 
         self.event_handler = events.EventHanlder()
         self.command_handler = commands.CommandHandler(invoker)
@@ -216,7 +216,7 @@ class TSBot:
 
             logger.debug("Sending query: %s", raw_query)
             self.emit(event_name="send", ctx={"query": raw_query})
-            await self.connection.write(raw_query)
+            await self._connection.write(raw_query)
 
             server_response: response.TSResponse = await asyncio.wait_for(asyncio.shield(self.response), 2.0)
 
@@ -287,7 +287,7 @@ class TSBot:
 
         async def get_reader_task() -> asyncio.Task[None]:
             reader_ready = asyncio.Event()
-            reader = asyncio.create_task(_reader_task(self, reader_ready))
+            reader = asyncio.create_task(_reader_task(self, self._connection, reader_ready))
             await reader_ready.wait()
 
             return reader
@@ -302,7 +302,7 @@ class TSBot:
         logger.info("Setting up connection")
 
         try:
-            await self.connection.connect()
+            await self._connection.connect()
             reader_task = await get_reader_task()
 
             logger.info("Connected")
@@ -317,7 +317,7 @@ class TSBot:
 
         finally:
             await self.close()
-            await self.connection.close()
+            await self._connection.close()
 
     def load_plugin(self, *plugins: plugin.TSPlugin) -> None:
         """
@@ -365,12 +365,12 @@ class TSBot:
         )
 
 
-async def _reader_task(bot: TSBot, ready_event: asyncio.Event):
+async def _reader_task(bot: TSBot, connection: connection.TSConnection, ready_event: asyncio.Event):
     """Task to read messages from the server"""
 
     WELCOME_MESSAGE_LENGTH = 2
 
-    async for data in bot.connection.read_lines(WELCOME_MESSAGE_LENGTH):
+    async for data in connection.read_lines(WELCOME_MESSAGE_LENGTH):
         pass
 
     logger.debug("Skipped welcome message")
@@ -378,7 +378,7 @@ async def _reader_task(bot: TSBot, ready_event: asyncio.Event):
 
     response_buffer: list[str] = []
 
-    async for data in bot.connection.read():
+    async for data in connection.read():
         if data.startswith("notify"):
             bot.emit_event(events.TSEvent.from_server_response(data))
 

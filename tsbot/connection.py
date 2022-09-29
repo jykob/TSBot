@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, AsyncGenerator
+from typing import AsyncIterator
 
 import asyncssh
 
@@ -43,14 +43,14 @@ class TSConnection:
 
         logger.info("Connection closed")
 
-    async def read_lines(self, number_of_lines: int = 1) -> AsyncGenerator[str, None]:
+    async def read_lines(self, number_of_lines: int = 1) -> AsyncIterator[str]:
         lines_read = 0
 
         while lines_read < number_of_lines and (data := await self._read()):
             lines_read += 1
             yield data.strip()
 
-    async def read(self) -> AsyncGenerator[str, None]:
+    async def read(self) -> AsyncIterator[str]:
         while data := await self._read():
             yield data.strip()
 
@@ -79,9 +79,3 @@ class TSConnection:
             await self._writer.drain()
         except Exception as e:
             logger.warning("%s: %s", e.__class__.__qualname__, e)
-
-    async def __aenter__(self):
-        await self.connect()
-
-    async def __aexit__(self, *args: Any, **kwargs: Any):
-        await self.close()
