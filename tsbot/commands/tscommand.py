@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from tsbot import bot, typealiases
 
 
-@dataclass()
+@dataclass(slots=True)
 class TSCommand:
     commands: tuple[str, ...]
     handler: Callable[..., Awaitable[None]]
