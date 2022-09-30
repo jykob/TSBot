@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Iterable, Literal
 
 
 if TYPE_CHECKING:
@@ -16,7 +16,7 @@ def link(url: str, link_text: typealiases.SupportsStr | None = None) -> str:
 
     If no link text given, the URL will be used as the text.
     """
-    return f"[URL={url}]{link_text}[/URL]" if link_text else f"[URL]{url}[/URL]"
+    return f"[URL={url}]{link_text}[/URL]" if link_text is not None else f"[URL]{url}[/URL]"
 
 
 def img(image_url: str) -> str:
@@ -31,6 +31,7 @@ def size(font_size: int | str, string: typealiases.SupportsStr) -> str:
     Font size can be relative to the current size by indicating with '+' or '-'
 
     Example:
+        - size(font_size=24, '...')
         - size(font_size='+2', '...')
         - size(font_size='-2', '...')
     """
@@ -85,7 +86,7 @@ def right(string: typealiases.SupportsStr) -> str:
     return f"[RIGHT]{string}[/RIGHT]"
 
 
-def list_(*list_members: typealiases.SupportsStr, style: Literal["1", "a", "i", "A", "I"] | None = None) -> str:
+def list_(members: Iterable[typealiases.SupportsStr], style: Literal["1", "a", "i", "A", "I"] | None = None) -> str:
     """Formats a list. Will default to bullet style list if none provided.
 
     Other available styles:
@@ -96,5 +97,18 @@ def list_(*list_members: typealiases.SupportsStr, style: Literal["1", "a", "i", 
         - Upper Roman numeral list: 'I'
     """
 
-    items = "\n".join(f"[*]{item}" for item in list_members)
+    items = "\n".join(f"[*]{item}" for item in members)
     return f"""{'[LIST]' if style is None else f'[LIST={style}]'}\n{items}\n[/LIST]"""
+
+
+def table(rows: Iterable[typealiases.SupportsStr]) -> str:
+    table_rows = "\n".join(map(str, rows))
+    return f"[TABLE]\n{table_rows}\n[/TABLE]"
+
+
+def table_header_row(members: Iterable[typealiases.SupportsStr]) -> str:
+    return f"""[TR]{"".join(f"[TH]{member}[/TH]" for member in members)}[/TR]"""
+
+
+def table_row(members: Iterable[typealiases.SupportsStr]) -> str:
+    return f"""[TR]{"".join(f"[TD]{member}[/TD]" for member in members)}[/TR]"""
