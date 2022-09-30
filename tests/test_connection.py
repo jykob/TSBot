@@ -286,15 +286,3 @@ def test_write_on_closed_channel(conn: connection.TSConnection, connected_conn: 
 
     with pytest.raises(BrokenPipeError):
         asyncio.run(conn.write("hello"))
-
-
-def test_connection_context_manager(conn: connection.TSConnection):
-    async def async_wrapper():
-        async with conn:
-            assert conn._writer
-            assert conn._reader
-
-        assert conn._writer.is_closing()
-        assert isinstance(conn._connection, MockClientConnection) and conn._connection._closed
-
-    asyncio.run(async_wrapper())
