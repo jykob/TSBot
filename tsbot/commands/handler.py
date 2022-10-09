@@ -42,7 +42,7 @@ class CommandHandler:
         # Remove invoker from the beginning
         msg = msg.removeprefix(self.invoker)
 
-        command, args = d if len(d := msg.split(" ", maxsplit=1)) > 1 else (d[0], "")
+        command, _, args = msg.partition(" ")
         command_handler = self.commands.get(command)
 
         if not command_handler:

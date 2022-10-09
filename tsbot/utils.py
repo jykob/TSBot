@@ -19,19 +19,13 @@ def parse_line(input_str: str) -> dict[str, str]:
 
 
 def parse_value(input_str: str) -> tuple[str, str]:
-    key_value = input_str.split("=", maxsplit=1)
-
-    if len(key_value) == 1:
-        # Key doesn't have value associated with it. Making value empty str
-        return key_value[0], ""
-
-    key, value = key_value
+    key, _, value = input_str.partition("=")
 
     if "|" in value:
         # Multiple values associated with the key. Making values comma separated
         return key, ",".join(v for v in value.split(f"|{key}="))
 
-    return key, unescape(value)
+    return key, unescape(value) if value else value
 
 
 def _parse_quoted_arg(unparsed: str) -> tuple[str, str]:
