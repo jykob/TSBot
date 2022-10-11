@@ -62,3 +62,4 @@ class EventHanlder:
 
         if not self.event_handlers[event_handler.event]:
             del self.event_handlers[event_handler.event]
+
