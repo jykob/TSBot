@@ -5,10 +5,9 @@ from typing import TYPE_CHECKING, TypeVar
 from tsbot import utils
 
 if TYPE_CHECKING:
-    from tsbot import typealiases
+    T = TypeVar("T", bound="TSQuery")
 
-
-T = TypeVar("T", bound="TSQuery")
+    ParameterTypes = str | int | bytes | float
 
 
 def query(command: str) -> TSQuery:
@@ -42,21 +41,21 @@ class TSQuery:
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}({self.command!r})"
 
-    def option(self: T, *args: typealiases.SupportsStr) -> T:
+    def option(self: T, *args: ParameterTypes) -> T:
         """Add options to the command eg. ``-groups``"""
         self._dirty = True
 
-        self._options.extend(str(arg) for arg in args)
+        self._options.extend(map(str, args))
         return self
 
-    def params(self: T, **kwargs: typealiases.SupportsStr) -> T:
+    def params(self: T, **kwargs: ParameterTypes) -> T:
         """Add parameters to the command eg. ``cldbid=12``"""
         self._dirty = True
 
         self._parameters.update({k: str(v) for k, v in kwargs.items()})
         return self
 
-    def param_block(self: T, **kwargs: typealiases.SupportsStr) -> T:
+    def param_block(self: T, **kwargs: ParameterTypes) -> T:
         """Add parameter blocks eg. ``clid=1 | clid=2 | clid=3`` to the command"""
         self._dirty = True
 

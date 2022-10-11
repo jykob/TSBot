@@ -40,7 +40,7 @@ class Cache:
     def add_cache(self, cache_hash: int, response: response.TSResponse) -> None:
         self.cache[cache_hash] = CacheRecord(time.monotonic(), response)
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         logger.debug("Running cache clean-up")
 
         delete_timestamp: float = time.monotonic() - self.max_lifetime

@@ -17,19 +17,21 @@ class EventHanlder:
         self.event_handlers: defaultdict[str, list[events.TSEventHandler]] = defaultdict(list)
         self.event_queue: asyncio.Queue[events.TSEvent] = asyncio.Queue()
 
-    def handle_event(self, bot: bot.TSBot, event: events.TSEvent):
+    def handle_event(self, bot: bot.TSBot, event: events.TSEvent) -> None:
         logger.debug("Got event: %s", event)
 
-        if handlers := self.event_handlers.get(event.event):
-            tasks = [asyncio.create_task(h.run(bot, event), name="EventHandler") for h in handlers]
+        handlers = self.event_handlers.get(event.event)
 
-            task = asyncio.create_task(asyncio.wait(tasks), name="EventWatcher")
-            task.add_done_callback(lambda _: self.event_queue.task_done())
-
-        else:
+        if not handlers:
             self.event_queue.task_done()
+            return
 
-    def run_till_empty(self, bot: bot.TSBot):
+        tasks = [asyncio.create_task(h.run(bot, event), name="EventHandler") for h in handlers]
+
+        task = asyncio.create_task(asyncio.wait(tasks), name="EventWatcher")
+        task.add_done_callback(lambda _: self.event_queue.task_done())
+
+    def run_till_empty(self, bot: bot.TSBot) -> None:
         while not self.event_queue.empty():
             self.handle_event(bot, self.event_queue.get_nowait())
 
@@ -54,3 +56,8 @@ class EventHanlder:
         self.event_handlers[event_handler.event].append(event_handler)
 
         logger.debug(f"Registered {event_handler.event!r} event to execute {event_handler.handler.__qualname__!r}")
+
+    def remove_event_handler(self, event_handler: events.TSEventHandler) -> None:
+        self.event_handlers[event_handler.event] = [
+            h for h in self.event_handlers[event_handler.event] if h != event_handler
+        ]

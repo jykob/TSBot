@@ -15,7 +15,7 @@ class RateLimiter:
         self._calls: int = 0
         self._since: float = time.monotonic()
 
-    async def wait(self):
+    async def wait(self) -> None:
         remaining = self._period - (time.monotonic() - self._since)
 
         if remaining <= 0:

@@ -1,23 +1,23 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, NamedTuple, Type, TypeVar
 
 from tsbot import utils
 
 if TYPE_CHECKING:
-    from tsbot import typealiases
+    T = TypeVar("T", bound="TSEvent")
 
 
 class TSEvent(NamedTuple):
     event: str
-    ctx: typealiases.TCtx
+    ctx: dict[str, str]
 
     @classmethod
-    def from_server_response(cls, raw_data: str):
+    def from_server_response(cls: Type[T], raw_data: str) -> T:
         """
         Creates a TSEvent instance from server notify
 
         Will remove the 'notify' from the beginning of the 'event'
         """
-        event, data = raw_data.split(" ", maxsplit=1)
+        event, _, data = raw_data.partition(" ")
         return cls(event=event.removeprefix("notify"), ctx=utils.parse_line(data))

@@ -4,24 +4,24 @@ import asyncio
 import inspect
 import itertools
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Awaitable, Callable
+from typing import TYPE_CHECKING, Callable, Coroutine
 
 from tsbot import utils
 
 if TYPE_CHECKING:
-    from tsbot import bot, typealiases
+    from tsbot import bot
 
 
 @dataclass(slots=True)
 class TSCommand:
     commands: tuple[str, ...]
-    handler: Callable[..., Awaitable[None]]
+    handler: Callable[..., Coroutine[None, None, None]]
 
     help_text: str = field(repr=False)
     raw: bool = field(repr=False)
     hidden: bool = field(repr=False)
 
-    checks: list[Callable[..., Awaitable[None]]] = field(default_factory=list, repr=False)
+    checks: list[Callable[..., Coroutine[None, None, None]]] = field(default_factory=list, repr=False)
 
     @property
     def call_signature(self) -> tuple[inspect.Parameter, ...]:
@@ -51,7 +51,7 @@ class TSCommand:
 
         return f"Usage: {' | '.join(self.commands)} {' '.join(usage)}"
 
-    async def run_checks(self, bot: bot.TSBot, ctx: typealiases.TCtx, *args: str, **kwargs: str) -> None:
+    async def run_checks(self, bot: bot.TSBot, ctx: dict[str, str], *args: str, **kwargs: str) -> None:
         done, pending = await asyncio.wait(
             [check(bot, ctx, *args, **kwargs) for check in self.checks],
             return_when=asyncio.FIRST_EXCEPTION,
@@ -63,7 +63,7 @@ class TSCommand:
             if exception := done_task.exception():
                 raise exception
 
-    async def run(self, bot: bot.TSBot, ctx: typealiases.TCtx, msg: str) -> None:
+    async def run(self, bot: bot.TSBot, ctx: dict[str, str], msg: str) -> None:
         args, kwargs = ((msg,), {}) if self.raw else utils.parse_args_kwargs(msg)
 
         if self.checks:

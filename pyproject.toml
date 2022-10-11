@@ -5,6 +5,11 @@ build-backend = "setuptools.build_meta"
 [tool.pyright]
 reportImportCycles = false
 
+[tool.mypy]
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
 [tool.tox]
 legacy_tox_ini = """
 [tox]

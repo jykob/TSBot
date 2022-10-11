@@ -17,7 +17,7 @@ class CommandHandler:
         self.invoker = invoker
         self.commands: dict[str, commands.TSCommand] = {}
 
-    def register_command(self, command: commands.TSCommand):
+    def register_command(self, command: commands.TSCommand) -> None:
 
         for command_name in command.commands:
             self.commands[command_name] = command
@@ -27,7 +27,7 @@ class CommandHandler:
     async def handle_command_event(self, bot: bot.TSBot, event: events.TSEvent) -> None:
         """Logic to handle commands"""
 
-        # If sender is the bot, return:
+        # If sender is the bot, return
         if event.ctx.get("invokeruid") == bot.bot_info.unique_identifier:
             return
 
@@ -48,14 +48,13 @@ class CommandHandler:
         if not command_handler:
             return
 
-        # inject usefull information into ctx
-        event.ctx["command"] = command
-        event.ctx["raw_args"] = args
+        # Create new context dict with useful entries
+        ctx = {"command": command, "raw_args": args} | event.ctx
 
         logger.debug("%r executed command %r -> %r", event.ctx["invokername"], command, args)
 
         try:
-            await command_handler.run(bot, event.ctx, args)
+            await command_handler.run(bot, ctx, args)
 
         except TypeError:
             await bot.respond(event.ctx, command_handler.usage)
@@ -63,11 +62,11 @@ class CommandHandler:
         except exceptions.TSCommandError as e:
             bot.emit(
                 event_name="command_error",
-                ctx={"exception": e.__class__.__name__, "exception_msg": str(e)} | event.ctx,
+                ctx={"exception": type(e).__name__, "exception_msg": str(e)} | ctx,
             )
 
         except exceptions.TSPermissionError as e:
             bot.emit(
                 event_name="permission_error",
-                ctx={"exception": e.__class__.__name__, "exception_msg": str(e)} | event.ctx,
+                ctx={"exception": type(e).__name__, "exception_msg": str(e)} | ctx,
             )

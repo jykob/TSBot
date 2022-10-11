@@ -5,7 +5,7 @@ import contextlib
 import inspect
 import logging
 import sys
-from typing import TYPE_CHECKING, Awaitable, Callable, Concatenate, ParamSpec, TypeVar
+from typing import TYPE_CHECKING, Callable, Concatenate, Coroutine, ParamSpec, TypeVar
 
 from tsbot import (
     cache,
@@ -22,7 +22,7 @@ from tsbot import (
 )
 
 if TYPE_CHECKING:
-    from tsbot import plugin, typealiases
+    from tsbot import plugin
 
     T = TypeVar("T")
     P = ParamSpec("P")
@@ -64,7 +64,7 @@ class TSBot:
         self.response: asyncio.Future[response.TSResponse]
         self._sending_lock = asyncio.Lock()
 
-    def emit(self, event_name: str, ctx: typealiases.TCtx | None = None) -> None:
+    def emit(self, event_name: str, ctx: dict[str, str] | None = None) -> None:
         """Builds a TSEvent object and emits it"""
         event = events.TSEvent(event=event_name, ctx=ctx or {})
         self.emit_event(event)
@@ -73,16 +73,50 @@ class TSBot:
         """Emits an event to be handled"""
         self.event_handler.event_queue.put_nowait(event)
 
-    def on(self, event_type: str):
+    def on(
+        self, event_type: str
+    ) -> Callable[
+        [Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]]],
+        Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]],
+    ]:
         """Decorator to register coroutines on events"""
 
-        def event_decorator(func: typealiases.TEventHandler) -> typealiases.TEventHandler:
+        def event_decorator(
+            func: Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]]
+        ) -> Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]]:
             self.register_event_handler(event_type, func)
             return func
 
         return event_decorator
 
-    def register_event_handler(self, event_type: str, handler: typealiases.TEventHandler) -> events.TSEventHandler:
+    def once(
+        self, event_type: str
+    ) -> Callable[
+        [Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]]],
+        Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]],
+    ]:
+        """Decorator to register once handler"""
+
+        def once_decorator(
+            func: Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]]
+        ) -> Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]]:
+            self.register_once_handler(event_type, func)
+            return func
+
+        return once_decorator
+
+    def register_once_handler(
+        self, event_type: str, handler: Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]]
+    ) -> events.TSEventOnceHandler:
+        """Register a Coroutine to be ran exactly once on an event"""
+
+        event_handler = events.TSEventOnceHandler(event_type, handler, self.event_handler)
+        self.event_handler.register_event_handler(event_handler)
+        return event_handler
+
+    def register_event_handler(
+        self, event_type: str, handler: Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]]
+    ) -> events.TSEventHandler:
         """
         Register Coroutines to be ran on events
 
@@ -99,13 +133,16 @@ class TSBot:
         help_text: str = "",
         raw: bool = False,
         hidden: bool = False,
-        checks: list[Callable[..., Awaitable[None]]] | None = None,
-    ):
+        checks: list[Callable[..., Coroutine[None, None, None]]] | None = None,
+    ) -> Callable[
+        [Callable[Concatenate[TSBot, dict[str, str], P], Coroutine[None, None, None]]],
+        Callable[Concatenate[TSBot, dict[str, str], P], Coroutine[None, None, None]],
+    ]:
         """Decorator to register coroutines on commands"""
 
         def command_decorator(
-            func: Callable[Concatenate[TSBot, dict[str, str], P], Awaitable[None]]
-        ) -> Callable[Concatenate[TSBot, dict[str, str], P], Awaitable[None]]:
+            func: Callable[Concatenate[TSBot, dict[str, str], P], Coroutine[None, None, None]]
+        ) -> Callable[Concatenate[TSBot, dict[str, str], P], Coroutine[None, None, None]]:
             self.register_command(command, func, help_text=help_text, raw=raw, hidden=hidden, checks=checks)
             return func
 
@@ -114,12 +151,12 @@ class TSBot:
     def register_command(
         self,
         command: str | tuple[str, ...],
-        handler: Callable[Concatenate[TSBot, dict[str, str], P], Awaitable[None]],
+        handler: Callable[Concatenate[TSBot, dict[str, str], P], Coroutine[None, None, None]],
         *,
         help_text: str = "",
         raw: bool = False,
         hidden: bool = False,
-        checks: list[Callable[..., Awaitable[None]]] | None = None,
+        checks: list[Callable[..., Coroutine[None, None, None]]] | None = None,
     ) -> commands.TSCommand:
         """
         Register Coroutines to be ran on specific command
@@ -135,7 +172,7 @@ class TSBot:
 
     def register_background_task(
         self,
-        background_handler: typealiases.TBackgroundTask,
+        background_handler: Callable[[TSBot], Coroutine[None, None, None]],
         *,
         name: str | None = None,
     ) -> asyncio.Task[None]:
@@ -338,17 +375,20 @@ class TSBot:
                 if command_args := getattr(member, "__ts_command__", None):
                     self.register_command(handler=member, **command_args)
 
-                if event_args := getattr(member, "__ts_event__", None):
-                    self.register_event_handler(event_args, member)
+                elif event_args := getattr(member, "__ts_event__", None):
+                    self.register_event_handler(event_type=event_args, handler=member)
+
+                elif once_args := getattr(member, "__ts_once__", None):
+                    self.register_once_handler(event_type=once_args, handler=member)
 
             self.plugins[plugin_to_be_loaded.__class__.__name__] = plugin_to_be_loaded
 
-    async def update_info(self):
+    async def update_info(self) -> None:
         """Update the bot_info instance"""
         resp = await self.send_raw("whoami")
         self.bot_info = client_info.TSClientInfo.from_whoami(resp)
 
-    async def respond(self, ctx: typealiases.TCtx, message: str, *, in_dms: bool = False):
+    async def respond(self, ctx: dict[str, str], message: str, *, in_dms: bool = False) -> None:
         """
         Respond in text channel
 
@@ -365,7 +405,7 @@ class TSBot:
         )
 
 
-async def _reader_task(bot: TSBot, connection: connection.TSConnection, ready_event: asyncio.Event):
+async def _reader_task(bot: TSBot, connection: connection.TSConnection, ready_event: asyncio.Event) -> None:
     """Task to read messages from the server"""
 
     WELCOME_MESSAGE_LENGTH = 2
