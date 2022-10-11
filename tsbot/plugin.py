@@ -61,3 +61,18 @@ def on(
         return func
 
     return event_decorator
+
+
+def once(
+    event_type: str,
+) -> Callable[
+    [Callable[[T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]],
+    Callable[[T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]],
+]:
+    def once_decorator(
+        func: Callable[[T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]
+    ) -> Callable[[T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]:
+        func.__ts_once__ = event_type  # type: ignore
+        return func
+
+    return once_decorator
