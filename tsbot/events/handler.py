@@ -58,6 +58,8 @@ class EventHanlder:
         logger.debug(f"Registered {event_handler.event!r} event to execute {event_handler.handler.__qualname__!r}")
 
     def remove_event_handler(self, event_handler: events.TSEventHandler) -> None:
-        self.event_handlers[event_handler.event] = [
-            h for h in self.event_handlers[event_handler.event] if h != event_handler
-        ]
+        self.event_handlers[event_handler.event].remove(event_handler)
+
+        if not self.event_handlers[event_handler.event]:
+            del self.event_handlers[event_handler.event]
+
