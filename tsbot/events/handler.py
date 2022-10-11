@@ -17,7 +17,7 @@ class EventHanlder:
         self.event_handlers: defaultdict[str, list[events.TSEventHandler]] = defaultdict(list)
         self.event_queue: asyncio.Queue[events.TSEvent] = asyncio.Queue()
 
-    def handle_event(self, bot: bot.TSBot, event: events.TSEvent):
+    def handle_event(self, bot: bot.TSBot, event: events.TSEvent) -> None:
         logger.debug("Got event: %s", event)
 
         if handlers := self.event_handlers.get(event.event):
@@ -29,7 +29,7 @@ class EventHanlder:
         else:
             self.event_queue.task_done()
 
-    def run_till_empty(self, bot: bot.TSBot):
+    def run_till_empty(self, bot: bot.TSBot) -> None:
         while not self.event_queue.empty():
             self.handle_event(bot, self.event_queue.get_nowait())
 

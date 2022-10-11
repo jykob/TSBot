@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Awaitable, Callable, Concatenate, ParamSpec, TypeVar, TypedDict
+from typing import TYPE_CHECKING, Callable, Concatenate, Coroutine, ParamSpec, TypedDict, TypeVar
 
 from tsbot import events
 
-
 if TYPE_CHECKING:
-    from tsbot import typealiases, bot
+    from tsbot import bot
 
     T = TypeVar("T", bound="TSPlugin")
     P = ParamSpec("P")
@@ -21,7 +20,7 @@ class PluginCommandArgs(TypedDict):
     help_text: str
     raw: bool
     hidden: bool
-    checks: list[Callable[..., Awaitable[None]]]
+    checks: list[Callable[..., Coroutine[None, None, None]]]
 
 
 def command(
@@ -29,13 +28,16 @@ def command(
     help_text: str = "",
     raw: bool = False,
     hidden: bool = False,
-    checks: list[Callable[..., Awaitable[None]]] | None = None,
-):
+    checks: list[Callable[..., Coroutine[None, None, None]]] | None = None,
+) -> Callable[
+    [Callable[Concatenate[T, bot.TSBot, dict[str, str], P], Coroutine[None, None, None]]],
+    Callable[Concatenate[T, bot.TSBot, dict[str, str], P], Coroutine[None, None, None]],
+]:
     """Decorator to register coroutines on commands"""
 
     def command_decorator(
-        func: Callable[Concatenate[T, bot.TSBot, typealiases.TCtx, P], Awaitable[None]]
-    ) -> Callable[Concatenate[T, bot.TSBot, typealiases.TCtx, P], Awaitable[None]]:
+        func: Callable[Concatenate[T, bot.TSBot, dict[str, str], P], Coroutine[None, None, None]]
+    ) -> Callable[Concatenate[T, bot.TSBot, dict[str, str], P], Coroutine[None, None, None]]:
         func.__ts_command__ = PluginCommandArgs(  # type: ignore
             command=command, help_text=help_text, raw=raw, hidden=hidden, checks=checks or []
         )
@@ -44,12 +46,17 @@ def command(
     return command_decorator
 
 
-def on(event_type: str):
+def on(
+    event_type: str,
+) -> Callable[
+    [Callable[[T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]],
+    Callable[[T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]],
+]:
     """Decorator to register coroutines on events"""
 
     def event_decorator(
-        func: Callable[[T, bot.TSBot, events.TSEvent], Awaitable[None]]
-    ) -> Callable[[T, bot.TSBot, events.TSEvent], Awaitable[None]]:
+        func: Callable[[T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]
+    ) -> Callable[[T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]:
         func.__ts_event__ = event_type  # type: ignore
         return func
 
