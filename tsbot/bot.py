@@ -89,6 +89,31 @@ class TSBot:
 
         return event_decorator
 
+    def once(
+        self, event_type: str
+    ) -> Callable[
+        [Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]]],
+        Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]],
+    ]:
+        """Decorator to register once handler"""
+
+        def once_decorator(
+            func: Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]]
+        ) -> Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]]:
+            self.register_once_handler(event_type, func)
+            return func
+
+        return once_decorator
+
+    def register_once_handler(
+        self, event_type: str, handler: Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]]
+    ) -> events.TSEventOnceHandler:
+        """Register a Coroutine to be ran exactly once on an event"""
+
+        event_handler = events.TSEventOnceHandler(event_type, handler, self.event_handler)
+        self.event_handler.register_event_handler(event_handler)
+        return event_handler
+
     def register_event_handler(
         self, event_type: str, handler: Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]]
     ) -> events.TSEventHandler:
@@ -350,8 +375,11 @@ class TSBot:
                 if command_args := getattr(member, "__ts_command__", None):
                     self.register_command(handler=member, **command_args)
 
-                if event_args := getattr(member, "__ts_event__", None):
+                elif event_args := getattr(member, "__ts_event__", None):
                     self.register_event_handler(event_type=event_args, handler=member)
+
+                elif once_args := getattr(member, "__ts_once__", None):
+                    self.register_once_handler(event_type=once_args, handler=member)
 
             self.plugins[plugin_to_be_loaded.__class__.__name__] = plugin_to_be_loaded
 
