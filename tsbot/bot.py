@@ -4,7 +4,6 @@ import asyncio
 import contextlib
 import inspect
 import logging
-import sys
 from typing import TYPE_CHECKING, Callable, Concatenate, Coroutine, ParamSpec, TypeVar
 
 from tsbot import (
@@ -202,7 +201,7 @@ class TSBot:
         try:
             return await self.send_raw(query.compile(), max_cache_age=max_cache_age)
         except exceptions.TSResponseError as response_error:
-            if (tb := sys.exc_info()[2]) and tb.tb_next:
+            if (tb := response_error.__traceback__) and tb.tb_next:
                 response_error = response_error.with_traceback(tb.tb_next.tb_next)
 
             raise response_error
@@ -216,7 +215,7 @@ class TSBot:
         try:
             return await asyncio.shield(self._send(raw_query, max_cache_age))
         except exceptions.TSResponseError as response_error:
-            if (tb := sys.exc_info()[2]) and tb.tb_next:
+            if (tb := response_error.__traceback__) and tb.tb_next:
                 response_error = response_error.with_traceback(tb.tb_next.tb_next)
 
             raise response_error
