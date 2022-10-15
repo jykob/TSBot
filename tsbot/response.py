@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Generator, Type, TypeVar
+from typing import TYPE_CHECKING, Generator, TypeVar
 
 from tsbot import utils
 
@@ -25,7 +25,7 @@ class TSResponse:
         return self.data[0]
 
     @classmethod
-    def from_server_response(cls: Type[T], raw_data: list[str]) -> T:
+    def from_server_response(cls: type[T], raw_data: list[str]) -> T:
         error_id, msg = parse_error_line(raw_data.pop())
         data = utils.parse_data("".join(raw_data))
         return cls(data=data, error_id=error_id, msg=msg)

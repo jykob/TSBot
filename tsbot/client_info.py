@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, TypeVar, Type
+from typing import TYPE_CHECKING, TypeVar
 
 if TYPE_CHECKING:
     from tsbot import response
@@ -18,7 +18,7 @@ class TSClientInfo:
     unique_identifier: str = field(compare=True)
 
     @classmethod
-    def from_whoami(cls: Type[T], resp: response.TSResponse) -> T:
+    def from_whoami(cls: type[T], resp: response.TSResponse) -> T:
         return cls(
             client_id=resp.first["client_id"],
             database_id=resp.first["client_database_id"],
