@@ -28,7 +28,7 @@ class CommandHandler:
         """Logic to handle commands"""
 
         # If sender is the bot, return
-        if event.ctx.get("invokeruid") == bot.bot_info.unique_identifier:
+        if event.ctx.get("invokeruid") == bot.uid:
             return
 
         msg = event.ctx.get("msg", "").strip()
