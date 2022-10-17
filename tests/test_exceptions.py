@@ -13,6 +13,6 @@ def test_ts_response_error(error_id: int, message: str):
     error = exceptions.TSResponseError(message, error_id)
 
     assert error.error_id == error_id
-    assert error.message == message
+    assert error.msg == message
 
     assert str(error)

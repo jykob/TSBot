@@ -254,12 +254,19 @@ class TSBot:
             self.emit(event_name="send", ctx={"query": raw_query})
             await self._connection.write(raw_query)
 
-            server_response: response.TSResponse = await asyncio.wait_for(asyncio.shield(self.response), 2.0)
+            server_response = await asyncio.wait_for(asyncio.shield(self.response), 2.0)
 
             logger.debug("Got a response: %s", server_response)
 
+        if server_response.error_id == 2568:
+            raise exceptions.TSResponsePermissionsError(
+                msg=server_response.msg,
+                error_id=server_response.error_id,
+                perm_id=int(server_response.last["failed_permid"]),
+            )
+
         if server_response.error_id != 0:
-            raise exceptions.TSResponseError(server_response.msg, error_id=int(server_response.error_id))
+            raise exceptions.TSResponseError(msg=server_response.msg, error_id=int(server_response.error_id))
 
         if server_response.data:
             self.cache.add_cache(cache_hash, server_response)
