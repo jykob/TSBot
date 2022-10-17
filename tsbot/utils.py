@@ -93,7 +93,7 @@ def parse_args_kwargs(msg: str) -> tuple[tuple[str, ...], dict[str, str]]:
 
 # https://github.com/benediktschmitt/py-ts3/blob/v2/ts3/escape.py
 
-ESCAPE_MAP = [
+ESCAPE_MAP = (
     ("\\", r"\\"),
     ("/", r"\/"),
     (" ", r"\s"),
@@ -105,7 +105,7 @@ ESCAPE_MAP = [
     ("\r", r"\r"),
     ("\t", r"\t"),
     ("\v", r"\v"),
-]
+)
 
 
 def escape(input_str: str) -> str:

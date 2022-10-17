@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, NamedTuple, Type, TypeVar
+from typing import TYPE_CHECKING, NamedTuple, TypeVar
 
 from tsbot import utils
 
@@ -13,7 +13,7 @@ class TSEvent(NamedTuple):
     ctx: dict[str, str]
 
     @classmethod
-    def from_server_response(cls: Type[T], raw_data: str) -> T:
+    def from_server_response(cls: type[T], raw_data: str) -> T:
         """
         Creates a TSEvent instance from server notify
 

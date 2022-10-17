@@ -16,8 +16,8 @@ from tsbot import response
             id="test_simple",
         ),
         pytest.param(
-            ["error id=2568 msg=insufficient\\sclient\\spermissions failed_permid=4"],
-            {"data": [], "error_id": 2568, "msg": "insufficient client permissions"},
+            ["error id=256 msg=command\\snot\\sfound"],
+            {"data": [], "error_id": 256, "msg": "command not found"},
             id="test_error",
         ),
         pytest.param(
@@ -47,31 +47,6 @@ def test_first_property_empty():
 
     with pytest.raises(IndexError):
         resp.first
-
-
-@pytest.mark.parametrize(
-    ("input_str", "excepted"),
-    (
-        pytest.param("error id=0 msg=ok", (0, "ok"), id="test_error_line"),
-        pytest.param(
-            "error id=256 msg=command\\snot\\sfound",
-            (256, "command not found"),
-            id="test_error_line_with_error_1",
-        ),
-        pytest.param(
-            "error id=1539 msg=parameter\\snot\\sfound",
-            (1539, "parameter not found"),
-            id="test_error_line_with_error_2",
-        ),
-        pytest.param(
-            "error id=2568 msg=insufficient\\sclient\\spermissions failed_permid=4",
-            (2568, "insufficient client permissions"),
-            id="test_error_line_with_error_3",
-        ),
-    ),
-)
-def test_parse_error_line(input_str: str, excepted: tuple[int, str]) -> None:
-    assert response.parse_error_line(input_str) == excepted
 
 
 def test_iter_response():
