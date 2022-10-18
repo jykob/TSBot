@@ -29,7 +29,7 @@ def test_create_event(event: str, ctx: dict[str, str]):
 
 
 @pytest.mark.parametrize(
-    ("raw_data", "excepted_event", "excepted_ctx"),
+    ("raw_data", "expected_event", "expected_ctx"),
     (
         pytest.param(
             "notifyclientmoved ctid=3 reasonid=0 clid=1",
@@ -45,8 +45,8 @@ def test_create_event(event: str, ctx: dict[str, str]):
         ),
     ),
 )
-def test_from_server_response(raw_data: str, excepted_event: str, excepted_ctx: dict[str, str]):
+def test_from_server_response(raw_data: str, expected_event: str, expected_ctx: dict[str, str]):
     tsevent = TSEvent.from_server_response(raw_data=raw_data)
 
-    assert tsevent.event == excepted_event
-    assert tsevent.ctx == excepted_ctx
+    assert tsevent.event == expected_event
+    assert tsevent.ctx == expected_ctx

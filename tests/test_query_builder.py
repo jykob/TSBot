@@ -34,7 +34,7 @@ def test_app_param_blocks():
 
 
 @pytest.mark.parametrize(
-    ("input_query", "excepted"),
+    ("input_query", "expected"),
     (
         pytest.param(query("serverlist"), "serverlist", id="test_command_only"),
         pytest.param(
@@ -71,8 +71,8 @@ def test_app_param_blocks():
         ),
     ),
 )
-def test_query_compile(input_query: TSQuery, excepted: str) -> None:
-    assert input_query.compile() == excepted
+def test_query_compile(input_query: TSQuery, expected: str) -> None:
+    assert input_query.compile() == expected
 
 
 def test_empty_query():
