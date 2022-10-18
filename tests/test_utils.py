@@ -6,7 +6,7 @@ from tsbot import utils
 
 
 @pytest.mark.parametrize(
-    ("input_str", "excepted"),
+    ("input_str", "expected"),
     (
         pytest.param("", [], id="test_empty"),
         pytest.param("ip=0.0.0.0|ip=::", [{"ip": "0.0.0.0"}, {"ip": "::"}], id="test_simple"),
@@ -119,12 +119,12 @@ from tsbot import utils
         ),
     ),
 )
-def test_parse_data(input_str: str, excepted: list[dict[str, str]]) -> None:
-    assert utils.parse_data(input_str) == excepted
+def test_parse_data(input_str: str, expected: list[dict[str, str]]) -> None:
+    assert utils.parse_data(input_str) == expected
 
 
 @pytest.mark.parametrize(
-    ("input_str", "excepted"),
+    ("input_str", "expected"),
     (
         pytest.param("", {}, id="test_empty"),
         pytest.param(
@@ -152,12 +152,12 @@ def test_parse_data(input_str: str, excepted: list[dict[str, str]]) -> None:
         ),
     ),
 )
-def test_parse_line(input_str: str, excepted: dict[str, str]) -> None:
-    assert utils.parse_line(input_str) == excepted
+def test_parse_line(input_str: str, expected: dict[str, str]) -> None:
+    assert utils.parse_line(input_str) == expected
 
 
 @pytest.mark.parametrize(
-    ("input_str", "excepted"),
+    ("input_str", "expected"),
     (
         pytest.param("clid=12", ("clid", "12"), id="test_simple"),
         pytest.param("client_servergroups=6,16,20", ("client_servergroups", "6,16,20"), id="test_comma_sepparated"),
@@ -166,8 +166,8 @@ def test_parse_line(input_str: str, excepted: dict[str, str]) -> None:
         pytest.param("client_away_message", ("client_away_message", ""), id="test_empty_value"),
     ),
 )
-def test_parse_value(input_str: str, excepted: tuple[str, str]) -> None:
-    assert utils.parse_value(input_str) == excepted
+def test_parse_value(input_str: str, expected: tuple[str, str]) -> None:
+    assert utils.parse_value(input_str) == expected
 
 
 escape_params = (
@@ -179,18 +179,18 @@ escape_params = (
 )
 
 
-@pytest.mark.parametrize(("input_str", "excepted"), escape_params)
-def test_escape(input_str: str, excepted: str) -> None:
-    assert utils.escape(input_str) == excepted
+@pytest.mark.parametrize(("input_str", "expected"), escape_params)
+def test_escape(input_str: str, expected: str) -> None:
+    assert utils.escape(input_str) == expected
 
 
-@pytest.mark.parametrize(("excepted", "input_str"), escape_params)
-def test_unescape(input_str: str, excepted: str) -> None:
-    assert utils.unescape(input_str) == excepted
+@pytest.mark.parametrize(("expected", "input_str"), escape_params)
+def test_unescape(input_str: str, expected: str) -> None:
+    assert utils.unescape(input_str) == expected
 
 
 @pytest.mark.parametrize(
-    ("input_str", "excepted_args", "excepted_kwargs"),
+    ("input_str", "expected_args", "expected_kwargs"),
     (
         pytest.param("123 asd test", ("123", "asd", "test"), {}, id="test_args"),
         pytest.param("-asd test -name test_account", (), {"asd": "test", "name": "test_account"}, id="test_kwargs"),
@@ -230,5 +230,5 @@ def test_unescape(input_str: str, excepted: str) -> None:
         pytest.param("asd '", ("asd", "'"), {}, id="test_ending_in_quote"),
     ),
 )
-def test_parse_args_kwargs(input_str: str, excepted_args: tuple[str], excepted_kwargs: dict[str, str]):
-    assert utils.parse_args_kwargs(input_str) == (excepted_args, excepted_kwargs)
+def test_parse_args_kwargs(input_str: str, expected_args: tuple[str], expected_kwargs: dict[str, str]):
+    assert utils.parse_args_kwargs(input_str) == (expected_args, expected_kwargs)
