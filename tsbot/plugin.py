@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable, Concatenate, Coroutine, ParamSpec, TypedDict, TypeVar
-
-from tsbot import events
+from typing import TYPE_CHECKING, Callable, Concatenate, Coroutine, ParamSpec, TypeVar
 
 if TYPE_CHECKING:
-    from tsbot import bot
+    from tsbot import bot, events
 
     T = TypeVar("T", bound="TSPlugin")
     P = ParamSpec("P")
@@ -13,14 +11,6 @@ if TYPE_CHECKING:
 
 class TSPlugin:
     """Base class for plugins"""
-
-
-class PluginCommandArgs(TypedDict):
-    command: tuple[str, ...]
-    help_text: str
-    raw: bool
-    hidden: bool
-    checks: list[Callable[..., Coroutine[None, None, None]]]
 
 
 def command(
@@ -38,9 +28,13 @@ def command(
     def command_decorator(
         func: Callable[Concatenate[T, bot.TSBot, dict[str, str], P], Coroutine[None, None, None]]
     ) -> Callable[Concatenate[T, bot.TSBot, dict[str, str], P], Coroutine[None, None, None]]:
-        func.__ts_command__ = PluginCommandArgs(  # type: ignore
-            command=command, help_text=help_text, raw=raw, hidden=hidden, checks=checks or []
-        )
+        func.__ts_command__ = {  # type: ignore
+            "command": command,
+            "help_text": help_text,
+            "raw": raw,
+            "hidden": hidden,
+            "checks": checks or [],
+        }
         return func
 
     return command_decorator
@@ -57,7 +51,7 @@ def on(
     def event_decorator(
         func: Callable[[T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]
     ) -> Callable[[T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]:
-        func.__ts_event__ = event_type  # type: ignore
+        func.__ts_event__ = {"event_type": event_type}  # type: ignore
         return func
 
     return event_decorator
@@ -72,7 +66,7 @@ def once(
     def once_decorator(
         func: Callable[[T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]
     ) -> Callable[[T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]:
-        func.__ts_once__ = event_type  # type: ignore
+        func.__ts_once__ = {"event_type": event_type}  # type: ignore
         return func
 
     return once_decorator

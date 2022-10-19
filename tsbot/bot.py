@@ -399,21 +399,23 @@ class TSBot:
         Will also add a record of the instance in self.plugins dict
         """
 
-        command_args: plugin.PluginCommandArgs | None
-        event_args: str | None
-        once_args: str | None
-
         for plugin_to_be_loaded in plugins:
             for _, member in inspect.getmembers(plugin_to_be_loaded):
 
-                if command_args := getattr(member, "__ts_command__", None):
-                    self.register_command(handler=member, **command_args)
+                if command_kwargs := getattr(member, "__ts_command__", None):
+                    self.register_command(handler=member, **command_kwargs)
 
-                elif event_args := getattr(member, "__ts_event__", None):
-                    self.register_event_handler(event_type=event_args, handler=member)
+                elif event_kwargs := getattr(member, "__ts_event__", None):
+                    self.register_event_handler(handler=member, **event_kwargs)
 
-                elif once_args := getattr(member, "__ts_once__", None):
-                    self.register_once_handler(event_type=once_args, handler=member)
+                elif once_kwargs := getattr(member, "__ts_once__", None):
+                    self.register_once_handler(handler=member, **once_kwargs)
+
+                elif every_kwargs := getattr(member, "__ts_every__", None):
+                    self.register_every_task(handler=member, **every_kwargs)
+
+                elif task_kwargs := getattr(member, "__ts_task__", None):
+                    self.register_task(handler=member, **task_kwargs)
 
             self.plugins[plugin_to_be_loaded.__class__.__name__] = plugin_to_be_loaded
 
