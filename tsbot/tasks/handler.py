@@ -34,7 +34,7 @@ class TasksHandler:
         if task.task and not task.task.done():
             task.task.cancel()
 
-        self._tasks.remove(task)
+        self._tasks = [t for t in self._tasks if t != task]
 
     def start(self, bot: bot.TSBot):
 
@@ -46,10 +46,8 @@ class TasksHandler:
 
     async def close(self):
         for task in self._tasks:
-            if not task.task:
-                continue
-
-            task.task.cancel()
+            if task.task:
+                task.task.cancel()
 
         # Sleep until all the tasks are removed from tasks list
         while self._tasks:
