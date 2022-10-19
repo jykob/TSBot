@@ -70,3 +70,39 @@ def once(
         return func
 
     return once_decorator
+
+
+def every(
+    seconds: int, name: str | None = None
+) -> Callable[
+    [Callable[[T, bot.TSBot], Coroutine[None, None, None]]],
+    Callable[[T, bot.TSBot], Coroutine[None, None, None]],
+]:
+    def every_decorator(
+        func: Callable[[T, bot.TSBot], Coroutine[None, None, None]]
+    ) -> Callable[[T, bot.TSBot], Coroutine[None, None, None]]:
+        func.__ts_every__ = {"seconds": seconds, "name": name}  # type: ignore
+        return func
+
+    return every_decorator
+
+
+def task(
+    func: Callable[[T, bot.TSBot], Coroutine[None, None, None]] | None = None,
+    /,
+    *,
+    name: str | None = None,
+) -> Callable[[T, bot.TSBot], Coroutine[None, None, None]] | Callable[
+    [Callable[[T, bot.TSBot], Coroutine[None, None, None]]],
+    Callable[[T, bot.TSBot], Coroutine[None, None, None]],
+]:
+    def task_decorator(
+        func: Callable[[T, bot.TSBot], Coroutine[None, None, None]]
+    ) -> Callable[[T, bot.TSBot], Coroutine[None, None, None]]:
+        func.__ts_task__ = {"name": name}  # type: ignore
+        return func
+
+    if func is None:
+        return task_decorator
+
+    return task_decorator(func)
