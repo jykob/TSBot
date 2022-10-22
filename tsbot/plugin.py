@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable, Concatenate, Coroutine, ParamSpec, TypeVar
+from typing import TYPE_CHECKING, Callable, Concatenate, Coroutine, ParamSpec, TypeVar, overload
 
 if TYPE_CHECKING:
     from tsbot import bot, events
@@ -87,11 +87,25 @@ def every(
     return every_decorator
 
 
+@overload
 def task(
-    func: Callable[[T, bot.TSBot], Coroutine[None, None, None]] | None = None,
-    /,
-    *,
-    name: str | None = None,
+    *, name: str | None
+) -> Callable[
+    [Callable[[T, bot.TSBot], Coroutine[None, None, None]]],
+    Callable[[T, bot.TSBot], Coroutine[None, None, None]],
+]:
+    ...
+
+
+@overload
+def task(
+    func: Callable[[T, bot.TSBot], Coroutine[None, None, None]],
+) -> Callable[[T, bot.TSBot], Coroutine[None, None, None]]:
+    ...
+
+
+def task(
+    func: Callable[[T, bot.TSBot], Coroutine[None, None, None]] | None = None, /, *, name: str | None = None
 ) -> Callable[[T, bot.TSBot], Coroutine[None, None, None]] | Callable[
     [Callable[[T, bot.TSBot], Coroutine[None, None, None]]],
     Callable[[T, bot.TSBot], Coroutine[None, None, None]],
@@ -102,7 +116,7 @@ def task(
         func.__ts_task__ = {"name": name}  # type: ignore
         return func
 
-    if func is None:
-        return task_decorator
+    if func is not None:
+        return task_decorator(func)
 
-    return task_decorator(func)
+    return task_decorator

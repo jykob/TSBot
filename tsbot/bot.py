@@ -4,7 +4,7 @@ import asyncio
 import contextlib
 import inspect
 import logging
-from typing import TYPE_CHECKING, Callable, Concatenate, Coroutine, ParamSpec, TypeVar
+from typing import TYPE_CHECKING, Callable, Concatenate, Coroutine, ParamSpec, TypeVar, overload
 
 from tsbot import (
     cache,
@@ -169,12 +169,20 @@ class TSBot:
         name: str | None = None,
     ) -> tasks.TSTask:
 
-        task = tasks.TSTask(handler=tasks.every(seconds, handler), name=name)
+        task = tasks.TSTask(handler=tasks.every(handler, seconds), name=name)
         self.tasks_handler.register_task(self, task)
         return task
 
+    @overload
+    def task(self, *, name: str | None) -> Callable[[tasks.TTaskH], tasks.TTaskH]:
+        ...
+
+    @overload
+    def task(self, func: tasks.TTaskH) -> tasks.TTaskH:
+        ...
+
     def task(
-        self, func: tasks.TTaskH | None = None, /, *, name: str | None = None
+        self, func: tasks.TTaskH | None = None, *, name: str | None = None
     ) -> tasks.TTaskH | Callable[[tasks.TTaskH], tasks.TTaskH]:
         """Decorator to register tasks"""
 
