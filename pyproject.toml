@@ -46,6 +46,10 @@ addopts = "--cov"
 testpaths = ["tests"]
 
 
+[tool.pyright]
+reportImportCycles = false
+
+
 [tool.mypy]
 check_untyped_defs = true
 disallow_any_generics = true
