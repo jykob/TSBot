@@ -19,10 +19,7 @@ class TSTask:
     task: asyncio.Task[None] | None = None
 
 
-def every(
-    seconds: int,
-    every_handler: TTaskH,
-):
+def every(every_handler: TTaskH, seconds: int):
     @functools.wraps(every_handler)
     async def every_wrapper(bot: bot.TSBot) -> None:
         while True:
