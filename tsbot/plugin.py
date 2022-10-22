@@ -105,7 +105,7 @@ def task(
 
 
 def task(
-    func: Callable[[T, bot.TSBot], Coroutine[None, None, None]] | None = None, /, *, name: str | None = None
+    func: Callable[[T, bot.TSBot], Coroutine[None, None, None]] | None = None, *, name: str | None = None
 ) -> Callable[[T, bot.TSBot], Coroutine[None, None, None]] | Callable[
     [Callable[[T, bot.TSBot], Coroutine[None, None, None]]],
     Callable[[T, bot.TSBot], Coroutine[None, None, None]],

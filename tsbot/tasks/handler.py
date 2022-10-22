@@ -36,7 +36,7 @@ class TasksHandler:
 
         self._tasks = [t for t in self._tasks if t is not task]
 
-    def start(self, bot: bot.TSBot):
+    def start(self, bot: bot.TSBot) -> None:
 
         while self._starting_tasks:
             self._start_task(bot, self._starting_tasks.pop())
@@ -44,7 +44,7 @@ class TasksHandler:
         self._started = True
         logger.debug("Task handler started")
 
-    async def close(self):
+    async def close(self) -> None:
         for task in self._tasks:
             if task.task:
                 task.task.cancel()
