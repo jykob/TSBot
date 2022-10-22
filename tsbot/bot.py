@@ -4,7 +4,7 @@ import asyncio
 import contextlib
 import inspect
 import logging
-from typing import TYPE_CHECKING, Callable, Concatenate, Coroutine, ParamSpec, TypeVar
+from typing import TYPE_CHECKING, Callable, Concatenate, Coroutine, ParamSpec, TypeVar, overload
 
 from tsbot import (
     cache,
@@ -17,6 +17,7 @@ from tsbot import (
     query_builder,
     ratelimiter,
     response,
+    tasks,
 )
 
 if TYPE_CHECKING:
@@ -24,6 +25,7 @@ if TYPE_CHECKING:
 
     T = TypeVar("T")
     P = ParamSpec("P")
+
 
 logger = logging.getLogger(__name__)
 
@@ -46,10 +48,10 @@ class TSBot:
         self.uid: str = ""
 
         self.plugins: dict[str, plugin.TSPlugin] = {}
-        self._background_tasks: set[asyncio.Task[None]] = set()
 
         self._connection = connection.TSConnection(username, password, address, port)
 
+        self.tasks_handler = tasks.TasksHandler()
         self.event_handler = events.EventHanlder()
         self.command_handler = commands.CommandHandler(invoker)
         self.cache = cache.Cache()
@@ -71,50 +73,32 @@ class TSBot:
         """Emits an event to be handled"""
         self.event_handler.event_queue.put_nowait(event)
 
-    def on(
-        self, event_type: str
-    ) -> Callable[
-        [Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]]],
-        Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]],
-    ]:
+    def on(self, event_type: str) -> Callable[[events.TEventH], events.TEventH]:
         """Decorator to register coroutines on events"""
 
-        def event_decorator(
-            func: Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]]
-        ) -> Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]]:
+        def event_decorator(func: events.TEventH) -> events.TEventH:
             self.register_event_handler(event_type, func)
             return func
 
         return event_decorator
 
-    def once(
-        self, event_type: str
-    ) -> Callable[
-        [Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]]],
-        Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]],
-    ]:
+    def once(self, event_type: str) -> Callable[[events.TEventH], events.TEventH]:
         """Decorator to register once handler"""
 
-        def once_decorator(
-            func: Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]]
-        ) -> Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]]:
+        def once_decorator(func: events.TEventH) -> events.TEventH:
             self.register_once_handler(event_type, func)
             return func
 
         return once_decorator
 
-    def register_once_handler(
-        self, event_type: str, handler: Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]]
-    ) -> events.TSEventOnceHandler:
+    def register_once_handler(self, event_type: str, handler: events.TEventH) -> events.TSEventOnceHandler:
         """Register a Coroutine to be ran exactly once on an event"""
 
         event_handler = events.TSEventOnceHandler(event_type, handler, self.event_handler)
         self.event_handler.register_event_handler(event_handler)
         return event_handler
 
-    def register_event_handler(
-        self, event_type: str, handler: Callable[[TSBot, events.TSEvent], Coroutine[None, None, None]]
-    ) -> events.TSEventHandler:
+    def register_event_handler(self, event_type: str, handler: events.TEventH) -> events.TSEventHandler:
         """
         Register Coroutines to be ran on events
 
@@ -168,27 +152,64 @@ class TSBot:
         self.command_handler.register_command(command_handler)
         return command_handler
 
-    def register_background_task(
+    def every(self, seconds: int, name: str | None = None) -> Callable[[tasks.TTaskH], tasks.TTaskH]:
+        """Decorator to register coroutine to be ran every given second"""
+
+        def every_decorator(func: tasks.TTaskH) -> tasks.TTaskH:
+            self.register_every_task(seconds, func, name=name)
+            return func
+
+        return every_decorator
+
+    def register_every_task(
         self,
-        background_handler: Callable[[TSBot], Coroutine[None, None, None]],
+        seconds: int,
+        handler: tasks.TTaskH,
         *,
         name: str | None = None,
-    ) -> asyncio.Task[None]:
-        """Registers a coroutine as background task"""
-        task = asyncio.create_task(background_handler(self), name=name)
-        task.add_done_callback(lambda task: self.remove_background_task(task))
+    ) -> tasks.TSTask:
 
-        self._background_tasks.add(task)
-        logger.debug("Registered %r as a background task", background_handler.__qualname__)
-
+        task = tasks.TSTask(handler=tasks.every(handler, seconds), name=name)
+        self.tasks_handler.register_task(self, task)
         return task
 
-    def remove_background_task(self, background_task: asyncio.Task[None]) -> None:
-        """Remove a background task from background tasks"""
-        if not background_task.done():
-            background_task.cancel()
+    @overload
+    def task(self, *, name: str | None) -> Callable[[tasks.TTaskH], tasks.TTaskH]:
+        ...
 
-        self._background_tasks.remove(background_task)
+    @overload
+    def task(self, func: tasks.TTaskH) -> tasks.TTaskH:
+        ...
+
+    def task(
+        self, func: tasks.TTaskH | None = None, *, name: str | None = None
+    ) -> tasks.TTaskH | Callable[[tasks.TTaskH], tasks.TTaskH]:
+        """Decorator to register tasks"""
+
+        def task_decorator(func: tasks.TTaskH) -> tasks.TTaskH:
+            self.register_task(func, name=name)
+            return func
+
+        if func is None:
+            return task_decorator
+
+        return task_decorator(func)
+
+    def register_task(
+        self,
+        handler: tasks.TTaskH,
+        *,
+        name: str | None = None,
+    ) -> tasks.TSTask:
+        """Registers a coroutine as background task"""
+
+        task = tasks.TSTask(handler=handler, name=name)
+        self.tasks_handler.register_task(self, task)
+        return task
+
+    def remove_task(self, task: tasks.TSTask) -> None:
+        """Remove a background task from tasks"""
+        self.tasks_handler.remove_task(task)
 
     async def send(self, query: query_builder.TSQuery, *, max_cache_age: int | float = 0) -> response.TSResponse:
         """
@@ -321,10 +342,7 @@ class TSBot:
         logger.info("Closing")
         self.emit(event_name="close")
 
-        for task in self._background_tasks:
-            task.cancel()
-
-        await asyncio.wait(self._background_tasks, timeout=5.0)
+        await self.tasks_handler.close()
 
         with contextlib.suppress(Exception):
             await self.send_raw("quit")
@@ -362,11 +380,12 @@ class TSBot:
 
             return reader
 
-        self.register_background_task(self.event_handler.handle_events_task, name="HandleEvents-Task")
-        self.register_background_task(self.cache.cache_cleanup_task, name="CacheCleanup-Task")
+        self.register_task(self.event_handler.handle_events_task, name="HandleEvents-Task")
+        self.register_task(self.cache.cache_cleanup_task, name="CacheCleanup-Task")
         self.register_event_handler("textmessage", self.command_handler.handle_command_event)
-
         self.load_plugin(default_plugins.Help(), default_plugins.KeepAlive())
+
+        self.tasks_handler.start(self)
         self.emit(event_name="run")
 
         logger.info("Setting up connection")
@@ -399,21 +418,23 @@ class TSBot:
         Will also add a record of the instance in self.plugins dict
         """
 
-        command_args: plugin.PluginCommandArgs | None
-        event_args: str | None
-        once_args: str | None
-
         for plugin_to_be_loaded in plugins:
             for _, member in inspect.getmembers(plugin_to_be_loaded):
 
-                if command_args := getattr(member, "__ts_command__", None):
-                    self.register_command(handler=member, **command_args)
+                if command_kwargs := getattr(member, "__ts_command__", None):
+                    self.register_command(handler=member, **command_kwargs)
 
-                elif event_args := getattr(member, "__ts_event__", None):
-                    self.register_event_handler(event_type=event_args, handler=member)
+                elif event_kwargs := getattr(member, "__ts_event__", None):
+                    self.register_event_handler(handler=member, **event_kwargs)
 
-                elif once_args := getattr(member, "__ts_once__", None):
-                    self.register_once_handler(event_type=once_args, handler=member)
+                elif once_kwargs := getattr(member, "__ts_once__", None):
+                    self.register_once_handler(handler=member, **once_kwargs)
+
+                elif every_kwargs := getattr(member, "__ts_every__", None):
+                    self.register_every_task(handler=member, **every_kwargs)
+
+                elif task_kwargs := getattr(member, "__ts_task__", None):
+                    self.register_task(handler=member, **task_kwargs)
 
             self.plugins[plugin_to_be_loaded.__class__.__name__] = plugin_to_be_loaded
 

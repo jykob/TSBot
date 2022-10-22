@@ -1,14 +1,61 @@
+[project]
+name = "tsbot"
+version = "0.17.0"
+authors = [{ name = "0x4aK" }]
+description = "Asynchronous framework to build TeamSpeak 3 Server Query bots"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: AsyncIO",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent,",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+]
+dependencies = ["asyncssh >= 2.9.0"]
+license = { file = "LICENCE" }
+
+
+[project.urls]
+repository = "https://github.com/0x4aK/tsbot"
+documentation = "https://tsbot.readthedocs.io/en/latest/"
+
+
+[project.optional-dependencies]
+tests = ["mypy >= 0.931", "pytest >= 7.0.0", "pytest-cov >= 3.0.0"]
+docs = ["myst-parser >= 0.18.0", "sphinx-autodoc-typehints>=1.18.2"]
+
+
 [build-system]
 requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.pyright]
-reportImportCycles = false
+
+[tool.setuptools]
+packages = { find = { include = ["tsbot*"] } }
+
+
+[tool.setuptools.package-data]
+tsbot = ["py.typed"]
+
+
+[tool.pytest.ini_options]
+addopts = "--cov"
+testpaths = ["tests"]
+
 
 [tool.mypy]
+check_untyped_defs = true
+disallow_any_generics = true
 disallow_untyped_calls = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
+ignore_missing_imports = true
+no_implicit_optional = true
+show_error_codes = true
+
 
 [tool.tox]
 legacy_tox_ini = """
@@ -24,14 +71,12 @@ python =
 [testenv]
 setenv =
     PYTHONPATH = {toxinidir}
-deps =
-    -r{toxinidir}/requirements-dev.txt
-commands =
-    pytest --basetemp={envtmpdir} --cov
+extras = tests
+commands = pytest --basetemp={envtmpdir} --cov
 
 [testenv:mypy]
 basepython = python3.10
 deps =
-    -r{toxinidir}/requirements-dev.txt
+    mypy
 commands = mypy tsbot
 """
