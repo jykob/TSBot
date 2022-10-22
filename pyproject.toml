@@ -1,6 +1,6 @@
 [project]
 name = "tsbot"
-version = "0.16.4"
+version = "0.17.0"
 authors = [{ name = "0x4aK" }]
 description = "Asynchronous framework to build TeamSpeak 3 Server Query bots"
 readme = "README.md"
@@ -55,6 +55,7 @@ disallow_incomplete_defs = true
 ignore_missing_imports = true
 no_implicit_optional = true
 show_error_codes = true
+
 
 [tool.tox]
 legacy_tox_ini = """
