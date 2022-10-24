@@ -10,6 +10,7 @@ from tsbot import (
     cache,
     commands,
     connection,
+    context,
     default_plugins,
     enums,
     events,
@@ -23,8 +24,8 @@ from tsbot import (
 if TYPE_CHECKING:
     from tsbot import plugin
 
-    T = TypeVar("T")
-    P = ParamSpec("P")
+T = TypeVar("T")
+P = ParamSpec("P")
 
 
 logger = logging.getLogger(__name__)
@@ -66,7 +67,7 @@ class TSBot:
 
     def emit(self, event_name: str, ctx: dict[str, str] | None = None) -> None:
         """Builds a TSEvent object and emits it"""
-        event = events.TSEvent(event=event_name, ctx=ctx or {})
+        event = events.TSEvent(event=event_name, ctx=context.TSCtx(ctx or {}))
         self.emit_event(event)
 
     def emit_event(self, event: events.TSEvent) -> None:
@@ -117,14 +118,14 @@ class TSBot:
         hidden: bool = False,
         checks: list[Callable[..., Coroutine[None, None, None]]] | None = None,
     ) -> Callable[
-        [Callable[Concatenate[TSBot, dict[str, str], P], Coroutine[None, None, None]]],
-        Callable[Concatenate[TSBot, dict[str, str], P], Coroutine[None, None, None]],
+        [Callable[Concatenate[TSBot, context.TSCtx, P], Coroutine[None, None, None]]],
+        Callable[Concatenate[TSBot, context.TSCtx, P], Coroutine[None, None, None]],
     ]:
         """Decorator to register coroutines on commands"""
 
         def command_decorator(
-            func: Callable[Concatenate[TSBot, dict[str, str], P], Coroutine[None, None, None]]
-        ) -> Callable[Concatenate[TSBot, dict[str, str], P], Coroutine[None, None, None]]:
+            func: Callable[Concatenate[TSBot, context.TSCtx, P], Coroutine[None, None, None]]
+        ) -> Callable[Concatenate[TSBot, context.TSCtx, P], Coroutine[None, None, None]]:
             self.register_command(command, func, help_text=help_text, raw=raw, hidden=hidden, checks=checks)
             return func
 
@@ -133,7 +134,7 @@ class TSBot:
     def register_command(
         self,
         command: str | tuple[str, ...],
-        handler: Callable[Concatenate[TSBot, dict[str, str], P], Coroutine[None, None, None]],
+        handler: Callable[Concatenate[TSBot, context.TSCtx, P], Coroutine[None, None, None]],
         *,
         help_text: str = "",
         raw: bool = False,
@@ -443,7 +444,7 @@ class TSBot:
         resp = await self.send_raw("whoami")
         self.uid = resp.first["client_unique_identifier"]
 
-    async def respond(self, ctx: dict[str, str], message: str, *, in_dms: bool = False) -> None:
+    async def respond(self, ctx: context.TSCtx, message: str, *, in_dms: bool = False) -> None:
         """
         Respond in text channel
 

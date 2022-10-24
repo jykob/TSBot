@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from tsbot import exceptions, plugin
 
 if TYPE_CHECKING:
-    from tsbot import bot
+    from tsbot import bot, context
 
 
 logger = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class Help(plugin.TSPlugin):
     @plugin.command("help", help_text="Prints out the help text of a given command and usage")
-    async def help_command(self, bot: bot.TSBot, ctx: dict[str, str], command: str) -> None:
+    async def help_command(self, bot: bot.TSBot, ctx: context.TSCtx, command: str) -> None:
         command_handler = bot.command_handler.commands.get(command)
 
         if not command_handler or command_handler.hidden:

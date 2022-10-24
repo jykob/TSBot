@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Callable, Coroutine
 from tsbot import exceptions, utils
 
 if TYPE_CHECKING:
-    from tsbot import bot
+    from tsbot import bot, context
 
 
 @dataclass(slots=True)
@@ -49,7 +49,7 @@ class TSCommand:
 
         return f"Usage: {' | '.join(self.commands)} {' '.join(usage)}"
 
-    async def run_checks(self, bot: bot.TSBot, ctx: dict[str, str], *args: str, **kwargs: str) -> None:
+    async def run_checks(self, bot: bot.TSBot, ctx: context.TSCtx, *args: str, **kwargs: str) -> None:
         done, pending = await asyncio.wait(
             (check(bot, ctx, *args, **kwargs) for check in self.checks),
             return_when=asyncio.FIRST_EXCEPTION,
@@ -61,7 +61,7 @@ class TSCommand:
             if exception := done_task.exception():
                 raise exception
 
-    async def run(self, bot: bot.TSBot, ctx: dict[str, str], msg: str) -> None:
+    async def run(self, bot: bot.TSBot, ctx: context.TSCtx, msg: str) -> None:
         args, kwargs = utils.parse_args_kwargs(msg) if not self.raw else ((msg,) if msg else (), {})
 
         if self.checks:

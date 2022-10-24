@@ -3,10 +3,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Callable, Concatenate, Coroutine, ParamSpec, TypeVar, overload
 
 if TYPE_CHECKING:
-    from tsbot import bot, events
+    from tsbot import bot, context, events
 
-    T = TypeVar("T", bound="TSPlugin")
-    P = ParamSpec("P")
+T = TypeVar("T", bound="TSPlugin")
+P = ParamSpec("P")
 
 
 class TSPlugin:
@@ -20,14 +20,14 @@ def command(
     hidden: bool = False,
     checks: list[Callable[..., Coroutine[None, None, None]]] | None = None,
 ) -> Callable[
-    [Callable[Concatenate[T, bot.TSBot, dict[str, str], P], Coroutine[None, None, None]]],
-    Callable[Concatenate[T, bot.TSBot, dict[str, str], P], Coroutine[None, None, None]],
+    [Callable[Concatenate[T, bot.TSBot, context.TSCtx, P], Coroutine[None, None, None]]],
+    Callable[Concatenate[T, bot.TSBot, context.TSCtx, P], Coroutine[None, None, None]],
 ]:
     """Decorator to register coroutines on commands"""
 
     def command_decorator(
-        func: Callable[Concatenate[T, bot.TSBot, dict[str, str], P], Coroutine[None, None, None]]
-    ) -> Callable[Concatenate[T, bot.TSBot, dict[str, str], P], Coroutine[None, None, None]]:
+        func: Callable[Concatenate[T, bot.TSBot, context.TSCtx, P], Coroutine[None, None, None]]
+    ) -> Callable[Concatenate[T, bot.TSBot, context.TSCtx, P], Coroutine[None, None, None]]:
         func.__ts_command__ = {  # type: ignore
             "command": command,
             "help_text": help_text,
