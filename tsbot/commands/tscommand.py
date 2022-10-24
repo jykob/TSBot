@@ -64,7 +64,7 @@ class TSCommand:
                 raise exception
 
     async def run(self, bot: bot.TSBot, ctx: dict[str, str], msg: str) -> None:
-        args, kwargs = ((msg,), {}) if self.raw else utils.parse_args_kwargs(msg)
+        args, kwargs = utils.parse_args_kwargs(msg) if not self.raw else ((msg,) if msg else (), {})
 
         if self.checks:
             await self.run_checks(bot, ctx, *args, **kwargs)
