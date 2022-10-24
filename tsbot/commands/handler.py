@@ -58,8 +58,11 @@ class CommandHandler:
         try:
             await command_handler.run(bot, ctx, args)
 
-        except TypeError:
-            await bot.respond(event.ctx, command_handler.usage)
+        except exceptions.TSInvalidParameterError as e:
+            bot.emit(
+                event_name="parameter_error",
+                ctx={"exception": type(e).__name__, "exception_msg": str(e)} | ctx,
+            )
 
         except exceptions.TSCommandError as e:
             bot.emit(

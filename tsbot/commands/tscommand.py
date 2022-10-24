@@ -6,7 +6,7 @@ import itertools
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Callable, Coroutine
 
-from tsbot import utils
+from tsbot import exceptions, utils
 
 if TYPE_CHECKING:
     from tsbot import bot
@@ -24,16 +24,14 @@ class TSCommand:
     checks: list[Callable[..., Coroutine[None, None, None]]] = field(default_factory=list, repr=False)
 
     @property
-    def call_signature(self) -> tuple[inspect.Parameter, ...]:
-        signature = inspect.signature(self.handler)
-
-        return tuple(itertools.islice(signature.parameters.values(), 2, None))
+    def call_signature(self) -> inspect.Signature:
+        return inspect.signature(self.handler)
 
     @property
     def usage(self) -> str:
         usage: list[str] = []
 
-        for param in self.call_signature:
+        for param in itertools.islice(self.call_signature.parameters.values(), 2, None):
             if param.kind is inspect.Parameter.VAR_POSITIONAL:
                 usage.append(f"[{param.name!r}, ...]")
 
@@ -53,7 +51,7 @@ class TSCommand:
 
     async def run_checks(self, bot: bot.TSBot, ctx: dict[str, str], *args: str, **kwargs: str) -> None:
         done, pending = await asyncio.wait(
-            [check(bot, ctx, *args, **kwargs) for check in self.checks],
+            (check(bot, ctx, *args, **kwargs) for check in self.checks),
             return_when=asyncio.FIRST_EXCEPTION,
         )
         for pending_task in pending:
@@ -69,4 +67,9 @@ class TSCommand:
         if self.checks:
             await self.run_checks(bot, ctx, *args, **kwargs)
 
-        await self.handler(bot, ctx, *args, **kwargs)
+        try:
+            binded_arguments = self.call_signature.bind(bot, ctx, *args, **kwargs)
+        except TypeError as e:
+            raise exceptions.TSInvalidParameterError(str(e)) from e
+        else:
+            await self.handler(*binded_arguments.args, **binded_arguments.kwargs)

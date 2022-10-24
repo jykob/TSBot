@@ -43,3 +43,10 @@ class TSPermissionError(TSException):
     that the user running this command doesn't have the
     proper permissions.
     """
+
+
+class TSInvalidParameterError(TypeError):
+    """
+    Raised when a call to a command handler doesn't match the signature
+    of the handler.
+    """
