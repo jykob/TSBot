@@ -26,6 +26,10 @@ class CommandHandler:
             command.handler,
         )
 
+    def remove_command(self, command: commands.TSCommand) -> None:
+        for c in command.commands:
+            del self.commands[c]
+
     async def handle_command_event(self, bot: bot.TSBot, event: events.TSEvent) -> None:
         """Logic to handle commands"""
 
