@@ -55,11 +55,10 @@ class EventHanlder:
         """Registers event handlers that will be called when given event happens"""
         self.event_handlers[event_handler.event].append(event_handler)
 
-        logger.debug(f"Registered {event_handler.event!r} event to execute {event_handler.handler.__qualname__!r}")
+        logger.debug("Registered %r event to execute %r", event_handler.event, event_handler.handler)
 
     def remove_event_handler(self, event_handler: events.TSEventHandler) -> None:
         self.event_handlers[event_handler.event].remove(event_handler)
 
         if not self.event_handlers[event_handler.event]:
             del self.event_handlers[event_handler.event]
-

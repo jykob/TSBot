@@ -28,7 +28,7 @@ class TasksHandler:
         else:
             self._start_task(bot, task)
 
-        logger.debug(f"Registered a task {task.handler.__qualname__!r}")
+        logger.debug("Registered a task %r", task.handler)
 
     def remove_task(self, task: tasks.TSTask) -> None:
         if task.task and not task.task.done():
