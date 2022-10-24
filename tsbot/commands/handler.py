@@ -18,11 +18,13 @@ class CommandHandler:
         self.commands: dict[str, commands.TSCommand] = {}
 
     def register_command(self, command: commands.TSCommand) -> None:
+        self.commands.update({c: command for c in command.commands})
 
-        for command_name in command.commands:
-            self.commands[command_name] = command
-
-        logger.debug(f"Registered '{', '.join(command.commands)}' command to execute {command.handler.__qualname__!r}")
+        logger.debug(
+            "Registered %s command to execute %r",
+            ", ".join(repr(c) for c in command.commands),
+            command.handler,
+        )
 
     async def handle_command_event(self, bot: bot.TSBot, event: events.TSEvent) -> None:
         """Logic to handle commands"""
