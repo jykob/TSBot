@@ -4,7 +4,16 @@ import asyncio
 import contextlib
 import inspect
 import logging
-from typing import TYPE_CHECKING, Any, Callable, Concatenate, Coroutine, MutableMapping, ParamSpec, overload
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Concatenate,
+    Coroutine,
+    Mapping,
+    ParamSpec,
+    overload,
+)
 
 from tsbot import (
     cache,
@@ -57,14 +66,16 @@ class TSBot:
         self.cache = cache.Cache()
 
         self.is_ratelimited = ratelimited
-        self.ratelimiter = ratelimiter.RateLimiter(max_calls=ratelimit_calls, period=ratelimit_period)
+        self.ratelimiter = ratelimiter.RateLimiter(
+            max_calls=ratelimit_calls, period=ratelimit_period
+        )
 
         self.is_closing = False
 
         self._response: asyncio.Future[response.TSResponse]
         self._sending_lock = asyncio.Lock()
 
-    def emit(self, event_name: str, ctx: MutableMapping[str, Any] | None = None) -> None:
+    def emit(self, event_name: str, ctx: Mapping[str, Any] | None = None) -> None:
         """Builds a TSEvent object and emits it"""
         event = events.TSEvent(event=event_name, ctx=context.TSCtx(ctx or {}))
         self.emit_event(event)
@@ -91,14 +102,18 @@ class TSBot:
 
         return once_decorator
 
-    def register_once_handler(self, event_type: str, handler: events.TEventH) -> events.TSEventOnceHandler:
+    def register_once_handler(
+        self, event_type: str, handler: events.TEventH
+    ) -> events.TSEventOnceHandler:
         """Register a Coroutine to be ran exactly once on an event"""
 
         event_handler = events.TSEventOnceHandler(event_type, handler, self.event_handler)
         self.event_handler.register_event_handler(event_handler)
         return event_handler
 
-    def register_event_handler(self, event_type: str, handler: events.TEventH) -> events.TSEventHandler:
+    def register_event_handler(
+        self, event_type: str, handler: events.TEventH
+    ) -> events.TSEventHandler:
         """
         Register Coroutines to be ran on events
 
@@ -125,7 +140,9 @@ class TSBot:
         def command_decorator(
             func: Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]]
         ) -> Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]]:
-            self.register_command(command, func, help_text=help_text, raw=raw, hidden=hidden, checks=checks)
+            self.register_command(
+                command, func, help_text=help_text, raw=raw, hidden=hidden, checks=checks
+            )
             return func
 
         return command_decorator
@@ -152,7 +169,9 @@ class TSBot:
         self.command_handler.register_command(command_handler)
         return command_handler
 
-    def every(self, seconds: int, name: str | None = None) -> Callable[[tasks.TTaskH], tasks.TTaskH]:
+    def every(
+        self, seconds: int, name: str | None = None
+    ) -> Callable[[tasks.TTaskH], tasks.TTaskH]:
         """Decorator to register coroutine to be ran every given second"""
 
         def every_decorator(func: tasks.TTaskH) -> tasks.TTaskH:
@@ -211,7 +230,9 @@ class TSBot:
         """Remove a background task from tasks"""
         self.tasks_handler.remove_task(task)
 
-    async def send(self, query: query_builder.TSQuery, *, max_cache_age: int | float = 0) -> response.TSResponse:
+    async def send(
+        self, query: query_builder.TSQuery, *, max_cache_age: int | float = 0
+    ) -> response.TSResponse:
         """
         Sends queries to the server, assuring only one of them gets sent at a time
 
@@ -226,7 +247,9 @@ class TSBot:
 
             raise response_error
 
-    async def send_raw(self, raw_query: str, *, max_cache_age: int | float = 0) -> response.TSResponse:
+    async def send_raw(
+        self, raw_query: str, *, max_cache_age: int | float = 0
+    ) -> response.TSResponse:
         """
         Sends raw commands to the server.
 
@@ -257,7 +280,9 @@ class TSBot:
 
         async with self._sending_lock:
             # Check cache again to be sure if previous requests added something to the cache
-            if max_cache_age and (cached_response := self.cache.get_cache(cache_hash, max_cache_age)):
+            if max_cache_age and (
+                cached_response := self.cache.get_cache(cache_hash, max_cache_age)
+            ):
                 logger.debug(
                     "Got cache hit for %r. hash: %s",
                     raw_query if len(raw_query) < 50 else f"{raw_query[:50]}...",
@@ -286,7 +311,9 @@ class TSBot:
             )
 
         if server_response.error_id != 0:
-            raise exceptions.TSResponseError(msg=server_response.msg, error_id=int(server_response.error_id))
+            raise exceptions.TSResponseError(
+                msg=server_response.msg, error_id=int(server_response.error_id)
+            )
 
         if server_response.data:
             self.cache.add_cache(cache_hash, server_response)
@@ -298,7 +325,9 @@ class TSBot:
 
         return server_response
 
-    async def _reader_task(self, connection: connection.TSConnection, ready_event: asyncio.Event) -> None:
+    async def _reader_task(
+        self, connection: connection.TSConnection, ready_event: asyncio.Event
+    ) -> None:
         """Task to read messages from the server"""
 
         WELCOME_MESSAGE_LENGTH = 2
@@ -369,7 +398,9 @@ class TSBot:
         async def register_notifies() -> None:
             """Coroutine to register server to send events to the bot"""
 
-            await self.send(query_builder.TSQuery("servernotifyregister").params(event="channel", id=0))
+            await self.send(
+                query_builder.TSQuery("servernotifyregister").params(event="channel", id=0)
+            )
             for event in ("server", "textserver", "textchannel", "textprivate"):
                 await self.send(query_builder.TSQuery("servernotifyregister").params(event=event))
 
@@ -456,5 +487,7 @@ class TSBot:
             target, target_mode = ctx["invokerid"], enums.TextMessageTargetMode.CLIENT
 
         await self.send(
-            query_builder.TSQuery("sendtextmessage").params(targetmode=target_mode.value, target=target, msg=message)
+            query_builder.TSQuery("sendtextmessage").params(
+                targetmode=target_mode.value, target=target, msg=message
+            )
         )

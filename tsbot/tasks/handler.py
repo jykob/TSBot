@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from tsbot import tasks, bot
+    from tsbot import bot, tasks
 
 
 class TasksHandler:

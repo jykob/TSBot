@@ -1,6 +1,14 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable, Concatenate, Coroutine, ParamSpec, TypeVar, overload
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    Concatenate,
+    Coroutine,
+    ParamSpec,
+    TypeVar,
+    overload,
+)
 
 if TYPE_CHECKING:
     from tsbot import bot, context, events
