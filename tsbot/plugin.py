@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING, Callable, Concatenate, Coroutine, ParamSpec, T
 if TYPE_CHECKING:
     from tsbot import bot, context, events
 
-T = TypeVar("T", bound="TSPlugin")
-P = ParamSpec("P")
+_T = TypeVar("_T", bound="TSPlugin")
+_P = ParamSpec("_P")
 
 
 class TSPlugin:
@@ -20,14 +20,14 @@ def command(
     hidden: bool = False,
     checks: list[Callable[..., Coroutine[None, None, None]]] | None = None,
 ) -> Callable[
-    [Callable[Concatenate[T, bot.TSBot, context.TSCtx, P], Coroutine[None, None, None]]],
-    Callable[Concatenate[T, bot.TSBot, context.TSCtx, P], Coroutine[None, None, None]],
+    [Callable[Concatenate[_T, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]]],
+    Callable[Concatenate[_T, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]],
 ]:
     """Decorator to register coroutines on commands"""
 
     def command_decorator(
-        func: Callable[Concatenate[T, bot.TSBot, context.TSCtx, P], Coroutine[None, None, None]]
-    ) -> Callable[Concatenate[T, bot.TSBot, context.TSCtx, P], Coroutine[None, None, None]]:
+        func: Callable[Concatenate[_T, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]]
+    ) -> Callable[Concatenate[_T, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]]:
         func.__ts_command__ = {  # type: ignore
             "command": command,
             "help_text": help_text,
@@ -43,14 +43,14 @@ def command(
 def on(
     event_type: str,
 ) -> Callable[
-    [Callable[[T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]],
-    Callable[[T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]],
+    [Callable[[_T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]],
+    Callable[[_T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]],
 ]:
     """Decorator to register coroutines on events"""
 
     def event_decorator(
-        func: Callable[[T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]
-    ) -> Callable[[T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]:
+        func: Callable[[_T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]
+    ) -> Callable[[_T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]:
         func.__ts_event__ = {"event_type": event_type}  # type: ignore
         return func
 
@@ -60,12 +60,12 @@ def on(
 def once(
     event_type: str,
 ) -> Callable[
-    [Callable[[T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]],
-    Callable[[T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]],
+    [Callable[[_T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]],
+    Callable[[_T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]],
 ]:
     def once_decorator(
-        func: Callable[[T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]
-    ) -> Callable[[T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]:
+        func: Callable[[_T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]
+    ) -> Callable[[_T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]:
         func.__ts_once__ = {"event_type": event_type}  # type: ignore
         return func
 
@@ -75,12 +75,12 @@ def once(
 def every(
     seconds: int, name: str | None = None
 ) -> Callable[
-    [Callable[[T, bot.TSBot], Coroutine[None, None, None]]],
-    Callable[[T, bot.TSBot], Coroutine[None, None, None]],
+    [Callable[[_T, bot.TSBot], Coroutine[None, None, None]]],
+    Callable[[_T, bot.TSBot], Coroutine[None, None, None]],
 ]:
     def every_decorator(
-        func: Callable[[T, bot.TSBot], Coroutine[None, None, None]]
-    ) -> Callable[[T, bot.TSBot], Coroutine[None, None, None]]:
+        func: Callable[[_T, bot.TSBot], Coroutine[None, None, None]]
+    ) -> Callable[[_T, bot.TSBot], Coroutine[None, None, None]]:
         func.__ts_every__ = {"seconds": seconds, "name": name}  # type: ignore
         return func
 
@@ -91,28 +91,28 @@ def every(
 def task(
     *, name: str | None
 ) -> Callable[
-    [Callable[[T, bot.TSBot], Coroutine[None, None, None]]],
-    Callable[[T, bot.TSBot], Coroutine[None, None, None]],
+    [Callable[[_T, bot.TSBot], Coroutine[None, None, None]]],
+    Callable[[_T, bot.TSBot], Coroutine[None, None, None]],
 ]:
     ...
 
 
 @overload
 def task(
-    func: Callable[[T, bot.TSBot], Coroutine[None, None, None]],
-) -> Callable[[T, bot.TSBot], Coroutine[None, None, None]]:
+    func: Callable[[_T, bot.TSBot], Coroutine[None, None, None]],
+) -> Callable[[_T, bot.TSBot], Coroutine[None, None, None]]:
     ...
 
 
 def task(
-    func: Callable[[T, bot.TSBot], Coroutine[None, None, None]] | None = None, *, name: str | None = None
-) -> Callable[[T, bot.TSBot], Coroutine[None, None, None]] | Callable[
-    [Callable[[T, bot.TSBot], Coroutine[None, None, None]]],
-    Callable[[T, bot.TSBot], Coroutine[None, None, None]],
+    func: Callable[[_T, bot.TSBot], Coroutine[None, None, None]] | None = None, *, name: str | None = None
+) -> Callable[[_T, bot.TSBot], Coroutine[None, None, None]] | Callable[
+    [Callable[[_T, bot.TSBot], Coroutine[None, None, None]]],
+    Callable[[_T, bot.TSBot], Coroutine[None, None, None]],
 ]:
     def task_decorator(
-        func: Callable[[T, bot.TSBot], Coroutine[None, None, None]]
-    ) -> Callable[[T, bot.TSBot], Coroutine[None, None, None]]:
+        func: Callable[[_T, bot.TSBot], Coroutine[None, None, None]]
+    ) -> Callable[[_T, bot.TSBot], Coroutine[None, None, None]]:
         func.__ts_task__ = {"name": name}  # type: ignore
         return func
 

@@ -4,7 +4,7 @@ import asyncio
 import contextlib
 import inspect
 import logging
-from typing import TYPE_CHECKING, Any, Callable, Concatenate, Coroutine, MutableMapping, ParamSpec, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Callable, Concatenate, Coroutine, MutableMapping, ParamSpec, overload
 
 from tsbot import (
     cache,
@@ -24,8 +24,7 @@ from tsbot import (
 if TYPE_CHECKING:
     from tsbot import plugin
 
-T = TypeVar("T")
-P = ParamSpec("P")
+_P = ParamSpec("_P")
 
 
 logger = logging.getLogger(__name__)
@@ -118,14 +117,14 @@ class TSBot:
         hidden: bool = False,
         checks: list[Callable[..., Coroutine[None, None, None]]] | None = None,
     ) -> Callable[
-        [Callable[Concatenate[TSBot, context.TSCtx, P], Coroutine[None, None, None]]],
-        Callable[Concatenate[TSBot, context.TSCtx, P], Coroutine[None, None, None]],
+        [Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]]],
+        Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]],
     ]:
         """Decorator to register coroutines on commands"""
 
         def command_decorator(
-            func: Callable[Concatenate[TSBot, context.TSCtx, P], Coroutine[None, None, None]]
-        ) -> Callable[Concatenate[TSBot, context.TSCtx, P], Coroutine[None, None, None]]:
+            func: Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]]
+        ) -> Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]]:
             self.register_command(command, func, help_text=help_text, raw=raw, hidden=hidden, checks=checks)
             return func
 
@@ -134,7 +133,7 @@ class TSBot:
     def register_command(
         self,
         command: str | tuple[str, ...],
-        handler: Callable[Concatenate[TSBot, context.TSCtx, P], Coroutine[None, None, None]],
+        handler: Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]],
         *,
         help_text: str = "",
         raw: bool = False,

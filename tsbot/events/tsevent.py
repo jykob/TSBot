@@ -4,7 +4,7 @@ from typing import NamedTuple, TypeVar
 
 from tsbot import context, utils
 
-T = TypeVar("T", bound="TSEvent")
+_T = TypeVar("_T", bound="TSEvent")
 
 
 class TSEvent(NamedTuple):
@@ -12,7 +12,7 @@ class TSEvent(NamedTuple):
     ctx: context.TSCtx
 
     @classmethod
-    def from_server_response(cls: type[T], raw_data: str) -> T:
+    def from_server_response(cls: type[_T], raw_data: str) -> _T:
         """
         Creates a TSEvent instance from server notify
 
