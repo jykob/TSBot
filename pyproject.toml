@@ -1,6 +1,6 @@
 [project]
 name = "tsbot"
-version = "0.17.2"
+version = "0.18.0"
 authors = [{ name = "0x4aK" }]
 description = "Asynchronous framework to build TeamSpeak 3 Server Query bots"
 readme = "README.md"
