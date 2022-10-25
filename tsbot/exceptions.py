@@ -45,7 +45,7 @@ class TSPermissionError(TSException):
     """
 
 
-class TSInvalidParameterError(TypeError):
+class TSInvalidParameterError(TSException, TypeError):
     """
     Raised when a call to a command handler doesn't match the signature
     of the handler.
