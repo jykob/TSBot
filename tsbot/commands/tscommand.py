@@ -51,7 +51,7 @@ class TSCommand:
 
     async def run_checks(self, bot: bot.TSBot, ctx: context.TSCtx, *args: str, **kwargs: str) -> None:
         done, pending = await asyncio.wait(
-            (check(bot, ctx, *args, **kwargs) for check in self.checks),
+            [asyncio.create_task(check(bot, ctx, *args, **kwargs), name="Check-Task") for check in self.checks],
             return_when=asyncio.FIRST_EXCEPTION,
         )
         for pending_task in pending:
