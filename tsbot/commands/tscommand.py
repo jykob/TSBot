@@ -17,9 +17,9 @@ class TSCommand:
     commands: tuple[str, ...]
     handler: Callable[..., Coroutine[None, None, None]]
 
-    help_text: str = field(repr=False)
-    raw: bool = field(repr=False)
-    hidden: bool = field(repr=False)
+    help_text: str = field(repr=False, default="")
+    raw: bool = field(repr=False, default=False)
+    hidden: bool = field(repr=False, default=False)
 
     checks: list[Callable[..., Coroutine[None, None, None]]] = field(default_factory=list, repr=False)
 
