@@ -4,7 +4,7 @@ import asyncio
 import contextlib
 import inspect
 import logging
-from typing import TYPE_CHECKING, Callable, Concatenate, Coroutine, ParamSpec, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Callable, Concatenate, Coroutine, MutableMapping, ParamSpec, TypeVar, overload
 
 from tsbot import (
     cache,
@@ -65,7 +65,7 @@ class TSBot:
         self._response: asyncio.Future[response.TSResponse]
         self._sending_lock = asyncio.Lock()
 
-    def emit(self, event_name: str, ctx: dict[str, str] | None = None) -> None:
+    def emit(self, event_name: str, ctx: MutableMapping[str, Any] | None = None) -> None:
         """Builds a TSEvent object and emits it"""
         event = events.TSEvent(event=event_name, ctx=context.TSCtx(ctx or {}))
         self.emit_event(event)
