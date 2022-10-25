@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Generator, TypeVar
+from typing import Generator, TypeVar
 
 from tsbot import utils
 
-if TYPE_CHECKING:
-    T = TypeVar("T", bound="TSResponse")
+_T = TypeVar("_T", bound="TSResponse")
 
 
 @dataclass(slots=True, frozen=True)
@@ -30,7 +29,7 @@ class TSResponse:
         return self.data[-1]
 
     @classmethod
-    def from_server_response(cls: type[T], raw_data: list[str]) -> T:
+    def from_server_response(cls: type[_T], raw_data: list[str]) -> _T:
         response_info = utils.parse_line(raw_data.pop().removeprefix("error "))
         data = utils.parse_data("".join(raw_data))
 
