@@ -124,6 +124,9 @@ class TSBot:
         self.event_handler.register_event_handler(event_handler)
         return event_handler
 
+    def remove_event_handler(self, event_handler: events.TSEventHandler) -> None:
+        self.event_handler.remove_event_handler(event_handler)
+
     def command(
         self,
         *command: str,
@@ -168,6 +171,9 @@ class TSBot:
         command_handler = commands.TSCommand(command, handler, help_text, raw, hidden, checks or [])
         self.command_handler.register_command(command_handler)
         return command_handler
+
+    def remove_command(self, command: commands.TSCommand) -> None:
+        self.command_handler.remove_command(command)
 
     def every(
         self, seconds: int, name: str | None = None
