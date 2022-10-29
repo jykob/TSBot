@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from enum import Enum
 from typing import TYPE_CHECKING
 
 from tsbot import context, enums, exceptions
@@ -10,6 +11,12 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+
+
+class ErrorEnum(Enum):
+    exceptions.TSCommandError = "command_error"
+    exceptions.TSPermissionError = "permission_error"
+    exceptions.TSInvalidParameterError = "parameter_error"
 
 
 class CommandHandler:
@@ -62,11 +69,9 @@ class CommandHandler:
         try:
             await command_handler.run(bot, ctx, args)
 
-        except exceptions.TSInvalidParameterError as e:
-            bot.emit(event_name="parameter_error", ctx={"exception": e} | ctx)
+        except exceptions.TSException as e:
+            if exc := ErrorEnum(e):
+                bot.emit(event_name=exc.value, ctx={"exception": e} | ctx)
+                return
 
-        except exceptions.TSCommandError as e:
-            bot.emit(event_name="command_error", ctx={"exception": e} | ctx)
-
-        except exceptions.TSPermissionError as e:
-            bot.emit(event_name="permission_error", ctx={"exception": e} | ctx)
+            raise
