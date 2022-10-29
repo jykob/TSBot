@@ -331,14 +331,12 @@ class TSBot:
 
         return server_response
 
-    async def _reader_task(
-        self, connection: connection.TSConnection, ready_event: asyncio.Event
-    ) -> None:
+    async def _reader_task(self, ready_event: asyncio.Event) -> None:
         """Task to read messages from the server"""
 
         WELCOME_MESSAGE_LENGTH = 2
 
-        async for data in connection.read_lines(WELCOME_MESSAGE_LENGTH):
+        async for data in self._connection.read_lines(WELCOME_MESSAGE_LENGTH):
             pass
 
         logger.debug("Skipped welcome message")
@@ -346,7 +344,7 @@ class TSBot:
 
         response_buffer: list[str] = []
 
-        async for data in connection.read():
+        async for data in self._connection.read():
             if data.startswith("notify"):
                 self.emit_event(events.TSEvent.from_server_response(data))
 
@@ -412,7 +410,7 @@ class TSBot:
 
         async def get_reader_task() -> asyncio.Task[None]:
             reader_ready = asyncio.Event()
-            reader = asyncio.create_task(self._reader_task(self._connection, reader_ready))
+            reader = asyncio.create_task(self._reader_task(reader_ready))
             await reader_ready.wait()
 
             return reader
