@@ -1,5 +1,5 @@
 from __future__ import annotations
 
-from typing import Any, Mapping, NewType
+from typing import Mapping, NewType
 
-TSCtx = NewType("TSCtx", Mapping[str, Any])
+TSCtx = NewType("TSCtx", Mapping[str, str])
