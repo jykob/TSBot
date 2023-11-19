@@ -396,16 +396,16 @@ class TSBot:
 
         async def select_server() -> None:
             """Set current virtual server"""
-            await self.send(query_builder.TSQuery("use").params(sid=self.server_id))
+            await self.send(query_builder.TSQuery("use", parameters={"sid": str(self.server_id)}))
 
         async def register_notifies() -> None:
             """Coroutine to register server to send events to the bot"""
 
-            await self.send(
-                query_builder.TSQuery("servernotifyregister").params(event="channel", id=0)
-            )
+            notify_query = query_builder.TSQuery("servernotifyregister")
+
+            await self.send(notify_query.params(event="channel", id=0))
             for event in ("server", "textserver", "textchannel", "textprivate"):
-                await self.send(query_builder.TSQuery("servernotifyregister").params(event=event))
+                await self.send(notify_query.params(event=event))
 
         async def get_reader_task() -> asyncio.Task[None]:
             reader_ready = asyncio.Event()
@@ -489,7 +489,8 @@ class TSBot:
             target, target_mode = ctx["invokerid"], enums.TextMessageTargetMode.CLIENT
 
         await self.send(
-            query_builder.TSQuery("sendtextmessage").params(
-                targetmode=target_mode.value, target=target, msg=message
+            query_builder.TSQuery(
+                "sendtextmessage",
+                parameters={"targetmode": target_mode.value, "target": target, "msg": message},
             )
         )
