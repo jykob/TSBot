@@ -9,10 +9,10 @@ from tsbot.query_builder import TSQuery, query
 
 def test_add_options():
     q = query("channellist")
-    assert q._options == []
+    assert len(q._options) == 0
 
     q = q.option("topic", "flags", "voice")
-    assert q._options == ["topic", "flags", "voice"]
+    assert q._options == ("topic", "flags", "voice")
 
 
 def test_add_params():
@@ -25,7 +25,7 @@ def test_add_params():
 
 def test_add_param_blocks():
     q = query("permidgetbyname")
-    assert q._parameter_blocks == []
+    assert len(q._parameter_blocks) == 0
 
     q = q.param_block(permsid="b_serverinstance_help_view")
     q = q.param_block(permsid="b_serverinstance_info_view")
@@ -36,7 +36,7 @@ def test_add_param_blocks():
 
 def test_add_param_blocks_list():
     q = query("permidgetbyname")
-    assert q._parameter_blocks == []
+    assert len(q._parameter_blocks) == 0
 
     q = q.param_block(
         [

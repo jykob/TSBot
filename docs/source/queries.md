@@ -87,7 +87,7 @@ Adding parameter blocks to your command by using [param_block()](<tsbot.query_bu
 This works much like [params()](<tsbot.query_builder.TSQuery.params()>), but you can add multiple **_values_** to a given **_key_**.
 
 This can be handy when a command allows you to specify multiple targets.
-For example command `clientmove` lets you move multiple `clid`'s at the same time.
+For example command `clientmove` lets you to move multiple `clid`'s at the same time.
 
 ```
 from tsbot import query

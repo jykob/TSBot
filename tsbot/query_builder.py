@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import copy
-from typing import Iterable, TypeVar
+from typing import Iterable, Mapping, TypeVar
 
 from tsbot import utils
 
@@ -26,9 +25,9 @@ class TSQuery:
     def __init__(
         self,
         command: str,
-        options: list[str] | None = None,
-        parameters: dict[str, str] | None = None,
-        parameter_blocks: list[dict[str, str]] | None = None,
+        options: tuple[str, ...] | None = None,
+        parameters: Mapping[str, str] | None = None,
+        parameter_blocks: tuple[dict[str, str], ...] | None = None,
     ) -> None:
         if not command:
             raise ValueError("Command cannot be empty")
@@ -37,9 +36,9 @@ class TSQuery:
 
         self._cached_command: str = ""
 
-        self._options = options or []
+        self._options = options or tuple()
         self._parameters = parameters or {}
-        self._parameter_blocks = parameter_blocks or []
+        self._parameter_blocks = parameter_blocks or tuple()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}({self.command!r})"
@@ -49,9 +48,12 @@ class TSQuery:
 
         return type(self)(
             self.command,
-            [*self._options, *map(str, args)],
-            copy.copy(self._parameters),
-            copy.deepcopy(self._parameter_blocks),
+            (
+                *self._options,
+                *map(str, args),
+            ),
+            self._parameters,
+            self._parameter_blocks,
         )
 
     def params(self: _T, **kwargs: ParameterTypes) -> _T:
@@ -59,9 +61,9 @@ class TSQuery:
 
         return type(self)(
             self.command,
-            copy.copy(self._options),
+            self._options,
             {**self._parameters, **{k: str(v) for k, v in kwargs.items()}},
-            copy.deepcopy(self._parameter_blocks),
+            self._parameter_blocks,
         )
 
     def param_block(
@@ -76,12 +78,12 @@ class TSQuery:
 
         return type(self)(
             self.command,
-            copy.copy(self._options),
-            copy.copy(self._parameters),
-            [
+            self._options,
+            self._parameters,
+            (
                 *self._parameter_blocks,
                 *({k: str(v) for k, v in block.items()} for block in param_blocks),
-            ],
+            ),
         )
 
     def compile(self) -> str:
