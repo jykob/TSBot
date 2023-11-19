@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+
 from tsbot.query_builder import TSQuery, query
 
 # pyright: reportPrivateUsage=false
@@ -8,29 +9,51 @@ from tsbot.query_builder import TSQuery, query
 
 def test_add_options():
     q = query("channellist")
-    assert q._options == []
+    assert len(q._options) == 0
 
-    q.option("topic", "flags", "voice")
-    assert q._options == ["topic", "flags", "voice"]
+    q = q.option("topic", "flags", "voice")
+    assert q._options == ("topic", "flags", "voice")
 
 
 def test_add_params():
     q = query("channelmove")
     assert q._parameters == {}
 
-    q.params(cid=16, cpid=1, order=0)
+    q = q.params(cid=16, cpid=1, order=0)
     assert q._parameters == {"cid": "16", "cpid": "1", "order": "0"}
 
 
-def test_app_param_blocks():
+def test_add_param_blocks():
     q = query("permidgetbyname")
-    assert q._parameter_blocks == []
+    assert len(q._parameter_blocks) == 0
 
-    q.param_block(permsid="b_serverinstance_help_view")
-    q.param_block(permsid="b_serverinstance_info_view")
+    q = q.param_block(permsid="b_serverinstance_help_view")
+    q = q.param_block(permsid="b_serverinstance_info_view")
 
     assert {"permsid": "b_serverinstance_help_view"} in q._parameter_blocks
     assert {"permsid": "b_serverinstance_info_view"} in q._parameter_blocks
+
+
+def test_add_param_blocks_list():
+    q = query("permidgetbyname")
+    assert len(q._parameter_blocks) == 0
+
+    q = q.param_block(
+        [
+            {"permsid": "b_serverinstance_help_view"},
+            {"permsid": "b_serverinstance_info_view"},
+        ],
+    )
+
+    q = q.param_block(
+        ({"permsid": perm})
+        for perm in ("b_serverinstance_permission_list", "b_serverinstance_binding_list")
+    )
+
+    assert {"permsid": "b_serverinstance_help_view"} in q._parameter_blocks
+    assert {"permsid": "b_serverinstance_info_view"} in q._parameter_blocks
+    assert {"permsid": "b_serverinstance_permission_list"} in q._parameter_blocks
+    assert {"permsid": "b_serverinstance_binding_list"} in q._parameter_blocks
 
 
 @pytest.mark.parametrize(
@@ -65,7 +88,10 @@ def test_app_param_blocks():
             id="test_param_block_multiple",
         ),
         pytest.param(
-            query("ftdeletefile").params(cid=2, cpw="").param_block(name="/Pic1.PNG").param_block(name="/Pic2.PNG"),
+            query("ftdeletefile")
+            .params(cid=2, cpw="")
+            .param_block(name="/Pic1.PNG")
+            .param_block(name="/Pic2.PNG"),
             r"ftdeletefile cid=2 cpw= name=\/Pic1.PNG|name=\/Pic2.PNG",
             id="test_empty_param",
         ),
@@ -86,36 +112,19 @@ def test_caching():
 
     first_compile = q.compile()
 
-    assert q._dirty == False
     assert q._cached_command
-
     assert first_compile == q.compile()
 
 
 def test_cache_invalid(q: TSQuery):
     first_compile = q.compile()
 
-    q.option("continueonerror")
+    q = q.option("continueonerror")
 
-    assert q._dirty == True
+    assert not q._cached_command
     assert first_compile != q.compile()
 
 
 @pytest.fixture
 def q():
     return query("channelmove").params(cid=16, cpid=1, order=0)
-
-
-@pytest.mark.parametrize(
-    ("method", "args", "kwargs"),
-    (
-        pytest.param("option", ("continueonerror",), {}, id="test_option"),
-        pytest.param("params", (), {"cldbid": 16}, id="test_option"),
-        pytest.param("param_block", (), {"cldbid": 16}, id="test_option"),
-    ),
-)
-def test_sets_dirty_bit(q: TSQuery, method: str, args: tuple[str, ...], kwargs: dict[str, str]):
-    q._dirty = False
-    getattr(q, method)(*args, **kwargs)
-
-    assert q._dirty == True
