@@ -193,7 +193,6 @@ class TSBot:
         *,
         name: str | None = None,
     ) -> tasks.TSTask:
-
         task = tasks.TSTask(handler=tasks.every(handler, seconds), name=name)
         self.tasks_handler.register_task(self, task)
         return task
@@ -455,7 +454,6 @@ class TSBot:
 
         for plugin_to_be_loaded in plugins:
             for _, member in inspect.getmembers(plugin_to_be_loaded):
-
                 if command_kwargs := getattr(member, "__ts_command__", None):
                     self.register_command(handler=member, **command_kwargs)
 

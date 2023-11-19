@@ -62,7 +62,7 @@ class CommandHandler:
             return
 
         # Create new context dict with useful entries
-        ctx = context.TSCtx({"command": command, "raw_args": args} | event.ctx)
+        ctx = context.TSCtx({"command": command, "raw_args": args, **event.ctx})
 
         logger.debug("%r executed command %r -> %r", event.ctx["invokername"], command, args)
 
@@ -71,7 +71,7 @@ class CommandHandler:
 
         except exceptions.TSException as e:
             if error_event := _ERROR_EVENT_MAP.get(type(e)):
-                bot.emit(event_name=error_event, ctx={"exception": e} | ctx)
+                bot.emit(event_name=error_event, ctx={"exception": e, **event.ctx})
                 return
 
             raise
