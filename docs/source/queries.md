@@ -87,29 +87,35 @@ Adding parameter blocks to your command by using [param_block()](<tsbot.query_bu
 This works much like [params()](<tsbot.query_builder.TSQuery.params()>), but you can add multiple **_values_** to a given **_key_**.
 
 This can be handy when a command allows you to specify multiple targets.
-For example command `clientmove` allows you to specify multiple `clid`'s to move.
+For example command `clientmove` lets you move multiple `clid`'s at the same time.
 
 ```
 from tsbot import query
 
 example_query = query("clientmove")
-example_query.params(cid=1)        # Set the channel where to move clients
-example_query.param_block(clid=2)  # Selecting client_id #2 to be moved
-example_query.param_block(clid=3)  # Selecting client_id #3 to be moved
-example_query.param_block(clid=6)  # Selecting client_id #6 to be moved
+example_query = example_query.params(cid=1)        # Set the channel where to move clients
+example_query = example_query.param_block(clid=2)  # Selecting client_id #2 to be moved
+example_query = example_query.param_block(clid=3)  # Selecting client_id #3 to be moved
+example_query = example_query.param_block(clid=6)  # Selecting client_id #6 to be moved
 ```
 
 ````{warning}
 Each parameter block has to be a new call to [param_block()](<tsbot.query_builder.TSQuery.param_block()>).
 For example you **cannot** do this:
 ```
-example_query.param_block(clid=2, clid=3, clid=6)
+example_query = example_query.param_block(clid=2, clid=3, clid=6)
 ```
 ````
 
-### Method cascading
+```{info}
+You can use an iterable of [dict](dict)[[str](str), [str](str)] as the first argument to pass multiple
+parameter blocks at the same time.
+```
 
-Method cascading allows you to make multiple method calls to a `TSQuery` object.  
+
+### Method chaining
+
+Method chaining allows you to make multiple method calls to a `TSQuery` object.  
 You can mix and match the order of these calls, this will still compile to a suitable result.
 
 ```
@@ -175,8 +181,8 @@ In this example we can see that you could add parameters to the {{TSQuery}} obje
 from tsbot import query
 
 clientdbfind_query = query("clientdbfind")
-clientdbfind_query.params(pattern="FPMPSC6MXqXq751dX7BKV0JniSo")
-clientdbfind_query.option("uid")
+clientdbfind_query = clientdbfind_query.params(pattern="FPMPSC6MXqXq751dX7BKV0JniSo")
+clientdbfind_query = clientdbfind_query.option("uid")
 
 # ---- OR ----
 
@@ -195,19 +201,19 @@ Goal:
 `clientkick reasonid=5 reasonmsg=Go\saway! clid=1|clid=2|clid=3`
 
 In this example adding parameter blocks to queries can be achieved multiple ways.
-Either using normal **_for loops_** or one-liner **_list comprehension_**.
+Either using **_for loops_** or passing an iterable as the first argument.
 
 ```
 from tsbot import query
 
 clientkick_query = query("clientkick").params(reasonid=5, reasonmsg="Go away!")
 for client_id in (1, 2, 3):
-    clientkick_query.param_block(clid=client_id)
+    clientkick_query = clientkick_query.param_block(clid=client_id)
 
 # ---- OR ----
 
 clientkick_query = query("clientkick").params(reasonid=5, reasonmsg="Go away!")
-[clientkick_query.param_block(clid=client_id) for client_id in (1, 2, 3)]
+clientkick_query = clientkick_query.param_block(({"clid": client_id}) for client_id in (1, 2, 3))
 
 print(clientkick_query.compile()) # clientkick reasonid=5 reasonmsg=Go\saway! clid=1|clid=2|clid=3
 ```
@@ -223,8 +229,8 @@ In this example we can see that parameter blocks can have multiple parameters at
 from tsbot import query
 
 clientaddperm_query = query("clientaddperm").params(cldbid=16)
-clientaddperm_query.param_block(permid=17276, permvalue=50, permskip=1)
-clientaddperm_query.param_block(permid=21415, permvalue=20, permskip=0)
+clientaddperm_query = clientaddperm_query.param_block(permid=17276, permvalue=50, permskip=1)
+clientaddperm_query = clientaddperm_query.param_block(permid=21415, permvalue=20, permskip=0)
 
 print(clientaddperm_query.compile()) # clientaddperm cldbid=16 permid=17276 permvalue=50 permskip=1|permid=21415 permvalue=20 permskip=0
 ```
