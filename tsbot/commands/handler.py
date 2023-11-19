@@ -45,7 +45,7 @@ class CommandHandler:
             return
 
         msg = event.ctx.get("msg", "").strip()
-        target_mode = enums.TextMessageTargetMode(int(event.ctx.get("targetmode", 0)))
+        target_mode = enums.TextMessageTargetMode(event.ctx.get("targetmode", "0"))
 
         # Test if message in channel or server chat and starts with the invoker
         if target_mode in (enums.TextMessageTargetMode.CHANNEL, enums.TextMessageTargetMode.SERVER):

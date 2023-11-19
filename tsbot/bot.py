@@ -483,7 +483,7 @@ class TSBot:
         Will respond in same text channel where 'ctx' was made, unless 'in_dms' flag given.
         """
         target = "0"
-        target_mode = enums.TextMessageTargetMode(int(ctx["targetmode"]))
+        target_mode = enums.TextMessageTargetMode(ctx["targetmode"])
 
         if in_dms or target_mode == enums.TextMessageTargetMode.CLIENT:
             target, target_mode = ctx["invokerid"], enums.TextMessageTargetMode.CLIENT
