@@ -71,7 +71,7 @@ class CommandHandler:
 
         except exceptions.TSException as e:
             if error_event := _ERROR_EVENT_MAP.get(type(e)):
-                bot.emit(event_name=error_event, ctx={"exception": e, **event.ctx})
+                bot.emit(error_event, ctx)
                 return
 
             raise

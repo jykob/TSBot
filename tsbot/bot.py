@@ -6,7 +6,6 @@ import inspect
 import logging
 from typing import (
     TYPE_CHECKING,
-    Any,
     Callable,
     Concatenate,
     Coroutine,
@@ -75,7 +74,7 @@ class TSBot:
         self._response: asyncio.Future[response.TSResponse]
         self._sending_lock = asyncio.Lock()
 
-    def emit(self, event_name: str, ctx: Mapping[str, Any] | None = None) -> None:
+    def emit(self, event_name: str, ctx: Mapping[str, str] | None = None) -> None:
         """Builds a TSEvent object and emits it"""
         event = events.TSEvent(event=event_name, ctx=context.TSCtx(ctx or {}))
         self.emit_event(event)
