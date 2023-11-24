@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-from tsbot import TSBot, context, events, plugin, query
+from tsbot import TSBot, TSCtx, TSEvent, plugin, query
 
 
 class TestPlugin(plugin.TSPlugin):
@@ -11,11 +11,11 @@ class TestPlugin(plugin.TSPlugin):
         self.move_message = "{username} has moved"
 
     @plugin.command("pluginhello")
-    async def plugin_hello(self, bot: TSBot, ctx: context.TSCtx):
+    async def plugin_hello(self, bot: TSBot, ctx: TSCtx):
         await bot.respond(ctx, message=self.message)
 
     @plugin.on("clientmoved")
-    async def plugin_move(self, bot: TSBot, event: events.TSEvent):
+    async def plugin_move(self, bot: TSBot, event: TSEvent):
         info_query = query("clientinfo").params(clid=event.ctx["clid"])
         resp = await bot.send(info_query, max_cache_age=5)
 
