@@ -21,7 +21,9 @@ class TSCommand:
     raw: bool = field(repr=False, default=False)
     hidden: bool = field(repr=False, default=False)
 
-    checks: list[Callable[..., Coroutine[None, None, None]]] = field(default_factory=list, repr=False)
+    checks: list[Callable[..., Coroutine[None, None, None]]] = field(
+        default_factory=list, repr=False
+    )
 
     @property
     def call_signature(self) -> inspect.Signature:
@@ -49,9 +51,14 @@ class TSCommand:
 
         return f"Usage: {' | '.join(self.commands)} {' '.join(usage)}"
 
-    async def run_checks(self, bot: bot.TSBot, ctx: context.TSCtx, *args: str, **kwargs: str) -> None:
+    async def run_checks(
+        self, bot: bot.TSBot, ctx: context.TSCtx, *args: str, **kwargs: str
+    ) -> None:
         done, pending = await asyncio.wait(
-            [asyncio.create_task(check(bot, ctx, *args, **kwargs), name="Check-Task") for check in self.checks],
+            [
+                asyncio.create_task(check(bot, ctx, *args, **kwargs), name="Check-Task")
+                for check in self.checks
+            ],
             return_when=asyncio.FIRST_EXCEPTION,
         )
         for pending_task in pending:
@@ -70,6 +77,6 @@ class TSCommand:
         try:
             binded_arguments = self.call_signature.bind(bot, ctx, *args, **kwargs)
         except TypeError as e:
-            raise exceptions.TSInvalidParameterError(str(e)) from e
+            raise exceptions.TSInvalidParameterError(str(e).capitalize()) from e
         else:
             await self.handler(*binded_arguments.args, **binded_arguments.kwargs)
