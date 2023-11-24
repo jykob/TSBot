@@ -484,6 +484,15 @@ class TSBot:
         target = "0"
         target_mode = enums.TextMessageTargetMode(ctx["targetmode"])
 
+        if in_dms:
+            from warnings import warn
+
+            warn(
+                "'in_dms' flag deprecated. use 'respond_to_client' method instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         if in_dms or target_mode == enums.TextMessageTargetMode.CLIENT:
             target, target_mode = ctx["invokerid"], enums.TextMessageTargetMode.CLIENT
 
@@ -493,3 +502,22 @@ class TSBot:
                 parameters={"targetmode": target_mode.value, "target": target, "msg": message},
             )
         )
+
+    async def respond_to_client(self, ctx: context.TSCtx, message: str) -> None:
+        """
+        Sends a message to a client.
+
+        Tries to get the 'invokerid' in 'ctx' and sends a given message to that id.
+        """
+
+        if target := ctx.get("invokerid"):
+            await self.send(
+                query_builder.TSQuery(
+                    "sendtextmessage",
+                    parameters={
+                        "targetmode": enums.TextMessageTargetMode.CLIENT.value,
+                        "target": target,
+                        "msg": message,
+                    },
+                )
+            )
