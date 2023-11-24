@@ -48,7 +48,10 @@ class CommandHandler:
         target_mode = enums.TextMessageTargetMode(event.ctx.get("targetmode", "0"))
 
         # Test if message in channel or server chat and starts with the invoker
-        if target_mode in (enums.TextMessageTargetMode.CHANNEL, enums.TextMessageTargetMode.SERVER):
+        if target_mode in (
+            enums.TextMessageTargetMode.CHANNEL,
+            enums.TextMessageTargetMode.SERVER,
+        ):
             if not msg.startswith(self.invoker):
                 return
 
@@ -64,14 +67,16 @@ class CommandHandler:
         # Create new context dict with useful entries
         ctx = context.TSCtx({"command": command, "raw_args": args, **event.ctx})
 
-        logger.debug("%r executed command %r -> %r", event.ctx["invokername"], command, args)
+        logger.debug(
+            "%r executed command %r with args: %r", event.ctx["invokername"], command, args
+        )
 
         try:
             await command_handler.run(bot, ctx, args)
 
         except exceptions.TSException as e:
             if error_event := _ERROR_EVENT_MAP.get(type(e)):
-                bot.emit(error_event, ctx)
+                bot.emit(error_event, {"exception": str(e), **ctx})
                 return
 
             raise
