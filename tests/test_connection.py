@@ -30,14 +30,18 @@ async def mock_connect(*args: Any, **kwargs: Any):
 def conn(monkeypatch: pytest.MonkeyPatch, conn_info: ConnectionInfo):
     monkeypatch.setattr(asyncssh.connection, "connect", mock_connect)
 
-    return connection.TSConnection(conn_info.username, conn_info.password, conn_info.address, conn_info.port)
+    return connection.TSConnection(
+        conn_info.username, conn_info.password, conn_info.address, conn_info.port
+    )
 
 
 @pytest.fixture
 def connected_conn(monkeypatch: pytest.MonkeyPatch, conn_info: ConnectionInfo):
     monkeypatch.setattr(asyncssh.connection, "connect", mock_connect)
 
-    c = connection.TSConnection(conn_info.username, conn_info.password, conn_info.address, conn_info.port)
+    c = connection.TSConnection(
+        conn_info.username, conn_info.password, conn_info.address, conn_info.port
+    )
     asyncio.run(c.connect())
     return c
 
@@ -92,7 +96,9 @@ class MockWriter:
 
 
 def test_create_connection(conn_info: ConnectionInfo):
-    conn = connection.TSConnection(conn_info.username, conn_info.password, conn_info.address, conn_info.port)
+    conn = connection.TSConnection(
+        conn_info.username, conn_info.password, conn_info.address, conn_info.port
+    )
 
     assert conn.username == conn_info.username
     assert conn.password == conn_info.password
@@ -105,7 +111,6 @@ def test_create_connection(conn_info: ConnectionInfo):
 
 
 def test_connection_connect(conn: connection.TSConnection):
-
     asyncio.run(conn.connect())
 
     assert isinstance(conn._connection, MockClientConnection)
@@ -114,11 +119,13 @@ def test_connection_connect(conn: connection.TSConnection):
 
 
 def test_connection_close(connected_conn: connection.TSConnection):
-
     asyncio.run(connected_conn.close())
 
     assert connected_conn._writer and connected_conn._writer.is_closing()
-    assert isinstance(connected_conn._connection, MockClientConnection) and connected_conn._connection._closed
+    assert (
+        isinstance(connected_conn._connection, MockClientConnection)
+        and connected_conn._connection._closed
+    )
 
 
 @pytest.mark.parametrize(
@@ -129,8 +136,9 @@ def test_connection_close(connected_conn: connection.TSConnection):
         pytest.param(8, id="test_read_lines=8"),
     ),
 )
-def test_read_lines(monkeypatch: pytest.MonkeyPatch, connected_conn: connection.TSConnection, number_of_lines: int):
-
+def test_read_lines(
+    monkeypatch: pytest.MonkeyPatch, connected_conn: connection.TSConnection, number_of_lines: int
+):
     counter = 0
 
     async def _read() -> str | None:
@@ -161,9 +169,11 @@ def test_read_lines(monkeypatch: pytest.MonkeyPatch, connected_conn: connection.
     ),
 )
 def test_read_lines_break_on_empty(
-    monkeypatch: pytest.MonkeyPatch, connected_conn: connection.TSConnection, number_of_lines: int, break_at: int
+    monkeypatch: pytest.MonkeyPatch,
+    connected_conn: connection.TSConnection,
+    number_of_lines: int,
+    break_at: int,
 ):
-
     counter = 0
 
     async def _read() -> str | None:
@@ -200,7 +210,9 @@ def test_read_lines_break_on_empty(
         pytest.param(8, id="test_read_break_after=10"),
     ),
 )
-def test_read(monkeypatch: pytest.MonkeyPatch, connected_conn: connection.TSConnection, break_after: int):
+def test_read(
+    monkeypatch: pytest.MonkeyPatch, connected_conn: connection.TSConnection, break_after: int
+):
     counter = 0
 
     async def _read() -> str | None:
@@ -231,7 +243,9 @@ def test_internal_read(connected_conn: connection.TSConnection):
     assert line == "line 1\n\r"
 
 
-def test_internal_read_exception_incomplete(monkeypatch: pytest.MonkeyPatch, connected_conn: connection.TSConnection):
+def test_internal_read_exception_incomplete(
+    monkeypatch: pytest.MonkeyPatch, connected_conn: connection.TSConnection
+):
     def readuntil(*args: Any, **kwargs: Any):
         raise asyncio.IncompleteReadError(b"test exception", expected=0)
 
@@ -267,7 +281,9 @@ def test_write(connected_conn: connection.TSConnection, to_write: list[str]):
     assert connected_conn._writer._write_actual == should_have_written
 
 
-def test_write_excpetion_while_writing(monkeypatch: pytest.MonkeyPatch, connected_conn: connection.TSConnection):
+def test_write_excpetion_while_writing(
+    monkeypatch: pytest.MonkeyPatch, connected_conn: connection.TSConnection
+):
     def drain():
         raise Exception("test exception")
 
@@ -276,7 +292,9 @@ def test_write_excpetion_while_writing(monkeypatch: pytest.MonkeyPatch, connecte
     asyncio.run(connected_conn.write("test"))
 
 
-def test_write_on_closed_channel(conn: connection.TSConnection, connected_conn: connection.TSConnection):
+def test_write_on_closed_channel(
+    conn: connection.TSConnection, connected_conn: connection.TSConnection
+):
     async def async_wrapper():
         await connected_conn.close()
         await connected_conn.write("hello")

@@ -37,7 +37,6 @@ class TasksHandler:
         self._tasks = [t for t in self._tasks if t is not task]
 
     def start(self, bot: bot.TSBot) -> None:
-
         while self._starting_tasks:
             self._start_task(bot, self._starting_tasks.pop())
 

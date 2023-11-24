@@ -44,7 +44,9 @@ def test_create_event(event: str, ctx: context.TSCtx):
         pytest.param(
             "notifyclientleftview cfid=12 ctid=0 reasonid=8 reasonmsg=leaving clid=1",
             "clientleftview",
-            context.TSCtx({"cfid": "12", "ctid": "0", "reasonid": "8", "reasonmsg": "leaving", "clid": "1"}),
+            context.TSCtx(
+                {"cfid": "12", "ctid": "0", "reasonid": "8", "reasonmsg": "leaving", "clid": "1"}
+            ),
             id="test_clientleftview",
         ),
     ),

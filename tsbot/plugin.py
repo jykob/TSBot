@@ -113,11 +113,16 @@ def task(
 
 
 def task(
-    func: Callable[[_T, bot.TSBot], Coroutine[None, None, None]] | None = None, *, name: str | None = None
-) -> Callable[[_T, bot.TSBot], Coroutine[None, None, None]] | Callable[
-    [Callable[[_T, bot.TSBot], Coroutine[None, None, None]]],
-    Callable[[_T, bot.TSBot], Coroutine[None, None, None]],
-]:
+    func: Callable[[_T, bot.TSBot], Coroutine[None, None, None]] | None = None,
+    *,
+    name: str | None = None,
+) -> (
+    Callable[[_T, bot.TSBot], Coroutine[None, None, None]]
+    | Callable[
+        [Callable[[_T, bot.TSBot], Coroutine[None, None, None]]],
+        Callable[[_T, bot.TSBot], Coroutine[None, None, None]],
+    ]
+):
     def task_decorator(
         func: Callable[[_T, bot.TSBot], Coroutine[None, None, None]]
     ) -> Callable[[_T, bot.TSBot], Coroutine[None, None, None]]:
