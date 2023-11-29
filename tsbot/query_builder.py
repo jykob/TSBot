@@ -68,13 +68,13 @@ class TSQuery:
 
     def param_block(
         self: _T,
-        block: Iterable[dict[str, ParameterTypes]] | None = None,
+        blocks: Iterable[dict[str, ParameterTypes]] | None = None,
         /,
         **kwargs: ParameterTypes,
     ) -> _T:
         """Add parameter blocks eg. ``clid=1 | clid=2 | clid=3`` to the command"""
 
-        param_blocks = tuple(block) if block else (kwargs,)
+        param_blocks = tuple(blocks) if blocks else (kwargs,)
 
         return type(self)(
             self.command,
