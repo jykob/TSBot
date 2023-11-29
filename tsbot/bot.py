@@ -393,6 +393,13 @@ class TSBot:
         Awaits until the bot disconnects.
         """
 
+        async def get_reader_task() -> asyncio.Task[None]:
+            reader_ready = asyncio.Event()
+            reader = asyncio.create_task(self._reader_task(reader_ready))
+            await reader_ready.wait()
+
+            return reader
+
         async def select_server() -> None:
             """Set current virtual server"""
             await self.send(query_builder.TSQuery("use", parameters={"sid": str(self.server_id)}))
@@ -406,12 +413,10 @@ class TSBot:
             for event in ("server", "textserver", "textchannel", "textprivate"):
                 await self.send(notify_query.params(event=event))
 
-        async def get_reader_task() -> asyncio.Task[None]:
-            reader_ready = asyncio.Event()
-            reader = asyncio.create_task(self._reader_task(reader_ready))
-            await reader_ready.wait()
-
-            return reader
+        async def update_uid() -> None:
+            """Gets the uid of the client"""
+            resp = await self.send_raw("whoami")
+            self.uid = resp.first["client_unique_identifier"]
 
         self.register_task(self.event_handler.handle_events_task, name="HandleEvents-Task")
         self.register_task(self.cache.cache_cleanup_task, name="CacheCleanup-Task")
@@ -430,7 +435,7 @@ class TSBot:
             logger.info("Connected")
 
             await select_server()
-            await self.update_uid()
+            await update_uid()
             await register_notifies()
 
             self.emit(event_name="ready")
@@ -469,11 +474,6 @@ class TSBot:
                     self.register_task(handler=member, **task_kwargs)
 
             self.plugins[plugin_to_be_loaded.__class__.__name__] = plugin_to_be_loaded
-
-    async def update_uid(self) -> None:
-        """Update bots uid instance"""
-        resp = await self.send_raw("whoami")
-        self.uid = resp.first["client_unique_identifier"]
 
     async def respond(self, ctx: context.TSCtx, message: str, *, in_dms: bool = False) -> None:
         """
