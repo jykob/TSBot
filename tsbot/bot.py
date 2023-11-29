@@ -476,11 +476,7 @@ class TSBot:
             self.plugins[plugin_to_be_loaded.__class__.__name__] = plugin_to_be_loaded
 
     async def respond(self, ctx: context.TSCtx, message: str, *, in_dms: bool = False) -> None:
-        """
-        Respond in text channel
-
-        Will respond in same text channel where 'ctx' was made, unless 'in_dms' flag given.
-        """
+        """Responds in the same text channel where 'ctx' was created."""
         target = "0"
         target_mode = enums.TextMessageTargetMode(ctx["targetmode"])
 
