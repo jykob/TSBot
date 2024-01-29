@@ -178,7 +178,7 @@ Let's copy the example and modify the script to fit our needs:
 
 ```{literalinclude} ../../examples/simple_example.py
 :linenos: true
-:emphasize-lines: 9, 10, 11
+:emphasize-lines: 8, 9, 10
 ```
 
 Now run the script. A **_ServerQuery client_** should join to your server.
@@ -191,7 +191,7 @@ Now run the script. A **_ServerQuery client_** should join to your server.
 
 ---
 
-<div class="d-flex flex-row">
+<div class="flex flex-row">
 
 As long as the script is running, Everytime someone joins the server, they will get poked with this:
 
@@ -204,7 +204,7 @@ As long as the script is running, Everytime someone joins the server, they will 
 
 ---
 
-<div class="d-flex flex-row">
+<div class="flex flex-row">
 
 And you can use command `!hello` to say hello to the bot
 

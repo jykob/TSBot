@@ -2,6 +2,8 @@
 
 Chapter all about commands, etc
 
-```{attention}
-Under construction
-```
+## Command handlers
+
+## Commands syntax
+
+## Checks
