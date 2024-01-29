@@ -22,7 +22,7 @@ First off we import all the modules we need: [asyncio](asyncio) and few modules 
 ```
 
 ```{note}
-importing `events` isn't strictly necessary. Here it's only used for typehints.
+importing [TSCtx](tsbot.context.TSCtx) and [TSEvent](tsbot.events.TSEvent) isn't strictly necessary. Here it's only used for typehints.
 ```
 
 ---

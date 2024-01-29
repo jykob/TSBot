@@ -1,44 +1,47 @@
 # Api Reference
 
-```{attention}
-Under construction
-```
-
-## TSBot
+## Bot
 
 ```{eval-rst}
 .. autoclass:: tsbot.bot.TSBot
     :members:
-    :exclude-members: on, command
+    :undoc-members:
+    :exclude-members: on, once, command, task, every
 
-    .. autodecorator:: tsbot.TSBot.on()
-
-    .. autodecorator:: tsbot.TSBot.command()
+    .. autodecorator:: tsbot.bot.TSBot.on()
+    .. autodecorator:: tsbot.bot.TSBot.once()
+    .. autodecorator:: tsbot.bot.TSBot.command()
+    .. autodecorator:: tsbot.bot.TSBot.task()
+    .. autodecorator:: tsbot.bot.TSBot.every()
 ```
 
-## TSClientInfo
-
-```{eval-rst}
-.. autoclass:: tsbot.client_info.TSClientInfo
-```
-
-## TSEvent
+## Events
 
 ```{eval-rst}
 .. autoclass:: tsbot.events.TSEvent
 ```
 
-## TSQuery
+## Context
+
+```{eval-rst}
+.. class:: tsbot.context.TSCtx(ctx)
+
+    A wrapper around pythons dictionary
+
+   :param typing.Mapping[str, str] ctx:
+   :rtype: typing.Mapping[str, str]
+```
+
+## Query
 
 ```{eval-rst}
 .. autofunction:: tsbot.query_builder.query()
 
 .. autoclass:: tsbot.query_builder.TSQuery
     :members:
-
 ```
 
-## TSResponse
+## Responses
 
 ```{eval-rst}
 .. autoclass:: tsbot.response.TSResponse
@@ -49,9 +52,11 @@ Under construction
 
 ```{eval-rst}
 .. autoclass:: tsbot.plugin.TSPlugin
-
-.. autofunction:: tsbot.plugin.command()
-.. autofunction:: tsbot.plugin.on()
+.. autodecorator:: tsbot.plugin.on()
+.. autodecorator:: tsbot.plugin.once()
+.. autodecorator:: tsbot.plugin.command()
+.. autodecorator:: tsbot.plugin.task()
+.. autodecorator:: tsbot.plugin.every()
 ```
 
 ## Exceptions
@@ -59,10 +64,13 @@ Under construction
 ```{eval-rst}
 .. autoexception:: tsbot.exceptions.TSException
     :show-inheritance:
+
 .. autoexception:: tsbot.exceptions.TSResponseError
     :show-inheritance:
+
 .. autoexception:: tsbot.exceptions.TSCommandError
     :show-inheritance:
+
 .. autoexception:: tsbot.exceptions.TSPermissionError
     :show-inheritance:
 ```

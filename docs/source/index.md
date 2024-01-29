@@ -5,17 +5,13 @@
 installation
 getting_started
 
+queries
 events
 commands
-queries
-sending_commands
+tasks
 plugins
 
 api
-```
-
-```{attention}
-Documentation under construction
 ```
 
 ```{include} ../../README.md

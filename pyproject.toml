@@ -25,7 +25,13 @@ documentation = "https://tsbot.readthedocs.io/en/latest/"
 
 [project.optional-dependencies]
 tests = ["mypy >= 0.931", "pytest >= 7.0.0", "pytest-cov >= 3.0.0"]
-docs = ["myst-parser >= 0.18.0", "sphinx-autodoc-typehints>=1.18.2"]
+docs = [
+    "sphinx >= 7.2.6",
+    "myst-parser >= 0.18.0",
+    "sphinx-autodoc-typehints >= 1.18.2",
+    "sphinx-autobuild >= 2021.3.14",
+    "sphinx_rtd_theme >= 2.0.0",
+]
 
 
 [build-system]
