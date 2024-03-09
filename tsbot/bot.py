@@ -1,15 +1,16 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Mapping
 import contextlib
 import inspect
 import logging
 from typing import (
     TYPE_CHECKING,
+    Any,
     Callable,
     Concatenate,
     Coroutine,
-    Mapping,
     ParamSpec,
     overload,
 )
@@ -74,9 +75,9 @@ class TSBot:
         self._response: asyncio.Future[response.TSResponse]
         self._sending_lock = asyncio.Lock()
 
-    def emit(self, event_name: str, ctx: Mapping[str, str] | None = None) -> None:
+    def emit(self, event_name: str, ctx: Any | None = None) -> None:
         """Builds a TSEvent object and emits it"""
-        event = events.TSEvent(event=event_name, ctx=context.TSCtx(ctx or {}))
+        event = events.TSEvent(event=event_name, ctx=ctx)
         self.emit_event(event)
 
     def emit_event(self, event: events.TSEvent) -> None:
