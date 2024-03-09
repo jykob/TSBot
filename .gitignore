@@ -126,4 +126,4 @@ venvs/*
 dmypy.json
 
 todo.md
-tests/example*
+playground.py
