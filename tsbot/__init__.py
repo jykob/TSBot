@@ -1,6 +1,5 @@
 from tsbot.bot import TSBot
-from tsbot.query_builder import query
-from tsbot.events import TSEvent
 from tsbot.context import TSCtx
+from tsbot.query_builder import query
 
-__all__ = ("TSBot", "query", "TSEvent", "TSCtx")
+__all__ = ("TSBot", "query", "TSCtx")

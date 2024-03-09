@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from tsbot import plugin
 
 if TYPE_CHECKING:
-    from tsbot import bot, events
+    from tsbot import bot, context
 
 
 logger = logging.getLogger(__name__)
@@ -47,5 +47,5 @@ class KeepAlive(plugin.TSPlugin):
                 break
 
     @plugin.on("send")
-    async def on_command_sent(self, bot: bot.TSBot, event: events.TSEvent) -> None:
+    async def on_command_sent(self, bot: bot.TSBot, ctx: context.TSCtx) -> None:
         self.command_sent_event.set()

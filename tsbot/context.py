@@ -1,5 +1,5 @@
-from __future__ import annotations
+from collections.abc import Mapping
+from typing import NewType
 
-from typing import Mapping, NewType
 
 TSCtx = NewType("TSCtx", Mapping[str, str])

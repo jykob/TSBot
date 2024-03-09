@@ -30,8 +30,8 @@ class TSResponse:
 
     @classmethod
     def from_server_response(cls: type[_T], raw_data: list[str]) -> _T:
-        response_info = utils.parse_line(raw_data.pop().removeprefix("error "))
-        data = utils.parse_data("".join(raw_data))
+        response_info = utils.parse_line(raw_data[-1].removeprefix("error "))
+        data = utils.parse_data("".join(raw_data[:-1]))
 
         error_id = int(response_info.pop("id"))
         msg = response_info.pop("msg")

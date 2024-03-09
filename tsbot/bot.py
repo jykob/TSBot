@@ -6,16 +6,15 @@ import inspect
 import logging
 from typing import (
     TYPE_CHECKING,
+    Any,
     Callable,
     Concatenate,
     Coroutine,
-    Mapping,
     ParamSpec,
     overload,
 )
 
 from tsbot import (
-    cache,
     commands,
     connection,
     context,
@@ -51,6 +50,7 @@ class TSBot:
         ratelimited: bool = False,
         ratelimit_calls: int = 10,
         ratelimit_period: float = 3,
+        query_timeout: float = 5,
     ) -> None:
         self.server_id = server_id
         self.uid: str = ""
@@ -62,7 +62,6 @@ class TSBot:
         self.tasks_handler = tasks.TasksHandler()
         self.event_handler = events.EventHanlder()
         self.command_handler = commands.CommandHandler(invoker)
-        self.cache = cache.Cache()
 
         self.is_ratelimited = ratelimited
         self.ratelimiter = ratelimiter.RateLimiter(
@@ -73,10 +72,11 @@ class TSBot:
 
         self._response: asyncio.Future[response.TSResponse]
         self._sending_lock = asyncio.Lock()
+        self._query_timeout = query_timeout
 
-    def emit(self, event_name: str, ctx: Mapping[str, str] | None = None) -> None:
+    def emit(self, event_name: str, ctx: Any | None = None) -> None:
         """Builds a TSEvent object and emits it"""
-        event = events.TSEvent(event=event_name, ctx=context.TSCtx(ctx or {}))
+        event = events.TSEvent(event=event_name, ctx=ctx)
         self.emit_event(event)
 
     def emit_event(self, event: events.TSEvent) -> None:
@@ -197,12 +197,10 @@ class TSBot:
         return task
 
     @overload
-    def task(self, *, name: str | None) -> Callable[[tasks.TTaskH], tasks.TTaskH]:
-        ...
+    def task(self, *, name: str | None) -> Callable[[tasks.TTaskH], tasks.TTaskH]: ...
 
     @overload
-    def task(self, func: tasks.TTaskH) -> tasks.TTaskH:
-        ...
+    def task(self, func: tasks.TTaskH) -> tasks.TTaskH: ...
 
     def task(
         self, func: tasks.TTaskH | None = None, *, name: str | None = None
@@ -234,9 +232,7 @@ class TSBot:
         """Remove a background task from tasks"""
         self.tasks_handler.remove_task(task)
 
-    async def send(
-        self, query: query_builder.TSQuery, *, max_cache_age: int | float = 0
-    ) -> response.TSResponse:
+    async def send(self, query: query_builder.TSQuery) -> response.TSResponse:
         """
         Sends queries to the server, assuring only one of them gets sent at a time
 
@@ -244,56 +240,33 @@ class TSBot:
         queries have to be sent to the server one at a time.
         """
         try:
-            return await self.send_raw(query.compile(), max_cache_age=max_cache_age)
+            return await self.send_raw(query.compile())
         except exceptions.TSResponseError as response_error:
             if (tb := response_error.__traceback__) and tb.tb_next:
                 response_error = response_error.with_traceback(tb.tb_next.tb_next)
 
             raise response_error
 
-    async def send_raw(
-        self, raw_query: str, *, max_cache_age: int | float = 0
-    ) -> response.TSResponse:
+    async def send_raw(self, raw_query: str) -> response.TSResponse:
         """
         Sends raw commands to the server.
 
         Its recommended to use builtin query builder and :func:`send()<tsbot.TSBot.send()>` instead of this
         """
         try:
-            return await asyncio.shield(self._send(raw_query, max_cache_age))
+            return await asyncio.shield(self._send(raw_query))
         except exceptions.TSResponseError as response_error:
             if (tb := response_error.__traceback__) and tb.tb_next:
                 response_error = response_error.with_traceback(tb.tb_next.tb_next)
 
             raise response_error
 
-    async def _send(self, raw_query: str, max_cache_age: int | float = 0) -> response.TSResponse:
+    async def _send(self, raw_query: str) -> response.TSResponse:
         """
         Method responsibe for actually sending the data
         """
 
-        cache_hash = hash(raw_query)
-
-        if max_cache_age and (cached_response := self.cache.get_cache(cache_hash, max_cache_age)):
-            logger.debug(
-                "Got cache hit for %r. hash: %s",
-                raw_query if len(raw_query) < 50 else f"{raw_query[:50]}...",
-                cache_hash,
-            )
-            return cached_response
-
         async with self._sending_lock:
-            # Check cache again to be sure if previous requests added something to the cache
-            if max_cache_age and (
-                cached_response := self.cache.get_cache(cache_hash, max_cache_age)
-            ):
-                logger.debug(
-                    "Got cache hit for %r. hash: %s",
-                    raw_query if len(raw_query) < 50 else f"{raw_query[:50]}...",
-                    cache_hash,
-                )
-                return cached_response
-
             self._response = asyncio.Future()
 
             if self.is_ratelimited:
@@ -303,7 +276,9 @@ class TSBot:
             self.emit(event_name="send", ctx={"query": raw_query})
             await self._connection.write(raw_query)
 
-            server_response = await asyncio.wait_for(asyncio.shield(self._response), 2.0)
+            server_response = await asyncio.wait_for(
+                asyncio.shield(self._response), self._query_timeout
+            )
 
             logger.debug("Got a response: %s", server_response)
 
@@ -317,14 +292,6 @@ class TSBot:
         if server_response.error_id != 0:
             raise exceptions.TSResponseError(
                 msg=server_response.msg, error_id=int(server_response.error_id)
-            )
-
-        if server_response.data:
-            self.cache.add_cache(cache_hash, server_response)
-            logger.debug(
-                "Added %r response to cache. Hash: %s",
-                raw_query if len(raw_query) < 50 else f"{raw_query[:50]}...",
-                cache_hash,
             )
 
         return server_response
@@ -344,7 +311,7 @@ class TSBot:
 
         async for data in self._connection.read():
             if data.startswith("notify"):
-                self.emit_event(events.TSEvent.from_server_response(data))
+                self.emit_event(events.TSEvent.from_server_notification(data))
 
             elif data.startswith("error"):
                 response_buffer.append(data)
@@ -419,7 +386,6 @@ class TSBot:
             self.uid = resp.first["client_unique_identifier"]
 
         self.register_task(self.event_handler.handle_events_task, name="HandleEvents-Task")
-        self.register_task(self.cache.cache_cleanup_task, name="CacheCleanup-Task")
         self.register_event_handler("textmessage", self.command_handler.handle_command_event)
         self.load_plugin(default_plugins.Help(), default_plugins.KeepAlive())
 
@@ -475,33 +441,21 @@ class TSBot:
 
             self.plugins[plugin_to_be_loaded.__class__.__name__] = plugin_to_be_loaded
 
-    async def respond(self, ctx: context.TSCtx, message: str, *, in_dms: bool = False) -> None:
+    async def respond(self, ctx: context.TSCtx, message: str) -> None:
         """Responds in the same text channel where 'ctx' was created."""
-        target = "0"
         target_mode = enums.TextMessageTargetMode(ctx["targetmode"])
-
-        if in_dms:
-            from warnings import warn
-
-            warn(
-                "'in_dms' flag deprecated. use 'respond_to_client' method instead",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-
-        if in_dms or target_mode == enums.TextMessageTargetMode.CLIENT:
-            target, target_mode = ctx["invokerid"], enums.TextMessageTargetMode.CLIENT
+        target = ctx["invokerid"] if target_mode == enums.TextMessageTargetMode.CLIENT else "0"
 
         await self.send(
             query_builder.TSQuery(
                 "sendtextmessage",
-                parameters={"targetmode": target_mode.value, "target": target, "msg": message},
+                parameters={"targetmode": target_mode.value, "target": target, "msg": str(message)},
             )
         )
 
     async def respond_to_client(self, ctx: context.TSCtx, message: str) -> None:
         """
-        Sends a message to a client.
+        Responds to a client with a direct message.
 
         Tries to get the 'invokerid' in 'ctx' and sends a given message to that id.
         """
@@ -513,7 +467,7 @@ class TSBot:
                     parameters={
                         "targetmode": enums.TextMessageTargetMode.CLIENT.value,
                         "target": target,
-                        "msg": message,
+                        "msg": str(message),
                     },
                 )
             )
