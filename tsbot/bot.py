@@ -444,27 +444,15 @@ class TSBot:
 
             self.plugins[plugin_to_be_loaded.__class__.__name__] = plugin_to_be_loaded
 
-    async def respond(self, ctx: context.TSCtx, message: str, *, in_dms: bool = False) -> None:
+    async def respond(self, ctx: context.TSCtx, message: str) -> None:
         """Responds in the same text channel where 'ctx' was created."""
-        target = "0"
         target_mode = enums.TextMessageTargetMode(ctx["targetmode"])
-
-        if in_dms:
-            from warnings import warn
-
-            warn(
-                "'in_dms' flag deprecated. use 'respond_to_client' method instead",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-
-        if in_dms or target_mode == enums.TextMessageTargetMode.CLIENT:
-            target, target_mode = ctx["invokerid"], enums.TextMessageTargetMode.CLIENT
+        target = ctx["invokerid"] if target_mode == enums.TextMessageTargetMode.CLIENT else "0"
 
         await self.send(
             query_builder.TSQuery(
                 "sendtextmessage",
-                parameters={"targetmode": target_mode.value, "target": target, "msg": message},
+                parameters={"targetmode": target_mode.value, "target": target, "msg": str(message)},
             )
         )
 
@@ -482,7 +470,7 @@ class TSBot:
                     parameters={
                         "targetmode": enums.TextMessageTargetMode.CLIENT.value,
                         "target": target,
-                        "msg": message,
+                        "msg": str(message),
                     },
                 )
             )
