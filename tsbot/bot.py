@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Mapping
 import contextlib
 import inspect
 import logging
@@ -198,12 +197,10 @@ class TSBot:
         return task
 
     @overload
-    def task(self, *, name: str | None) -> Callable[[tasks.TTaskH], tasks.TTaskH]:
-        ...
+    def task(self, *, name: str | None) -> Callable[[tasks.TTaskH], tasks.TTaskH]: ...
 
     @overload
-    def task(self, func: tasks.TTaskH) -> tasks.TTaskH:
-        ...
+    def task(self, func: tasks.TTaskH) -> tasks.TTaskH: ...
 
     def task(
         self, func: tasks.TTaskH | None = None, *, name: str | None = None
