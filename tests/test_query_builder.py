@@ -46,7 +46,7 @@ def test_add_param_blocks_list():
     )
 
     q = q.param_block(
-        ({"permsid": perm})
+        {"permsid": perm}
         for perm in ("b_serverinstance_permission_list", "b_serverinstance_binding_list")
     )
 
