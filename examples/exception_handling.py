@@ -19,9 +19,9 @@ class ExceptionHandler(plugin.TSPlugin):
 
 
 bot = TSBot(
-    username="TestBot",
-    password="kK7paxA9",
-    address="localhost",
+    username="USERNAME",
+    password="PASSWORD",
+    address="ADDRESS",
 )
 
 
