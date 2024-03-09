@@ -455,7 +455,7 @@ class TSBot:
 
     async def respond_to_client(self, ctx: context.TSCtx, message: str) -> None:
         """
-        Sends a message to a client.
+        Responds to a client with a direct message.
 
         Tries to get the 'invokerid' in 'ctx' and sends a given message to that id.
         """
