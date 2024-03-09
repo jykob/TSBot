@@ -51,6 +51,7 @@ class TSBot:
         ratelimited: bool = False,
         ratelimit_calls: int = 10,
         ratelimit_period: float = 3,
+        query_timeout: float = 5,
     ) -> None:
         self.server_id = server_id
         self.uid: str = ""
@@ -62,7 +63,6 @@ class TSBot:
         self.tasks_handler = tasks.TasksHandler()
         self.event_handler = events.EventHanlder()
         self.command_handler = commands.CommandHandler(invoker)
-        self.cache = cache.Cache()
 
         self.is_ratelimited = ratelimited
         self.ratelimiter = ratelimiter.RateLimiter(
@@ -73,6 +73,7 @@ class TSBot:
 
         self._response: asyncio.Future[response.TSResponse]
         self._sending_lock = asyncio.Lock()
+        self._query_timeout = query_timeout
 
     def emit(self, event_name: str, ctx: Any | None = None) -> None:
         """Builds a TSEvent object and emits it"""
@@ -313,7 +314,7 @@ class TSBot:
 
         async for data in self._connection.read():
             if data.startswith("notify"):
-                self.emit_event(events.TSEvent.from_server_response(data))
+                self.emit_event(events.TSEvent.from_server_notification(data))
 
             elif data.startswith("error"):
                 response_buffer.append(data)
