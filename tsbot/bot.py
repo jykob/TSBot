@@ -16,7 +16,6 @@ from typing import (
 )
 
 from tsbot import (
-    cache,
     commands,
     connection,
     context,
@@ -235,9 +234,7 @@ class TSBot:
         """Remove a background task from tasks"""
         self.tasks_handler.remove_task(task)
 
-    async def send(
-        self, query: query_builder.TSQuery, *, max_cache_age: int | float = 0
-    ) -> response.TSResponse:
+    async def send(self, query: query_builder.TSQuery) -> response.TSResponse:
         """
         Sends queries to the server, assuring only one of them gets sent at a time
 
@@ -245,56 +242,33 @@ class TSBot:
         queries have to be sent to the server one at a time.
         """
         try:
-            return await self.send_raw(query.compile(), max_cache_age=max_cache_age)
+            return await self.send_raw(query.compile())
         except exceptions.TSResponseError as response_error:
             if (tb := response_error.__traceback__) and tb.tb_next:
                 response_error = response_error.with_traceback(tb.tb_next.tb_next)
 
             raise response_error
 
-    async def send_raw(
-        self, raw_query: str, *, max_cache_age: int | float = 0
-    ) -> response.TSResponse:
+    async def send_raw(self, raw_query: str) -> response.TSResponse:
         """
         Sends raw commands to the server.
 
         Its recommended to use builtin query builder and :func:`send()<tsbot.TSBot.send()>` instead of this
         """
         try:
-            return await asyncio.shield(self._send(raw_query, max_cache_age))
+            return await asyncio.shield(self._send(raw_query))
         except exceptions.TSResponseError as response_error:
             if (tb := response_error.__traceback__) and tb.tb_next:
                 response_error = response_error.with_traceback(tb.tb_next.tb_next)
 
             raise response_error
 
-    async def _send(self, raw_query: str, max_cache_age: int | float = 0) -> response.TSResponse:
+    async def _send(self, raw_query: str) -> response.TSResponse:
         """
         Method responsibe for actually sending the data
         """
 
-        cache_hash = hash(raw_query)
-
-        if max_cache_age and (cached_response := self.cache.get_cache(cache_hash, max_cache_age)):
-            logger.debug(
-                "Got cache hit for %r. hash: %s",
-                raw_query if len(raw_query) < 50 else f"{raw_query[:50]}...",
-                cache_hash,
-            )
-            return cached_response
-
         async with self._sending_lock:
-            # Check cache again to be sure if previous requests added something to the cache
-            if max_cache_age and (
-                cached_response := self.cache.get_cache(cache_hash, max_cache_age)
-            ):
-                logger.debug(
-                    "Got cache hit for %r. hash: %s",
-                    raw_query if len(raw_query) < 50 else f"{raw_query[:50]}...",
-                    cache_hash,
-                )
-                return cached_response
-
             self._response = asyncio.Future()
 
             if self.is_ratelimited:
@@ -304,7 +278,9 @@ class TSBot:
             self.emit(event_name="send", ctx={"query": raw_query})
             await self._connection.write(raw_query)
 
-            server_response = await asyncio.wait_for(asyncio.shield(self._response), 2.0)
+            server_response = await asyncio.wait_for(
+                asyncio.shield(self._response), self._query_timeout
+            )
 
             logger.debug("Got a response: %s", server_response)
 
@@ -318,14 +294,6 @@ class TSBot:
         if server_response.error_id != 0:
             raise exceptions.TSResponseError(
                 msg=server_response.msg, error_id=int(server_response.error_id)
-            )
-
-        if server_response.data:
-            self.cache.add_cache(cache_hash, server_response)
-            logger.debug(
-                "Added %r response to cache. Hash: %s",
-                raw_query if len(raw_query) < 50 else f"{raw_query[:50]}...",
-                cache_hash,
             )
 
         return server_response
@@ -420,7 +388,6 @@ class TSBot:
             self.uid = resp.first["client_unique_identifier"]
 
         self.register_task(self.event_handler.handle_events_task, name="HandleEvents-Task")
-        self.register_task(self.cache.cache_cleanup_task, name="CacheCleanup-Task")
         self.register_event_handler("textmessage", self.command_handler.handle_command_event)
         self.load_plugin(default_plugins.Help(), default_plugins.KeepAlive())
 

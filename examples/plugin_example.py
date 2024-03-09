@@ -17,7 +17,7 @@ class TestPlugin(plugin.TSPlugin):
     @plugin.on("clientmoved")
     async def plugin_move(self, bot: TSBot, ctx: TSCtx):
         info_query = query("clientinfo").params(clid=ctx["clid"])
-        resp = await bot.send(info_query, max_cache_age=5)
+        resp = await bot.send(info_query)
 
         print(self.move_message.format(username=resp.first["client_nickname"]))
 
