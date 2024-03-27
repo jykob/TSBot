@@ -27,7 +27,6 @@ bot = TSBot(
     password="PASSWORD",
     address="ADDRESS",
 )
-
 bot.load_plugin(TestPlugin())
 
 asyncio.run(bot.run())
