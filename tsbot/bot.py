@@ -283,7 +283,7 @@ class TSBot:
             logger.debug("Got a response: %s", server_response)
 
         if server_response.error_id == 2568:
-            raise exceptions.TSResponsePermissionsError(
+            raise exceptions.TSResponsePermissionError(
                 msg=server_response.msg,
                 error_id=server_response.error_id,
                 perm_id=int(server_response.last["failed_permid"]),

@@ -16,7 +16,7 @@ class TSResponseError(TSException):
         return f"Error {self.error_id}: {self.msg}"
 
 
-class TSResponsePermissionsError(TSResponseError):
+class TSResponsePermissionError(TSResponseError):
     """
     Raised when a response has error_id of '2568',
     idicating that the client doesn't have the propper permissions to execute this query
