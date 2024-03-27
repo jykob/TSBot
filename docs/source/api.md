@@ -68,9 +68,15 @@
 .. autoexception:: tsbot.exceptions.TSResponseError
     :show-inheritance:
 
+.. autoexception:: tsbot.exceptions.TSResponsePermissionError
+    :show-inheritance:
+
 .. autoexception:: tsbot.exceptions.TSCommandError
     :show-inheritance:
 
 .. autoexception:: tsbot.exceptions.TSPermissionError
+    :show-inheritance:
+
+.. autoexception:: tsbot.exceptions.TSInvalidParameterError
     :show-inheritance:
 ```
