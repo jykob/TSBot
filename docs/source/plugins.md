@@ -14,7 +14,7 @@ Let's check out [examples/plugin_example.py](https://github.com/0x4aK/TSBot/blob
 
 ---
 
-First off we import all the modules we need: [asyncio](asyncio) and few modules from tsbot.
+First off we import all the modules we need: [asyncio](asyncio) and few functions from tsbot.
 
 ```{literalinclude} ../../examples/plugin_example.py
 :linenos:
@@ -22,10 +22,8 @@ First off we import all the modules we need: [asyncio](asyncio) and few modules 
 ```
 
 ```{note}
-importing [TSCtx](tsbot.context.TSCtx) and [TSEvent](tsbot.events.TSEvent) isn't strictly necessary. Here it's only used for typehints.
+importing [TSCtx](tsbot.context.TSCtx) isn't strictly necessary. Here it's only used for typehints.
 ```
-
----
 
 ```{literalinclude} ../../examples/plugin_example.py
 :linenos:
@@ -102,6 +100,6 @@ When `help` command is invoked, the bot will respond to the command with the giv
 ```
 
 ```{note}
-If the command wasn't found or the command is `hidden`, the `help` command raises
+If no command were found or the command is `hidden`, the `help` command raises
 [TSCommandError](tsbot.exceptions.TSCommandError) telling that the command wasn't found.
 ```

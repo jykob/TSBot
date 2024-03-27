@@ -69,7 +69,7 @@ Recommended ways to give these permissions are:
 
 | Permission name                              | Reason                                           |
 | -------------------------------------------- | ------------------------------------------------ |
-| ``b_client_create_modify_serverquery_login`` | To create/modify ***ServerQuery*** accounts     |
+| ``b_client_create_modify_serverquery_login`` | To create/modify ***ServerQuery*** accounts      |
 | ``b_virtualserver_notify_register``          | To register the server to send events to the bot |
 ```
 
