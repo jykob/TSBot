@@ -1,6 +1,6 @@
 from __future__ import annotations
-from collections.abc import Mapping
 
+from collections.abc import Mapping
 from typing import Iterable, Protocol, TypeVar
 
 from tsbot import utils
