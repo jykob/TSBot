@@ -7,8 +7,8 @@ myst:
 
 # Queries
 
-{{env.config.project}} implements a query builder to ease the use of building commands.  
-In this chapter you will learn how to use the query system in {{env.config.project}}
+TSBot implements a query builder to ease the use of building commands.  
+In this chapter you will learn how to use the query system in TSBot.
 
 ---
 
@@ -79,8 +79,8 @@ Adding parameters to your command by using [params()](<tsbot.query_builder.TSQue
 The method [params()](<tsbot.query_builder.TSQuery.params()>) accepts parameters as a **_key-value_** pair.
 You can supply as **_many arguments_** as want or add them **_one by one_**.
 
-Values can be anything that implements `__str__()` method. The method [params()](<tsbot.query_builder.TSQuery.params()>) calls [str()](str) on each value that is added.  
-Mainly these will be: [str](str) | [int](int) | [float](float) | [bytes](bytes)
+Values can be anything that implements `__str__()` method.
+The method [params()](<tsbot.query_builder.TSQuery.params()>) calls [str()](str) on each value that is added.
 
 Since [params()](<tsbot.query_builder.TSQuery.params()>) accepts **_keys_** and **_values_**,
 this allows us to build the parameters as a [dict](dict) and spread the dictionary when calling the method.
@@ -183,7 +183,7 @@ You can just send the query again and again via [send()](<tsbot.bot.TSBot.send()
 
 ## Examples
 
-Now that we know how to use {{TSQuery}} objects, let's see some real life examples how to use them.
+Now that we know how to use {{TSQuery}} objects, let's see some examples how to use them.
 
 All of these examples are from **TeamSpeak _ServerQuery_ manual**.
 

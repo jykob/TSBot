@@ -32,7 +32,7 @@ def command(
     [Callable[Concatenate[_T, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]]],
     Callable[Concatenate[_T, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]],
 ]:
-    """Decorator to register coroutines on commands"""
+    """Decorator to register plugin commands"""
 
     def command_decorator(
         func: Callable[Concatenate[_T, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]]
@@ -55,7 +55,7 @@ def on(
     [Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]],
     Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]],
 ]:
-    """Decorator to register coroutines on events"""
+    """Decorator to register plugin events"""
 
     def event_decorator(
         func: Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]
@@ -72,6 +72,8 @@ def once(
     [Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]],
     Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]],
 ]:
+    """Decorator to register plugin events to be ran only once"""
+
     def once_decorator(
         func: Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]
     ) -> Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]:
@@ -105,6 +107,8 @@ def task(
         Callable[[_T, bot.TSBot], Coroutine[None, None, None]],
     ]
 ):
+    """Decorator to register plugin tasks"""
+
     def task_decorator(
         func: Callable[[_T, bot.TSBot], Coroutine[None, None, None]]
     ) -> Callable[[_T, bot.TSBot], Coroutine[None, None, None]]:
@@ -121,6 +125,8 @@ def every(seconds: int, name: str | None = None) -> Callable[
     [Callable[[_T, bot.TSBot], Coroutine[None, None, None]]],
     Callable[[_T, bot.TSBot], Coroutine[None, None, None]],
 ]:
+    """Decorator to register plugin every tasks"""
+
     def every_decorator(
         func: Callable[[_T, bot.TSBot], Coroutine[None, None, None]]
     ) -> Callable[[_T, bot.TSBot], Coroutine[None, None, None]]:

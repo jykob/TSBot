@@ -10,22 +10,25 @@ _T = TypeVar("_T", bound="TSResponse")
 
 @dataclass(slots=True, frozen=True)
 class TSResponse:
+    """
+    Class to represent the response to a query from a Teamspeak server.
+    """
+
     data: list[dict[str, str]]
     error_id: int
     msg: str
 
     def __iter__(self) -> Generator[dict[str, str], None, None]:
-        """Iterates through all the datapoints in data"""
         yield from self.data
 
     @property
     def first(self) -> dict[str, str]:
-        """Returns the first datapoint from the response"""
+        """First datapoint from the response"""
         return self.data[0]
 
     @property
     def last(self) -> dict[str, str]:
-        """Returns the last datapoint from the response"""
+        """Last datapoint from the response"""
         return self.data[-1]
 
     @classmethod

@@ -12,12 +12,14 @@
 #
 import os
 import sys
-import datetime
 
 sys.path.insert(0, os.path.abspath("../tsbot/"))
-
+sys.path.append(os.path.abspath("./_ext"))
 
 # -- Project information -----------------------------------------------------
+
+
+import datetime
 
 project = "TSBot"
 copyright = "{}, 0x4aK".format(datetime.date.today().year)
@@ -35,6 +37,7 @@ extensions = [
     "sphinx_autodoc_typehints",
     "sphinx_rtd_theme",
     "myst_parser",
+    "autodoc-decoratormethod",
 ]
 
 source_suffix = {
@@ -43,11 +46,11 @@ source_suffix = {
     ".rst": "restructuredtext",
 }
 
-root_doc = "source/index"
-
 # -- AutoDoc Options --------------------
-autodoc_typehints = "both"
-# autodoc_preserve_defaults = True
+autodoc_typehints = "signature"
+autodoc_member_order = "bysource"
+autodoc_preserve_defaults = True
+autoclass_content = "both"
 
 
 # -- MyST Options -----------------------

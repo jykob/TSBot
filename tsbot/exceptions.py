@@ -2,7 +2,7 @@ from __future__ import annotations
 
 
 class TSException(Exception):
-    """Exception related to TSBot"""
+    """Exception related to TSBot."""
 
 
 class TSResponseError(TSException):
@@ -16,10 +16,10 @@ class TSResponseError(TSException):
         return f"Error {self.error_id}: {self.msg}"
 
 
-class TSResponsePermissionsError(TSResponseError):
+class TSResponsePermissionError(TSResponseError):
     """
-    Raised when a response has error_id of '2568',
-    idicating that the client doesn't have the propper permissions to execute this query
+    Raised when a response has error_id of '2568', idicating that the client
+    doesn't have the propper permissions to execute this query.
     """
 
     def __init__(self, msg: str, error_id: int, perm_id: int) -> None:

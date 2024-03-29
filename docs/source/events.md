@@ -4,17 +4,18 @@ Chapter all about the events and event system.
 
 ## Event handlers
 
-You can register event handlers to fire on given event.  
-Event is a [str](str) and can be arbitrary.
+You can register event handlers to fire on given event.
 
-On given event, all the event handlers registered to that event are called with arguments `handler(bot, event)` where:
+On given event, all the event handlers registered to that event name are called with arguments `handler(bot, ctx)` where:
 
-- `bot` is an instance of [TSBot](tsbot.bot.TSBot) calling the handler.
-- `event` is an instance of [TSEvent](tsbot.events.tsevent.TSEvent) for additional context.
+| Arg   | Explanation                                               |
+| ----- | --------------------------------------------------------- |
+| `bot` | Instance of [TSBot](tsbot.bot.TSBot) calling the handler. |
+| `ctx` | Additional context of the event                           |
 
 ```python
 @bot.on("cliententerview")
-async def handle_client_enter(bot: TSBot, event: TSEvent):
+async def handle_client_enter(bot: TSBot, ctx: TSCtx):
     print("Client joined the server")
     # ...
 ```
@@ -26,7 +27,7 @@ These handlers are only fired once when the given event happens.
 from tsbot import query
 
 @bot.once("ready")
-async def move_on_start(bot: TSBot, event: TSEvent):
+async def move_on_start(bot: TSBot, ctx: None):
     # The bot is ready and connected to the server.
     # Move the bot to a different channel.
     bot_info = await bot.send_raw("whoami")
@@ -44,29 +45,44 @@ async def move_on_start(bot: TSBot, event: TSEvent):
 
 TSBot has handful of useful built-in events. These are fired when the bot does something internally.
 
-| Event name         | Called when:                                                  |
-| ------------------ | ------------------------------------------------------------- |
-| `run`              | The bot is starting up.                                       |
-| `ready`            | The bot is ready and connected to the server.                 |
-| `close`            | The bot is shutting down.                                     |
-| `send`             | The bot is sending commands to the server.                    |
-| `command_error`    | A command handler raises `TSCommandError` exception.          |
-| `permission_error` | A command handler raises `TSPermissionError` exception.       |
-| `parameter_error`  | A command handler raises `TSInvalidParameterError` exception. |
+| Event name         | Called when:                                        |
+| ------------------ | --------------------------------------------------- |
+| `run`              | The bot is starting up.                             |
+| `ready`            | The bot is ready and connected to the server.       |
+| `close`            | The bot is shutting down.                           |
+| `send`             | The bot is sending queries to the server.           |
+| `command_error`    | Handler raises `TSCommandError` exception.          |
+| `permission_error` | Handler raises `TSPermissionError` exception.       |
+| `parameter_error`  | Handler raises `TSInvalidParameterError` exception. |
 
 ---
 
 ## Events from the server
 
 TSBot automatically registers itself as a receiver of server notification.  
-These notifications are structured as `{notify}{event_name}`.  
-`notify` is omitted from the event and the `event_name` is passed as the event into the event system.
+These notifications are structured as `{notify}{event}`.  
+`notify` is omitted from the event and the `event` is passed as the event into the event system.
 
 ---
 
 ## Custom events
 
-Since events are arbitrary [str](str), TSBots event system can handle custom events.  
-You can emit your own events with [bot.emit()](tsbot.bot.TSBot.emit) method. [bot.emit()](tsbot.bot.TSBot.emit) accepts the event name as its first argument and additional context of [Mapping](typing.Mapping)[[str](str), [str](str)] as the second argument.
+Since event names are arbitrary [str](str), the event system can handle custom events.  
+You can emit your own events with [bot.emit()](tsbot.bot.TSBot.emit) method.  
+[bot.emit()](tsbot.bot.TSBot.emit) accepts the event name as its first argument and arbitrary context type as the second argument.
 
-This is useful for example passing events from one plugin to another.
+This can be useful when passing events from one plugin to another.
+
+```python
+score: defaultdict[str, int] = defaultdict(int)
+
+
+@bot.on("increment_score")
+async def increment_user_score(bot: TSBot, uid: str):
+    score[uid] += 1
+
+
+@bot.on("cliententerview")
+async def handle_client_enter(bot: TSBot, ctx: TSCtx):
+    bot.emit("increment_score", ctx["client_unique_identifier"])
+```
