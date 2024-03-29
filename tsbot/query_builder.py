@@ -13,7 +13,12 @@ class Stringable(Protocol):
 
 
 def query(command: str) -> TSQuery:
-    """Function to create :class:`TSQuery<tsbot.query_builder.TSQuery>` instances"""
+    """
+    Function to create :class:`TSQuery<tsbot.query_builder.TSQuery>` instances.
+
+    :param command: Base query command.
+    :return: The created :class:`TSQuery<tsbot.query_builder.TSQuery>` instance.
+    """
     return TSQuery(command)
 
 
@@ -26,6 +31,10 @@ def _format_value(kv: tuple[str, str]) -> str:
 
 
 class TSQuery:
+    """
+    Class to represent query commands to the TeamSpeak server.
+    """
+
     __slots__ = (
         "_command",
         "_cached_command",
@@ -41,6 +50,12 @@ class TSQuery:
         parameters: dict[str, str] | None = None,
         parameter_blocks: tuple[dict[str, str], ...] | None = None,
     ) -> None:
+        """
+        :param command: Base query command.
+        :param options: Options attached to the query.
+        :param parameters: Parameters attached to the query.
+        :param parameter_blocks: Parameter blocks attached to the query.
+        """
         if not command:
             raise ValueError("Command cannot be empty")
 
@@ -56,7 +71,12 @@ class TSQuery:
         return f"{self.__class__.__qualname__}({self._command!r})"
 
     def option(self: _T, *args: Stringable) -> _T:
-        """Add options to the command eg. ``-groups``"""
+        """
+        Add options to the command eg. ``-groups``.
+
+        :param args: Tuple of options to be attached.
+        :return: New :class:`TSQuery<tsbot.query_builder.TSQuery>` instance with added params
+        """
 
         return type(self)(
             self._command,
@@ -66,7 +86,12 @@ class TSQuery:
         )
 
     def params(self: _T, **kwargs: Stringable) -> _T:
-        """Add parameters to the command eg. ``cldbid=12``"""
+        """
+        Add parameters to the command eg. ``cldbid=12``.
+
+        :param kwargs: Keyword to be attached.
+        :return: New :class:`TSQuery<tsbot.query_builder.TSQuery>` instance with added parameters
+        """
 
         return type(self)(
             self._command,
@@ -81,7 +106,15 @@ class TSQuery:
         /,
         **kwargs: Stringable,
     ) -> _T:
-        """Add parameter blocks eg. ``clid=1 | clid=2 | clid=3`` to the command"""
+        """
+        Add parameter blocks eg. ``clid=1 | clid=2 | clid=3`` to the command.
+        Takes in either an iterable of parameters in form of dict[str, Stringable]
+        or **one** block at a time.
+
+        :param blocks: Iterable of parameter blocks to be attached.
+        :param kwargs: Parameters to be attached to single block.
+        :return: New :class:`TSQuery<tsbot.query_builder.TSQuery>` instance with added parameter blocks
+        """
 
         param_blocks = tuple(blocks) if blocks else (kwargs,)
 
@@ -94,7 +127,11 @@ class TSQuery:
         )
 
     def compile(self) -> str:
-        """Compiles the query into a raw command"""
+        """
+        Compiles the query into a raw command.
+
+        :return: The compiled query command.
+        """
 
         if self._cached_command:
             return self._cached_command

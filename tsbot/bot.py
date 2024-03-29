@@ -52,6 +52,19 @@ class TSBot:
         ratelimit_period: float = 3,
         query_timeout: float = 5,
     ) -> None:
+        """
+        :param username: Login name of the query account.
+        :param password: Generated password for the query account.
+        :param address: Address of the TeamSpeak server.
+        :param port: Port of the SSH connection.
+        :param server_id: Id of the virtual server.
+        :param invoker: Command indicator.
+        :param ratelimited: If the connection should be ratelimited.
+        :param ratelimit_calls: Calls per period.
+        :param ratelimit_period: Period interval.
+        :param query_timeout: Timeout for query commands.
+        """
+
         self.server_id = server_id
         self.uid: str = ""
 
@@ -75,16 +88,29 @@ class TSBot:
         self._query_timeout = query_timeout
 
     def emit(self, event_name: str, ctx: Any | None = None) -> None:
-        """Builds a TSEvent object and emits it"""
+        """
+        Creates :class:`TSevent<tsbot.events.TSEvent>` instance and emits it.
+
+        :param event_name: Name of the event being emitted.
+        :param ctx: Addittional context for the event.
+        """
         event = events.TSEvent(event=event_name, ctx=ctx)
         self.emit_event(event)
 
     def emit_event(self, event: events.TSEvent) -> None:
-        """Emits an event to be handled"""
+        """
+        Emits an event to be handled.
+
+        :param event: Event to be emmitted.
+        """
         self.event_handler.event_queue.put_nowait(event)
 
     def on(self, event_type: str) -> Callable[[events.TEventH], events.TEventH]:
-        """Decorator to register coroutines on events"""
+        """
+        Decorator to register event handlers.
+
+        :param event_type: Name of the event.
+        """
 
         def event_decorator(func: events.TEventH) -> events.TEventH:
             self.register_event_handler(event_type, func)
@@ -92,8 +118,27 @@ class TSBot:
 
         return event_decorator
 
+    def register_event_handler(
+        self, event_type: str, handler: events.TEventH
+    ) -> events.TSEventHandler:
+        """
+        Register an event handler to be ran on an event
+
+        :param event_type: Name of the event.
+        :param handler: async function to handle the event.
+        :return: The instance of :class:`TSEventHandler<tsbot.events.TSEventHandler>` created.
+        """
+
+        event_handler = events.TSEventHandler(event_type, handler)
+        self.event_handler.register_event_handler(event_handler)
+        return event_handler
+
     def once(self, event_type: str) -> Callable[[events.TEventH], events.TEventH]:
-        """Decorator to register once handler"""
+        """
+        Decorator to register once handler.
+
+        :param event_type: Name of the event.
+        """
 
         def once_decorator(func: events.TEventH) -> events.TEventH:
             self.register_once_handler(event_type, func)
@@ -104,26 +149,25 @@ class TSBot:
     def register_once_handler(
         self, event_type: str, handler: events.TEventH
     ) -> events.TSEventOnceHandler:
-        """Register a Coroutine to be ran exactly once on an event"""
+        """
+        Register an event handler to be ran once on an event.
+
+        :param event_type: Name of the event.
+        :param handler: async function to handle the event.
+        :return: The instance of :class:`TSEventOnceHandler<tsbot.events.TSEventOnceHandler>` created.
+        """
 
         event_handler = events.TSEventOnceHandler(event_type, handler, self.event_handler)
         self.event_handler.register_event_handler(event_handler)
         return event_handler
 
-    def register_event_handler(
-        self, event_type: str, handler: events.TEventH
-    ) -> events.TSEventHandler:
-        """
-        Register Coroutines to be ran on events
-
-        Returns the event handler.
-        """
-
-        event_handler = events.TSEventHandler(event_type, handler)
-        self.event_handler.register_event_handler(event_handler)
-        return event_handler
-
     def remove_event_handler(self, event_handler: events.TSEventHandler) -> None:
+        """
+        Remove event handler from the event system.
+
+        :param event_handler: Instance of the :class:`TSEventHandler<tsbot.events.TSEventHandler>` to be removed.
+        """
+
         self.event_handler.remove_event_handler(event_handler)
 
     def command(
@@ -137,7 +181,15 @@ class TSBot:
         [Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]]],
         Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]],
     ]:
-        """Decorator to register coroutines on commands"""
+        """
+        Decorator to register command handlers.
+
+        :param command: Name(s) of the command.
+        :param help_text: Text to be displayed when using **!help**.
+        :param raw: Skip message parsing and pass the rest of the message as the sole argument.
+        :param hidden: Hide this command from **!help**.
+        :param checks: List of async functions to be called before the command is executed.
+        """
 
         def command_decorator(
             func: Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]]
@@ -160,9 +212,15 @@ class TSBot:
         checks: list[Callable[..., Coroutine[None, None, None]]] | None = None,
     ) -> commands.TSCommand:
         """
-        Register Coroutines to be ran on specific command
+        Register command handler to be ran on specific command.
 
-        Returns the command handler.
+        :param command: Name(s) of the command.
+        :param handler: Async function to be called when invoked.
+        :param help_text: Text to be displayed when using **!help**.
+        :param raw: Skip message parsing and pass the rest of the message as the sole argument.
+        :param hidden: Hide this command from **!help**.
+        :param checks: List of async functions to be called before the command is executed.
+        :return: The instance of :class:`TSCommand<tsbot.commands.TSCommand>` created.
         """
         if isinstance(command, str):
             command = (command,)
@@ -172,12 +230,22 @@ class TSBot:
         return command_handler
 
     def remove_command(self, command: commands.TSCommand) -> None:
+        """
+        Remove command handler from the command system.
+
+        :param command: Instance of the :class:`TSCommand<tsbot.commands.TSCommand>` to be removed.
+        """
         self.command_handler.remove_command(command)
 
     def every(
         self, seconds: int, name: str | None = None
     ) -> Callable[[tasks.TTaskH], tasks.TTaskH]:
-        """Decorator to register coroutine to be ran every given second"""
+        """
+        Decorator to register tasks to be ran every given second.
+
+        :param seconds: How often the task is executed.
+        :param name: Name of the task.
+        """
 
         def every_decorator(func: tasks.TTaskH) -> tasks.TTaskH:
             self.register_every_task(seconds, func, name=name)
@@ -192,6 +260,14 @@ class TSBot:
         *,
         name: str | None = None,
     ) -> tasks.TSTask:
+        """
+        Register task handler to be ran every given second.
+
+        :param seconds: How often the task is executed.
+        :param handler: async function to be called when the task is executed.
+        :param name: Name of the task.
+        :return: Instance of :class:`TSTask<tsbot.tasks.TSTask>` created.
+        """
         task = tasks.TSTask(handler=tasks.every(handler, seconds), name=name)
         self.tasks_handler.register_task(self, task)
         return task
@@ -205,7 +281,12 @@ class TSBot:
     def task(
         self, func: tasks.TTaskH | None = None, *, name: str | None = None
     ) -> tasks.TTaskH | Callable[[tasks.TTaskH], tasks.TTaskH]:
-        """Decorator to register tasks"""
+        """
+        Decorator to register a background tasks.
+
+        :param func: Async function to handle task.
+        :param name: Name of the task.
+        """
 
         def task_decorator(func: tasks.TTaskH) -> tasks.TTaskH:
             self.register_task(func, name=name)
@@ -222,22 +303,32 @@ class TSBot:
         *,
         name: str | None = None,
     ) -> tasks.TSTask:
-        """Registers a coroutine as background task"""
+        """
+        Register task handler as a background task.
+
+        :param handler: async function to be called when the task is executed.
+        :param name: Name of the task.
+        :return: Instance of :class:`TSTask<tsbot.tasks.TSTask>` created.
+        """
 
         task = tasks.TSTask(handler=handler, name=name)
         self.tasks_handler.register_task(self, task)
         return task
 
     def remove_task(self, task: tasks.TSTask) -> None:
-        """Remove a background task from tasks"""
+        """
+        Remove a background task from tasks.
+
+        :param task: Instance of the :class:`TSTask<tsbot.tasks.TSTask>` to be removed.
+        """
         self.tasks_handler.remove_task(task)
 
     async def send(self, query: query_builder.TSQuery) -> response.TSResponse:
         """
         Sends queries to the server, assuring only one of them gets sent at a time
 
-        Because theres no way to distinguish between requests/responses,
-        queries have to be sent to the server one at a time.
+        :param query: Instance of :class:`TSQuery<tsbot.query_builder.TSQuery>` to be send to the server.
+        :return: Response from the server.
         """
         try:
             return await self.send_raw(query.compile())
@@ -251,7 +342,11 @@ class TSBot:
         """
         Sends raw commands to the server.
 
-        Its recommended to use builtin query builder and :func:`send()<tsbot.TSBot.send()>` instead of this
+        Its recommended to use built-in query builder and
+        :func:`send()<tsbot.TSBot.send()>` method instead.
+
+        :param raw_query: raw query command to be send to the server.
+        :return: Response from the server.
         """
         try:
             return await asyncio.shield(self._send(raw_query))
@@ -262,9 +357,7 @@ class TSBot:
             raise response_error
 
     async def _send(self, raw_query: str) -> response.TSResponse:
-        """
-        Method responsibe for actually sending the data
-        """
+        """Method responsibe for actually sending the data."""
 
         async with self._sending_lock:
             self._response = asyncio.Future()
@@ -326,10 +419,10 @@ class TSBot:
 
     async def close(self) -> None:
         """
-        Coroutine to handle closing the bot
+        Async function to handle closing the bot
 
-        Will emit TSEvent(event="close") to notify client closing, cancel background tasks
-        and send quit command.
+        Emits `close` event to notify client closing,
+        cancels background tasks and send quit command.
         """
 
         if self.is_closing:
@@ -354,8 +447,8 @@ class TSBot:
         """
         Run the bot.
 
-        Connects to the server, registers the server to send events to the bot and schedules
-        background tasks.
+        Connects to the server, registers the server to send events
+        to the bot and schedules background tasks.
 
         Awaits until the bot disconnects.
         """
@@ -414,12 +507,9 @@ class TSBot:
 
     def load_plugin(self, *plugins: plugin.TSPlugin) -> None:
         """
-        Loads TSPlugin instances into the bot instance
+        Loads :class:`TSPlugin<tsbot.plugins.TSPlugin>` instances into the bot.
 
-        Loops through every instance attribute and checks if its a TSEventHandler or TSCommand.
-        If one is found, register them with the bot.
-
-        Will also add a record of the instance in self.plugins dict
+        :param plugins: Instances of :class:`TSPlugin<tsbot.plugins.TSPlugin>`
         """
 
         for plugin_to_be_loaded in plugins:
@@ -442,7 +532,12 @@ class TSBot:
             self.plugins[plugin_to_be_loaded.__class__.__name__] = plugin_to_be_loaded
 
     async def respond(self, ctx: context.TSCtx, message: str) -> None:
-        """Responds in the same text channel where 'ctx' was created."""
+        """
+        Responds in the same text channel where 'ctx' was created.
+
+        :param ctx: Context where it was called.
+        :param message: Message to be sent.
+        """
         target_mode = enums.TextMessageTargetMode(ctx["targetmode"])
         target = ctx["invokerid"] if target_mode == enums.TextMessageTargetMode.CLIENT else "0"
 
@@ -457,7 +552,8 @@ class TSBot:
         """
         Responds to a client with a direct message.
 
-        Tries to get the 'invokerid' in 'ctx' and sends a given message to that id.
+        :param ctx: Context where it was called.
+        :param message: Message to be sent.
         """
 
         if target := ctx.get("invokerid"):

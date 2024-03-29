@@ -107,6 +107,8 @@ def task(
         Callable[[_T, bot.TSBot], Coroutine[None, None, None]],
     ]
 ):
+    """Decorator to register plugin tasks"""
+
     def task_decorator(
         func: Callable[[_T, bot.TSBot], Coroutine[None, None, None]]
     ) -> Callable[[_T, bot.TSBot], Coroutine[None, None, None]]:
@@ -123,6 +125,8 @@ def every(seconds: int, name: str | None = None) -> Callable[
     [Callable[[_T, bot.TSBot], Coroutine[None, None, None]]],
     Callable[[_T, bot.TSBot], Coroutine[None, None, None]],
 ]:
+    """Decorator to register plugin every tasks"""
+
     def every_decorator(
         func: Callable[[_T, bot.TSBot], Coroutine[None, None, None]]
     ) -> Callable[[_T, bot.TSBot], Coroutine[None, None, None]]:
