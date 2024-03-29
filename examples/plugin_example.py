@@ -10,7 +10,7 @@ class TestPlugin(plugin.TSPlugin):
         self.message = "Hello from plugin"
         self.move_message = "{username} has moved"
 
-    @plugin.command("pluginhello")
+    @plugin.command("hello")
     async def plugin_hello(self, bot: TSBot, ctx: TSCtx):
         await bot.respond(ctx, message=self.message)
 
