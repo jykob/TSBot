@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeVar
+from typing import TypeVar
 
 from tsbot import utils
 
-if TYPE_CHECKING:
-    T = TypeVar("T", bound="TSQuery")
-
-    ParameterTypes = str | int | bytes | float
+_T = TypeVar("_T", bound="TSQuery")
+ParameterTypes = str | int | bytes | float
 
 
 def query(command: str) -> TSQuery:
@@ -41,21 +39,21 @@ class TSQuery:
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}({self.command!r})"
 
-    def option(self: T, *args: ParameterTypes) -> T:
+    def option(self: _T, *args: ParameterTypes) -> _T:
         """Add options to the command eg. ``-groups``"""
         self._dirty = True
 
         self._options.extend(map(str, args))
         return self
 
-    def params(self: T, **kwargs: ParameterTypes) -> T:
+    def params(self: _T, **kwargs: ParameterTypes) -> _T:
         """Add parameters to the command eg. ``cldbid=12``"""
         self._dirty = True
 
         self._parameters.update({k: str(v) for k, v in kwargs.items()})
         return self
 
-    def param_block(self: T, **kwargs: ParameterTypes) -> T:
+    def param_block(self: _T, **kwargs: ParameterTypes) -> _T:
         """Add parameter blocks eg. ``clid=1 | clid=2 | clid=3`` to the command"""
         self._dirty = True
 

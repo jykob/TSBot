@@ -1,6 +1,6 @@
 [project]
 name = "tsbot"
-version = "0.17.1"
+version = "0.18.0"
 authors = [{ name = "0x4aK" }]
 description = "Asynchronous framework to build TeamSpeak 3 Server Query bots"
 readme = "README.md"
@@ -65,12 +65,13 @@ show_error_codes = true
 legacy_tox_ini = """
 [tox]
 minversion = 3.8.0
-envlist = py310, mypy
+envlist = py310, py311, mypy
 isolated_build = true
 
 [gh-actions]
 python =
     3.10: py310, mypy
+    3.11: py311
 
 [testenv]
 setenv =

@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from tsbot import enums, exceptions
+from tsbot import context, enums, exceptions
 
 if TYPE_CHECKING:
     from tsbot import bot, commands, events
@@ -25,6 +25,10 @@ class CommandHandler:
             ", ".join(repr(c) for c in command.commands),
             command.handler,
         )
+
+    def remove_command(self, command: commands.TSCommand) -> None:
+        for c in command.commands:
+            del self.commands[c]
 
     async def handle_command_event(self, bot: bot.TSBot, event: events.TSEvent) -> None:
         """Logic to handle commands"""
@@ -51,24 +55,18 @@ class CommandHandler:
             return
 
         # Create new context dict with useful entries
-        ctx = {"command": command, "raw_args": args} | event.ctx
+        ctx = context.TSCtx({"command": command, "raw_args": args} | event.ctx)
 
         logger.debug("%r executed command %r -> %r", event.ctx["invokername"], command, args)
 
         try:
             await command_handler.run(bot, ctx, args)
 
-        except TypeError:
-            await bot.respond(event.ctx, command_handler.usage)
+        except exceptions.TSInvalidParameterError as e:
+            bot.emit(event_name="parameter_error", ctx={"exception": e} | ctx)
 
         except exceptions.TSCommandError as e:
-            bot.emit(
-                event_name="command_error",
-                ctx={"exception": type(e).__name__, "exception_msg": str(e)} | ctx,
-            )
+            bot.emit(event_name="command_error", ctx={"exception": e} | ctx)
 
         except exceptions.TSPermissionError as e:
-            bot.emit(
-                event_name="permission_error",
-                ctx={"exception": type(e).__name__, "exception_msg": str(e)} | ctx,
-            )
+            bot.emit(event_name="permission_error", ctx={"exception": e} | ctx)
