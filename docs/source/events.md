@@ -10,8 +10,8 @@ On given event, all the event handlers registered to that event name are called 
 
 | Arg   | Explanation                                               |
 | ----- | --------------------------------------------------------- |
-| `bot` | instance of [TSBot](tsbot.bot.TSBot) calling the handler. |
-| `ctx` | is additional context of the event                        |
+| `bot` | Instance of [TSBot](tsbot.bot.TSBot) calling the handler. |
+| `ctx` | Additional context of the event                           |
 
 ```python
 @bot.on("cliententerview")
