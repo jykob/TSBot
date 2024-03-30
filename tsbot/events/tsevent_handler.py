@@ -21,7 +21,7 @@ class TSEventHandler:
 
 @dataclass(slots=True)
 class TSEventOnceHandler(TSEventHandler):
-    event_handler: events.EventHanlder
+    event_handler: events.EventHandler
 
     async def run(self, bot: bot.TSBot, event: events.TSEvent) -> None:
         self.event_handler.remove_event_handler(self)
