@@ -72,7 +72,7 @@ class TSBot:
         self._connection = connection.TSConnection(username, password, address, port)
 
         self.tasks_handler = tasks.TasksHandler()
-        self.event_handler = events.EventHanlder()
+        self.event_handler = events.EventHandler()
         self.command_handler = commands.CommandHandler(invoker)
 
         self.is_ratelimited = ratelimited
