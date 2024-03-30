@@ -26,7 +26,7 @@ bot.register_task(functools.partial(example_task, arg1=1, arg2="test"))
 ```{warning}
 Tasks handling is started before the bot is connected to the server.
 If you need the bot to be connected to the TeamSpeak server, Use build-in
-`ready` [event](./events.md#built-in-events).
+`ready` [event](./events.md#built-in-events) event handlers to register tasks.
 ```
 
 ## Every task
