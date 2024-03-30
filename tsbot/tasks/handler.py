@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from tsbot import tasks, bot
+    from tsbot import bot, tasks
 
 
 class TasksHandler:
@@ -37,7 +37,6 @@ class TasksHandler:
         self._tasks = [t for t in self._tasks if t is not task]
 
     def start(self, bot: bot.TSBot) -> None:
-
         while self._starting_tasks:
             self._start_task(bot, self._starting_tasks.pop())
 

@@ -12,7 +12,10 @@ from tsbot import utils
         pytest.param("ip=0.0.0.0|ip=::", [{"ip": "0.0.0.0"}, {"ip": "::"}], id="test_simple"),
         pytest.param(
             "clid=14 client_nickname=Sven|clid=17 client_nickname=SvenBot",
-            [{"clid": "14", "client_nickname": "Sven"}, {"clid": "17", "client_nickname": "SvenBot"}],
+            [
+                {"clid": "14", "client_nickname": "Sven"},
+                {"clid": "17", "client_nickname": "SvenBot"},
+            ],
             id="test_multiple_data_simple",
         ),
         pytest.param(
@@ -144,10 +147,17 @@ def test_parse_data(input_str: str, expected: list[dict[str, str]]) -> None:
             },
             id="test_param_block",
         ),
-        pytest.param("error id=0 msg=ok", {"error": "", "id": "0", "msg": "ok"}, id="test_error_line"),
+        pytest.param(
+            "error id=0 msg=ok", {"error": "", "id": "0", "msg": "ok"}, id="test_error_line"
+        ),
         pytest.param(
             "error id=2568 msg=insufficient\\sclient\\spermissions failed_permid=4",
-            {"error": "", "id": "2568", "msg": "insufficient client permissions", "failed_permid": "4"},
+            {
+                "error": "",
+                "id": "2568",
+                "msg": "insufficient client permissions",
+                "failed_permid": "4",
+            },
             id="test_error_line_with_error",
         ),
     ),
@@ -160,9 +170,17 @@ def test_parse_line(input_str: str, expected: dict[str, str]) -> None:
     ("input_str", "expected"),
     (
         pytest.param("clid=12", ("clid", "12"), id="test_simple"),
-        pytest.param("client_servergroups=6,16,20", ("client_servergroups", "6,16,20"), id="test_comma_sepparated"),
+        pytest.param(
+            "client_servergroups=6,16,20",
+            ("client_servergroups", "6,16,20"),
+            id="test_comma_sepparated",
+        ),
         pytest.param("clid=11|clid=12|clid=13", ("clid", "11,12,13"), id="test_param_block"),
-        pytest.param("channel_name=Bot\\sCommands", ("channel_name", "Bot Commands"), id="test_value_unescape"),
+        pytest.param(
+            "channel_name=Bot\\sCommands",
+            ("channel_name", "Bot Commands"),
+            id="test_value_unescape",
+        ),
         pytest.param("client_away_message", ("client_away_message", ""), id="test_empty_value"),
     ),
 )
@@ -173,7 +191,9 @@ def test_parse_value(input_str: str, expected: tuple[str, str]) -> None:
 escape_params = (
     pytest.param("", "", id="test_empty"),
     pytest.param("TeamSpeak ]|[ Server", r"TeamSpeak\s]\p[\sServer", id="test_default_server_name"),
-    pytest.param("Test token with custom set", r"Test\stoken\swith\scustom\sset", id="test_sentance"),
+    pytest.param(
+        "Test token with custom set", r"Test\stoken\swith\scustom\sset", id="test_sentance"
+    ),
     pytest.param("		", r"\t\t", id="test_tabs"),
     pytest.param("| | | | | | |", r"\p\s\p\s\p\s\p\s\p\s\p\s\p", id="test_space_pipes"),
 )
@@ -193,20 +213,41 @@ def test_unescape(input_str: str, expected: str) -> None:
     ("input_str", "expected_args", "expected_kwargs"),
     (
         pytest.param("123 asd test", ("123", "asd", "test"), {}, id="test_args"),
-        pytest.param("-asd test -name test_account", (), {"asd": "test", "name": "test_account"}, id="test_kwargs"),
+        pytest.param(
+            "-asd test -name test_account",
+            (),
+            {"asd": "test", "name": "test_account"},
+            id="test_kwargs",
+        ),
         pytest.param(
             "-asd -name test_account -other",
             (),
             {"asd": "", "name": "test_account", "other": ""},
             id="test_kwargs_with_flags",
         ),
-        pytest.param("asd -name test_account 123", ("asd", "123"), {"name": "test_account"}, id="test_args_kwargs"),
-        pytest.param("asd   -name\ntest_account\t123", ("asd", "123"), {"name": "test_account"}, id="test_whitespaces"),
         pytest.param(
-            '-name "test account" "1 2 3" "123"', ("1 2 3", "123"), {"name": "test account"}, id="test_double_quotes"
+            "asd -name test_account 123",
+            ("asd", "123"),
+            {"name": "test_account"},
+            id="test_args_kwargs",
         ),
         pytest.param(
-            "-name 'test account' '1 2 3' '123'", ("1 2 3", "123"), {"name": "test account"}, id="test_single_quotes"
+            "asd   -name\ntest_account\t123",
+            ("asd", "123"),
+            {"name": "test_account"},
+            id="test_whitespaces",
+        ),
+        pytest.param(
+            '-name "test account" "1 2 3" "123"',
+            ("1 2 3", "123"),
+            {"name": "test account"},
+            id="test_double_quotes",
+        ),
+        pytest.param(
+            "-name 'test account' '1 2 3' '123'",
+            ("1 2 3", "123"),
+            {"name": "test account"},
+            id="test_single_quotes",
         ),
         pytest.param(
             """'test "quote" test' -test "test 'quote' test" """,
@@ -215,12 +256,20 @@ def test_unescape(input_str: str, expected: str) -> None:
             id="test_quote_within_a_quote",
         ),
         pytest.param(
-            '-name "test account "1 2', ("account", '"1', "2"), {"name": '"test'}, id="test_missmatch_double_quote"
+            '-name "test account "1 2',
+            ("account", '"1', "2"),
+            {"name": '"test'},
+            id="test_missmatch_double_quote",
         ),
         pytest.param(
-            "-name 'test account '1 2", ("account", "'1", "2"), {"name": "'test"}, id="test_missmatch_single_quote"
+            "-name 'test account '1 2",
+            ("account", "'1", "2"),
+            {"name": "'test"},
+            id="test_missmatch_single_quote",
         ),
-        pytest.param("-amount '-14' '-123'", ("-123",), {"amount": "-14"}, id="test_negative_numbers"),
+        pytest.param(
+            "-amount '-14' '-123'", ("-123",), {"amount": "-14"}, id="test_negative_numbers"
+        ),
         pytest.param(
             '''-text 'lorem ipsum\ntest\nnewline' 'asd\nasd' -other "asd\nasd\tasd"''',
             ("asd\nasd",),
@@ -230,5 +279,7 @@ def test_unescape(input_str: str, expected: str) -> None:
         pytest.param("asd '", ("asd", "'"), {}, id="test_ending_in_quote"),
     ),
 )
-def test_parse_args_kwargs(input_str: str, expected_args: tuple[str], expected_kwargs: dict[str, str]):
+def test_parse_args_kwargs(
+    input_str: str, expected_args: tuple[str], expected_kwargs: dict[str, str]
+):
     assert utils.parse_args_kwargs(input_str) == (expected_args, expected_kwargs)

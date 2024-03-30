@@ -125,6 +125,5 @@ venvs/*
 .dmypy.json
 dmypy.json
 
-todo*
-tests/example*
-tsconfig.json
+todo.md
+playground.py

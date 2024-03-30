@@ -1,9 +1,17 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable, Concatenate, Coroutine, ParamSpec, TypeVar, overload
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Concatenate,
+    Coroutine,
+    ParamSpec,
+    TypeVar,
+)
 
 if TYPE_CHECKING:
-    from tsbot import bot, context, events
+    from tsbot import bot, context
 
 _T = TypeVar("_T", bound="TSPlugin")
 _P = ParamSpec("_P")
@@ -23,7 +31,7 @@ def command(
     [Callable[Concatenate[_T, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]]],
     Callable[Concatenate[_T, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]],
 ]:
-    """Decorator to register coroutines on commands"""
+    """Decorator to register plugin commands"""
 
     def command_decorator(
         func: Callable[Concatenate[_T, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]]
@@ -43,14 +51,14 @@ def command(
 def on(
     event_type: str,
 ) -> Callable[
-    [Callable[[_T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]],
-    Callable[[_T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]],
+    [Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]],
+    Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]],
 ]:
-    """Decorator to register coroutines on events"""
+    """Decorator to register plugin events"""
 
     def event_decorator(
-        func: Callable[[_T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]
-    ) -> Callable[[_T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]:
+        func: Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]
+    ) -> Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]:
         func.__ts_event__ = {"event_type": event_type}  # type: ignore
         return func
 
@@ -60,63 +68,15 @@ def on(
 def once(
     event_type: str,
 ) -> Callable[
-    [Callable[[_T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]],
-    Callable[[_T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]],
+    [Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]],
+    Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]],
 ]:
+    """Decorator to register plugin events to be ran only once"""
+
     def once_decorator(
-        func: Callable[[_T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]
-    ) -> Callable[[_T, bot.TSBot, events.TSEvent], Coroutine[None, None, None]]:
+        func: Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]
+    ) -> Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]:
         func.__ts_once__ = {"event_type": event_type}  # type: ignore
         return func
 
     return once_decorator
-
-
-def every(
-    seconds: int, name: str | None = None
-) -> Callable[
-    [Callable[[_T, bot.TSBot], Coroutine[None, None, None]]],
-    Callable[[_T, bot.TSBot], Coroutine[None, None, None]],
-]:
-    def every_decorator(
-        func: Callable[[_T, bot.TSBot], Coroutine[None, None, None]]
-    ) -> Callable[[_T, bot.TSBot], Coroutine[None, None, None]]:
-        func.__ts_every__ = {"seconds": seconds, "name": name}  # type: ignore
-        return func
-
-    return every_decorator
-
-
-@overload
-def task(
-    *, name: str | None
-) -> Callable[
-    [Callable[[_T, bot.TSBot], Coroutine[None, None, None]]],
-    Callable[[_T, bot.TSBot], Coroutine[None, None, None]],
-]:
-    ...
-
-
-@overload
-def task(
-    func: Callable[[_T, bot.TSBot], Coroutine[None, None, None]],
-) -> Callable[[_T, bot.TSBot], Coroutine[None, None, None]]:
-    ...
-
-
-def task(
-    func: Callable[[_T, bot.TSBot], Coroutine[None, None, None]] | None = None, *, name: str | None = None
-) -> Callable[[_T, bot.TSBot], Coroutine[None, None, None]] | Callable[
-    [Callable[[_T, bot.TSBot], Coroutine[None, None, None]]],
-    Callable[[_T, bot.TSBot], Coroutine[None, None, None]],
-]:
-    def task_decorator(
-        func: Callable[[_T, bot.TSBot], Coroutine[None, None, None]]
-    ) -> Callable[[_T, bot.TSBot], Coroutine[None, None, None]]:
-        func.__ts_task__ = {"name": name}  # type: ignore
-        return func
-
-    if func is not None:
-        return task_decorator(func)
-
-    return task_decorator

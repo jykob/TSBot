@@ -1,7 +1,9 @@
-from enum import IntEnum
+from __future__ import annotations
+
+from enum import Enum
 
 
-class TextMessageTargetMode(IntEnum):
-    CLIENT = 1
-    CHANNEL = 2
-    SERVER = 3
+class TextMessageTargetMode(Enum):
+    CLIENT = "1"
+    CHANNEL = "2"
+    SERVER = "3"

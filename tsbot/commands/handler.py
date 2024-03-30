@@ -6,10 +6,17 @@ from typing import TYPE_CHECKING
 from tsbot import context, enums, exceptions
 
 if TYPE_CHECKING:
-    from tsbot import bot, commands, events
+    from tsbot import bot, commands
 
 
 logger = logging.getLogger(__name__)
+
+
+_ERROR_EVENT_MAP: dict[type[exceptions.TSException], str] = {
+    exceptions.TSCommandError: "command_error",
+    exceptions.TSPermissionError: "permission_error",
+    exceptions.TSInvalidParameterError: "parameter_error",
+}
 
 
 class CommandHandler:
@@ -30,18 +37,21 @@ class CommandHandler:
         for c in command.commands:
             del self.commands[c]
 
-    async def handle_command_event(self, bot: bot.TSBot, event: events.TSEvent) -> None:
+    async def handle_command_event(self, bot: bot.TSBot, ctx: context.TSCtx) -> None:
         """Logic to handle commands"""
 
         # If sender is the bot, return
-        if event.ctx.get("invokeruid") == bot.uid:
+        if ctx.get("invokeruid") == bot.uid:
             return
 
-        msg = event.ctx.get("msg", "").strip()
-        target_mode = enums.TextMessageTargetMode(int(event.ctx.get("targetmode", 0)))
+        msg = ctx.get("msg", "").strip()
+        target_mode = enums.TextMessageTargetMode(ctx.get("targetmode", "0"))
 
         # Test if message in channel or server chat and starts with the invoker
-        if target_mode in (enums.TextMessageTargetMode.CHANNEL, enums.TextMessageTargetMode.SERVER):
+        if target_mode in (
+            enums.TextMessageTargetMode.CHANNEL,
+            enums.TextMessageTargetMode.SERVER,
+        ):
             if not msg.startswith(self.invoker):
                 return
 
@@ -55,18 +65,16 @@ class CommandHandler:
             return
 
         # Create new context dict with useful entries
-        ctx = context.TSCtx({"command": command, "raw_args": args} | event.ctx)
+        ctx = context.TSCtx({"command": command, "raw_args": args, **ctx})
 
-        logger.debug("%r executed command %r -> %r", event.ctx["invokername"], command, args)
+        logger.debug("%r executed command %r with args: %r", ctx["invokername"], command, args)
 
         try:
             await command_handler.run(bot, ctx, args)
 
-        except exceptions.TSInvalidParameterError as e:
-            bot.emit(event_name="parameter_error", ctx={"exception": e} | ctx)
+        except exceptions.TSException as e:
+            if error_event := _ERROR_EVENT_MAP.get(type(e)):
+                bot.emit(error_event, {"exception": str(e), **ctx})
+                return
 
-        except exceptions.TSCommandError as e:
-            bot.emit(event_name="command_error", ctx={"exception": e} | ctx)
-
-        except exceptions.TSPermissionError as e:
-            bot.emit(event_name="permission_error", ctx={"exception": e} | ctx)
+            raise

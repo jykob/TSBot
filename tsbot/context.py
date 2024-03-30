@@ -1,5 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, MutableMapping, NewType
+from collections.abc import Mapping
+from typing import NewType
 
-TSCtx = NewType("TSCtx", MutableMapping[str, Any])
+TSCtx = NewType("TSCtx", Mapping[str, str])

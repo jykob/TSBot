@@ -9,10 +9,18 @@ from tsbot import response
 @pytest.mark.parametrize(
     ("input_list", "expected_values"),
     (
-        pytest.param(["error id=0 msg=ok"], {"data": [], "error_id": 0, "msg": "ok"}, id="test_acknowledgement"),
+        pytest.param(
+            ["error id=0 msg=ok"],
+            {"data": [], "error_id": 0, "msg": "ok"},
+            id="test_acknowledgement",
+        ),
         pytest.param(
             ["version=3.13.3 build=1608128225 platform=Windows", "error id=0 msg=ok"],
-            {"data": [{"version": "3.13.3", "build": "1608128225", "platform": "Windows"}], "error_id": 0, "msg": "ok"},
+            {
+                "data": [{"version": "3.13.3", "build": "1608128225", "platform": "Windows"}],
+                "error_id": 0,
+                "msg": "ok",
+            },
             id="test_simple",
         ),
         pytest.param(
@@ -35,7 +43,9 @@ def test_from_server_response(input_list: list[str], expected_values: dict[str, 
 
 
 def test_first_property():
-    resp = response.TSResponse([{"version": "3.13.3", "build": "1608128225", "platform": "Windows"}], 0, "ok")
+    resp = response.TSResponse(
+        [{"version": "3.13.3", "build": "1608128225", "platform": "Windows"}], 0, "ok"
+    )
     assert resp.first == {"version": "3.13.3", "build": "1608128225", "platform": "Windows"}
 
     resp = response.TSResponse([{"ip": "0.0.0.0"}, {"ip": "::"}], 0, "ok")

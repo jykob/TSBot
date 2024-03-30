@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-from tsbot import TSBot, context
+from tsbot import TSBot, TSCtx
 
 bot = TSBot(
     username="USERNAME",
@@ -16,7 +16,7 @@ bot = TSBot(
 
 
 @bot.command("spam")
-async def spam_chat(bot: TSBot, ctx: context.TSCtx):
+async def spam_chat(bot: TSBot, ctx: TSCtx):
     """
     Spams chat to test ratelimiting.
 

@@ -1,57 +1,43 @@
 # Api Reference
 
-```{attention}
-Under construction
-```
-
-## TSBot
-
 ```{eval-rst}
 .. autoclass:: tsbot.bot.TSBot
     :members:
-    :exclude-members: on, command
-
-    .. autodecorator:: tsbot.TSBot.on()
-
-    .. autodecorator:: tsbot.TSBot.command()
 ```
 
-## TSClientInfo
+---
 
 ```{eval-rst}
-.. autoclass:: tsbot.client_info.TSClientInfo
+.. class:: TSCtx(ctx)
+
+   Thin wrapper around Pythons dictionary.
+
+   :param collections.abc.Mapping[str, str] ctx:
+   :rtype: collections.abc.Mapping[str, str]
 ```
 
-## TSEvent
+---
 
 ```{eval-rst}
-.. autoclass:: tsbot.events.TSEvent
-```
-
-## TSQuery
-
-```{eval-rst}
-.. autofunction:: tsbot.query_builder.query()
-
-.. autoclass:: tsbot.query_builder.TSQuery
+.. automodule:: tsbot.query_builder
     :members:
-
+    :exclude-members: Stringable
 ```
 
-## TSResponse
+---
 
 ```{eval-rst}
 .. autoclass:: tsbot.response.TSResponse
     :members:
+    :undoc-members:
+    :exclude-members: from_server_response
 ```
 
 ## Plugins
 
 ```{eval-rst}
-.. autoclass:: tsbot.plugin.TSPlugin
-
-.. autofunction:: tsbot.plugin.command()
-.. autofunction:: tsbot.plugin.on()
+.. automodule:: tsbot.plugin
+    :members:
 ```
 
 ## Exceptions
@@ -59,10 +45,19 @@ Under construction
 ```{eval-rst}
 .. autoexception:: tsbot.exceptions.TSException
     :show-inheritance:
+
 .. autoexception:: tsbot.exceptions.TSResponseError
     :show-inheritance:
+
+.. autoexception:: tsbot.exceptions.TSResponsePermissionError
+    :show-inheritance:
+
 .. autoexception:: tsbot.exceptions.TSCommandError
     :show-inheritance:
+
 .. autoexception:: tsbot.exceptions.TSPermissionError
+    :show-inheritance:
+
+.. autoexception:: tsbot.exceptions.TSInvalidParameterError
     :show-inheritance:
 ```

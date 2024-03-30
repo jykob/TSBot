@@ -8,7 +8,6 @@ Asynchronous framework to build **TeamSpeak 3 Server Query** bots
 - Secure connection through SSH
 - Ease of use query building
 - Built-in and configurable ratelimiter if no access to `whitelist.txt`
-- Query caching
 
 ## ✏️ Examples
 
@@ -17,7 +16,7 @@ from __future__ import annotations
 
 import asyncio
 
-from tsbot import TSBot, context, events, query
+from tsbot import TSBot, TSCtx, query
 
 
 bot = TSBot(
@@ -28,13 +27,13 @@ bot = TSBot(
 
 
 @bot.command("hello")
-async def hello_world(bot: TSBot, ctx: context.TSCtx):
+async def hello_world(bot: TSBot, ctx: TSCtx):
     await bot.respond(ctx, f"Hello {ctx['invokername']}!")
 
 
 @bot.on("cliententerview")
-async def poke_on_enter(bot: TSBot, event: events.TSEvent):
-    poke_query = query("clientpoke").params(clid=event.ctx["clid"], msg="Welcome to the server!")
+async def poke_on_enter(bot: TSBot, ctx: TSCtx):
+    poke_query = query("clientpoke").params(clid=ctx["clid"], msg="Welcome to the server!")
     await bot.send(poke_query)
 
 

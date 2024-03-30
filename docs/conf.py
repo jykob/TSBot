@@ -13,13 +13,16 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath("."))
-
+sys.path.insert(0, os.path.abspath("../tsbot/"))
+sys.path.append(os.path.abspath("./_ext"))
 
 # -- Project information -----------------------------------------------------
 
+
+import datetime
+
 project = "TSBot"
-copyright = "2022, 0x4aK"
+copyright = "{}, 0x4aK".format(datetime.date.today().year)
 author = "0x4aK"
 
 
@@ -30,9 +33,11 @@ author = "0x4aK"
 # ones.
 extensions = [
     "sphinx.ext.intersphinx",
-    "myst_parser",
     "sphinx.ext.autodoc",
     "sphinx_autodoc_typehints",
+    "sphinx_rtd_theme",
+    "myst_parser",
+    "autodoc-decoratormethod",
 ]
 
 source_suffix = {
@@ -42,8 +47,10 @@ source_suffix = {
 }
 
 # -- AutoDoc Options --------------------
-autodoc_typehints = "both"
+autodoc_typehints = "signature"
+autodoc_member_order = "bysource"
 autodoc_preserve_defaults = True
+autoclass_content = "both"
 
 
 # -- MyST Options -----------------------
@@ -56,7 +63,7 @@ myst_enable_extensions = [
 intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ["../templates"]
+templates_path = ["./templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -74,7 +81,7 @@ html_theme = "sphinx_rtd_theme"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["../static"]
+html_static_path = ["./static"]
 
 html_css_files = ["custom.css"]
 html_js_files = ["custom.js"]
