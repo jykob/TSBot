@@ -83,6 +83,7 @@ isolated_build = true
 python =
     3.10: py310, mypy
     3.11: py311
+    3.12: py312
 
 [testenv]
 setenv =
