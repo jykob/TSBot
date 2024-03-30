@@ -1,6 +1,6 @@
 [project]
 name = "tsbot"
-version = "0.18.0"
+version = "1.0.0"
 authors = [{ name = "0x4aK" }]
 description = "Asynchronous framework to build TeamSpeak 3 Server Query bots"
 readme = "README.md"
@@ -16,11 +16,7 @@ classifiers = [
 ]
 dependencies = ["asyncssh >= 2.9.0"]
 license = { file = "LICENCE" }
-
-
-[project.urls]
-repository = "https://github.com/0x4aK/tsbot"
-documentation = "https://tsbot.readthedocs.io/en/latest/"
+urls = { repository = "https://github.com/0x4aK/tsbot", documentation = "https://tsbot.readthedocs.io/en/latest/" }
 
 
 [project.optional-dependencies]
