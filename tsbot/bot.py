@@ -11,7 +11,6 @@ from typing import (
     Concatenate,
     Coroutine,
     ParamSpec,
-    overload,
 )
 
 from tsbot import (
@@ -237,25 +236,9 @@ class TSBot:
         """
         self.command_handler.remove_command(command)
 
-    def every(
-        self, seconds: int, name: str | None = None
-    ) -> Callable[[tasks.TTaskH], tasks.TTaskH]:
-        """
-        Decorator to register tasks to be ran every given second.
-
-        :param seconds: How often the task is executed.
-        :param name: Name of the task.
-        """
-
-        def every_decorator(func: tasks.TTaskH) -> tasks.TTaskH:
-            self.register_every_task(seconds, func, name=name)
-            return func
-
-        return every_decorator
-
     def register_every_task(
         self,
-        seconds: int,
+        seconds: float,
         handler: tasks.TTaskH,
         *,
         name: str | None = None,
@@ -271,31 +254,6 @@ class TSBot:
         task = tasks.TSTask(handler=tasks.every(handler, seconds), name=name)
         self.tasks_handler.register_task(self, task)
         return task
-
-    @overload
-    def task(self, *, name: str | None) -> Callable[[tasks.TTaskH], tasks.TTaskH]: ...
-
-    @overload
-    def task(self, func: tasks.TTaskH) -> tasks.TTaskH: ...
-
-    def task(
-        self, func: tasks.TTaskH | None = None, *, name: str | None = None
-    ) -> tasks.TTaskH | Callable[[tasks.TTaskH], tasks.TTaskH]:
-        """
-        Decorator to register a background tasks.
-
-        :param func: Async function to handle task.
-        :param name: Name of the task.
-        """
-
-        def task_decorator(func: tasks.TTaskH) -> tasks.TTaskH:
-            self.register_task(func, name=name)
-            return func
-
-        if func is None:
-            return task_decorator
-
-        return task_decorator(func)
 
     def register_task(
         self,
@@ -522,12 +480,6 @@ class TSBot:
 
                 elif once_kwargs := getattr(member, "__ts_once__", None):
                     self.register_once_handler(handler=member, **once_kwargs)
-
-                elif every_kwargs := getattr(member, "__ts_every__", None):
-                    self.register_every_task(handler=member, **every_kwargs)
-
-                elif task_kwargs := getattr(member, "__ts_task__", None):
-                    self.register_task(handler=member, **task_kwargs)
 
             self.plugins[plugin_to_be_loaded.__class__.__name__] = plugin_to_be_loaded
 

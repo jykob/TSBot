@@ -20,7 +20,10 @@ class KeepAlive(plugin.TSPlugin):
     def __init__(self) -> None:
         self.command_sent_event = asyncio.Event()
 
-    @plugin.task(name="KeepAlive-Task")
+    @plugin.once("ready")
+    async def init_keep_alive(self, bot: bot.TSBot, ctx: None) -> None:
+        bot.register_task(self._keep_alive_task, name="KeepAlive-Task")
+
     async def _keep_alive_task(self, bot: bot.TSBot) -> None:
         """
         Task to keep connection alive with the TeamSpeak server
