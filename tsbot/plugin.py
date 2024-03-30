@@ -8,7 +8,6 @@ from typing import (
     Coroutine,
     ParamSpec,
     TypeVar,
-    overload,
 )
 
 if TYPE_CHECKING:
@@ -81,56 +80,3 @@ def once(
         return func
 
     return once_decorator
-
-
-@overload
-def task(*, name: str | None) -> Callable[
-    [Callable[[_T, bot.TSBot], Coroutine[None, None, None]]],
-    Callable[[_T, bot.TSBot], Coroutine[None, None, None]],
-]: ...
-
-
-@overload
-def task(
-    func: Callable[[_T, bot.TSBot], Coroutine[None, None, None]],
-) -> Callable[[_T, bot.TSBot], Coroutine[None, None, None]]: ...
-
-
-def task(
-    func: Callable[[_T, bot.TSBot], Coroutine[None, None, None]] | None = None,
-    *,
-    name: str | None = None,
-) -> (
-    Callable[[_T, bot.TSBot], Coroutine[None, None, None]]
-    | Callable[
-        [Callable[[_T, bot.TSBot], Coroutine[None, None, None]]],
-        Callable[[_T, bot.TSBot], Coroutine[None, None, None]],
-    ]
-):
-    """Decorator to register plugin tasks"""
-
-    def task_decorator(
-        func: Callable[[_T, bot.TSBot], Coroutine[None, None, None]]
-    ) -> Callable[[_T, bot.TSBot], Coroutine[None, None, None]]:
-        func.__ts_task__ = {"name": name}  # type: ignore
-        return func
-
-    if func is not None:
-        return task_decorator(func)
-
-    return task_decorator
-
-
-def every(seconds: int, name: str | None = None) -> Callable[
-    [Callable[[_T, bot.TSBot], Coroutine[None, None, None]]],
-    Callable[[_T, bot.TSBot], Coroutine[None, None, None]],
-]:
-    """Decorator to register plugin every tasks"""
-
-    def every_decorator(
-        func: Callable[[_T, bot.TSBot], Coroutine[None, None, None]]
-    ) -> Callable[[_T, bot.TSBot], Coroutine[None, None, None]]:
-        func.__ts_every__ = {"seconds": seconds, "name": name}  # type: ignore
-        return func
-
-    return every_decorator
