@@ -62,7 +62,7 @@ async def upload(
         cid=cid,
         cpw=cpw,
         resume=0,
-        overwrite=1 if overwrite else 0,
+        overwrite=overwrite,
     )
 
     resp = await bot.send(init_query)
