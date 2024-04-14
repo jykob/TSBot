@@ -80,7 +80,13 @@ The method [params()](<tsbot.query_builder.TSQuery.params()>) accepts parameters
 You can supply as **_many arguments_** as want or add them **_one by one_**.
 
 Values can be anything that implements `__str__()` method.
-The method [params()](<tsbot.query_builder.TSQuery.params()>) calls [str()](str) on each value that is added.
+During query compilation, `str()` will be called on the value.  
+Values `True` or `False` will be converted to `'1'` and `'0'` respectively during compilation.
+
+```python
+# `force=True` will be converted to `force=1` during compilation
+example_query = query("channeldelete").params(cid=1, force=True)
+```
 
 Since [params()](<tsbot.query_builder.TSQuery.params()>) accepts **_keys_** and **_values_**,
 this allows us to build the parameters as a [dict](dict) and spread the dictionary when calling the method.
@@ -102,6 +108,8 @@ example_query = example_query.params(msg="Wake up!")
 params = {"clid": 1, "msg": "Wake up!"}
 example_query = example_query.params(**params)
 ```
+
+
 
 ### Adding parameter blocks
 

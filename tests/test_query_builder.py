@@ -20,7 +20,7 @@ def test_add_params():
     assert q._parameters == {}
 
     q = q.params(cid=16, cpid=1, order=0)
-    assert q._parameters == {"cid": "16", "cpid": "1", "order": "0"}
+    assert q._parameters == {"cid": 16, "cpid": 1, "order": 0}
 
 
 def test_add_param_blocks():
@@ -113,10 +113,11 @@ def test_caching():
     first_compile = q.compile()
 
     assert q._cached_command
-    assert first_compile == q.compile()
+    assert first_compile is q.compile()
 
 
-def test_cache_invalid(q: TSQuery):
+def test_cache_invalid():
+    q = query("channelmove").params(cid=16, cpid=1, order=0)
     first_compile = q.compile()
 
     q = q.option("continueonerror")
@@ -125,6 +126,20 @@ def test_cache_invalid(q: TSQuery):
     assert first_compile != q.compile()
 
 
-@pytest.fixture
-def q():
-    return query("channelmove").params(cid=16, cpid=1, order=0)
+@pytest.mark.parametrize(
+    ("q", "includes"),
+    (
+        pytest.param(
+            query("channeldelete").params(cid=1, force=True),
+            "force=1",
+            id="test_boolean_conversion_true",
+        ),
+        pytest.param(
+            query("channeldelete").params(cid=1, force=False),
+            "force=0",
+            id="test_boolean_conversion_false",
+        ),
+    ),
+)
+def test_boolean_params(q: TSQuery, includes: str):
+    assert includes in q.compile()
