@@ -420,7 +420,7 @@ class TSBot:
 
         async def select_server() -> None:
             """Set current virtual server"""
-            await self.send(query_builder.TSQuery("use", parameters={"sid": str(self.server_id)}))
+            await self.send(query_builder.TSQuery("use", parameters={"sid": self.server_id}))
 
         async def register_notifies() -> None:
             """Coroutine to register server to send events to the bot"""
@@ -496,7 +496,7 @@ class TSBot:
         await self.send(
             query_builder.TSQuery(
                 "sendtextmessage",
-                parameters={"targetmode": target_mode.value, "target": target, "msg": str(message)},
+                parameters={"targetmode": target_mode.value, "target": target, "msg": message},
             )
         )
 
@@ -515,7 +515,7 @@ class TSBot:
                     parameters={
                         "targetmode": enums.TextMessageTargetMode.CLIENT.value,
                         "target": target,
-                        "msg": str(message),
+                        "msg": message,
                     },
                 )
             )
