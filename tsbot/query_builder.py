@@ -22,8 +22,8 @@ def query(command: str) -> TSQuery:
     return TSQuery(command)
 
 
-def _to_dict_values(kv: tuple[str, Stringable]) -> tuple[str, str]:
-    return kv[0], str(kv[1])
+def _format_value(key: str, value: Stringable) -> str:
+    return f"{key}={int(value) if isinstance(value, bool) else utils.escape(str(value))}"
 
 
 def _format_value(kv: tuple[str, str]) -> str:
