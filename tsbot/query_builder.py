@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import itertools
 from collections.abc import Mapping
 from typing import Iterable, Protocol, TypeVar
 
@@ -26,8 +27,8 @@ def _format_value(key: str, value: Stringable) -> str:
     return f"{key}={int(value) if isinstance(value, bool) else utils.escape(str(value))}"
 
 
-def _format_value(kv: tuple[str, str]) -> str:
-    return f"{kv[0]}={utils.escape(kv[1])}"
+def _format_parameters(params: Mapping[str, Stringable]) -> str:
+    return " ".join(itertools.starmap(_format_value, params.items()))
 
 
 class TSQuery:
@@ -46,9 +47,9 @@ class TSQuery:
     def __init__(
         self,
         command: str,
-        options: tuple[str, ...] | None = None,
-        parameters: dict[str, str] | None = None,
-        parameter_blocks: tuple[dict[str, str], ...] | None = None,
+        options: tuple[Stringable, ...] | None = None,
+        parameters: dict[str, Stringable] | None = None,
+        parameter_blocks: tuple[dict[str, Stringable], ...] | None = None,
     ) -> None:
         """
         :param command: Base query command.
@@ -80,7 +81,7 @@ class TSQuery:
 
         return type(self)(
             self._command,
-            self._options + tuple(map(str, args)),
+            self._options + args,
             self._parameters,
             self._parameter_blocks,
         )
@@ -96,7 +97,7 @@ class TSQuery:
         return type(self)(
             self._command,
             self._options,
-            self._parameters | dict(map(_to_dict_values, kwargs.items())),
+            self._parameters | kwargs,
             self._parameter_blocks,
         )
 
@@ -116,14 +117,13 @@ class TSQuery:
         :return: New :class:`TSQuery<tsbot.query_builder.TSQuery>` instance with added parameter blocks
         """
 
-        param_blocks = tuple(blocks) if blocks else (kwargs,)
+        param_blocks = tuple(map(dict, blocks)) if blocks else (kwargs,)
 
         return type(self)(
             self._command,
             self._options,
             self._parameters,
-            self._parameter_blocks
-            + tuple(dict(map(_to_dict_values, block.items())) for block in param_blocks),
+            self._parameter_blocks + param_blocks,
         )
 
     def compile(self) -> str:
@@ -139,10 +139,10 @@ class TSQuery:
         compiled = self._command
 
         if self._parameters:
-            compiled += f" {' '.join(map(_format_value, self._parameters.items()))}"
+            compiled += f" {_format_parameters(self._parameters)}"
 
         if self._parameter_blocks:
-            compiled += f" {'|'.join(' '.join(map(_format_value, parameters.items())) for parameters in self._parameter_blocks)}"
+            compiled += f" {'|'.join(map(_format_parameters, self._parameter_blocks))}"
 
         if self._options:
             compiled += f" {' '.join(f'-{option}' for option in self._options)}"
