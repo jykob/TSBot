@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, NamedTuple, TypeVar
 
-from tsbot import context, utils
+from tsbot import context, parsers
 
 _T = TypeVar("_T", bound="TSEvent")
 
@@ -21,5 +21,5 @@ class TSEvent(NamedTuple):
         event, _, data = raw_data.partition(" ")
         return cls(
             event=event.removeprefix("notify"),
-            ctx=context.TSCtx(utils.parse_line(data)),
+            ctx=context.TSCtx(parsers.parse_line(data)),
         )

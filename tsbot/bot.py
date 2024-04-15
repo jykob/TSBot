@@ -316,7 +316,7 @@ class TSBot:
             if self.is_ratelimited:
                 await self.ratelimiter.wait()
 
-            logger.debug("Sending query: %s", raw_query)
+            logger.debug("Sending query: %r", raw_query)
             self.emit(event_name="send", ctx={"query": raw_query})
             await self._connection.write(raw_query)
 
