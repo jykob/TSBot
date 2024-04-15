@@ -232,7 +232,7 @@ class TSBot:
     def register_every_task(
         self,
         seconds: float,
-        handler: tasks.TTaskH,
+        handler: tasks.TTaskHandler,
         *,
         name: str | None = None,
     ) -> tasks.TSTask:
@@ -250,7 +250,7 @@ class TSBot:
 
     def register_task(
         self,
-        handler: tasks.TTaskH,
+        handler: tasks.TTaskHandler,
         *,
         name: str | None = None,
     ) -> tasks.TSTask:
