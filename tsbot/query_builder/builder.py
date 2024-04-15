@@ -17,7 +17,7 @@ class Stringable(Protocol):
     def __str__(self) -> str: ...
 
 
-def query(command: query_builder.Commands) -> TSQuery:
+def query(command: query_builder.TCommands) -> TSQuery:
     """
     Function to create :class:`TSQuery<tsbot.query_builder.TSQuery>` instances.
 
@@ -50,7 +50,7 @@ class TSQuery:
 
     def __init__(
         self,
-        command: query_builder.Commands,
+        command: query_builder.TCommands,
         options: tuple[Stringable, ...] | None = None,
         parameters: dict[str, Stringable] | None = None,
         parameter_blocks: tuple[dict[str, Stringable], ...] | None = None,
