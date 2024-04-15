@@ -2,9 +2,13 @@ from __future__ import annotations
 
 import itertools
 from collections.abc import Mapping
-from typing import Iterable, Protocol, TypeVar
+from typing import TYPE_CHECKING, Iterable, Protocol, TypeVar
 
 from tsbot import utils
+
+if TYPE_CHECKING:
+    from tsbot import query_builder
+
 
 _T = TypeVar("_T", bound="TSQuery")
 
@@ -13,7 +17,7 @@ class Stringable(Protocol):
     def __str__(self) -> str: ...
 
 
-def query(command: str) -> TSQuery:
+def query(command: query_builder.Commands) -> TSQuery:
     """
     Function to create :class:`TSQuery<tsbot.query_builder.TSQuery>` instances.
 
@@ -38,7 +42,7 @@ class TSQuery:
 
     __slots__ = (
         "_command",
-        "_cached_command",
+        "_cached_query",
         "_options",
         "_parameters",
         "_parameter_blocks",
@@ -46,7 +50,7 @@ class TSQuery:
 
     def __init__(
         self,
-        command: str,
+        command: query_builder.Commands,
         options: tuple[Stringable, ...] | None = None,
         parameters: dict[str, Stringable] | None = None,
         parameter_blocks: tuple[dict[str, Stringable], ...] | None = None,
@@ -57,12 +61,8 @@ class TSQuery:
         :param parameters: Parameters attached to the query.
         :param parameter_blocks: Parameter blocks attached to the query.
         """
-        if not command:
-            raise ValueError("Command cannot be empty")
-
         self._command = command
-
-        self._cached_command: str = ""
+        self._cached_query: str | None = None
 
         self._options = options or tuple()
         self._parameters = parameters or {}
@@ -80,7 +80,7 @@ class TSQuery:
         """
 
         return type(self)(
-            self._command,
+            self._command,  # type: ignore
             self._options + args,
             self._parameters,
             self._parameter_blocks,
@@ -95,7 +95,7 @@ class TSQuery:
         """
 
         return type(self)(
-            self._command,
+            self._command,  # type:ignore
             self._options,
             self._parameters | kwargs,
             self._parameter_blocks,
@@ -117,10 +117,12 @@ class TSQuery:
         :return: New :class:`TSQuery<tsbot.query_builder.TSQuery>` instance with added parameter blocks
         """
 
-        param_blocks = tuple(map(dict, blocks)) if blocks else (kwargs,)
+        param_blocks: tuple[dict[str, Stringable], ...] = (
+            tuple(map(dict, blocks)) if blocks else (kwargs,)
+        )
 
         return type(self)(
-            self._command,
+            self._command,  # type:ignore
             self._options,
             self._parameters,
             self._parameter_blocks + param_blocks,
@@ -133,10 +135,10 @@ class TSQuery:
         :return: The compiled query command.
         """
 
-        if self._cached_command:
-            return self._cached_command
+        if self._cached_query:
+            return self._cached_query
 
-        compiled = self._command
+        compiled: str = self._command
 
         if self._parameters:
             compiled += f" {_format_parameters(self._parameters)}"
@@ -147,5 +149,5 @@ class TSQuery:
         if self._options:
             compiled += f" {' '.join(f'-{option}' for option in self._options)}"
 
-        self._cached_command = compiled
+        self._cached_query = compiled
         return compiled
