@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import AsyncIterator
+from typing import AsyncGenerator
 
 import asyncssh
 
@@ -43,16 +43,16 @@ class TSConnection:
 
         logger.info("Connection closed")
 
-    async def read_lines(self, number_of_lines: int = 1) -> AsyncIterator[str]:
+    async def read_lines(self, number_of_lines: int = 1) -> AsyncGenerator[str, None]:
         lines_read = 0
 
-        while lines_read < number_of_lines and (data := await self._read()):
+        while lines_read < number_of_lines and (data := await self._read()) is not None:
             lines_read += 1
-            yield data.strip()
+            yield data
 
-    async def read(self) -> AsyncIterator[str]:
-        while data := await self._read():
-            yield data.strip()
+    async def read(self) -> AsyncGenerator[str, None]:
+        while (data := await self._read()) is not None:
+            yield data
 
         logger.debug("Reading done")
 
@@ -62,12 +62,10 @@ class TSConnection:
 
         try:
             data = await self._reader.readuntil("\n\r")
-
         except asyncio.IncompleteReadError:
             return None
-
         else:
-            return data
+            return data.rstrip()
 
     async def write(self, msg: str) -> None:
         if not self._writer or self._writer.is_closing():

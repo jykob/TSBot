@@ -240,7 +240,7 @@ def test_internal_read(connected_conn: connection.TSConnection):
     line = asyncio.run(connected_conn._read())
 
     assert isinstance(line, str)
-    assert line == "line 1\n\r"
+    assert line == "line 1"
 
 
 def test_internal_read_exception_incomplete(
