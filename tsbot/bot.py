@@ -4,14 +4,7 @@ import asyncio
 import contextlib
 import inspect
 import logging
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Concatenate,
-    Coroutine,
-    ParamSpec,
-)
+from typing import TYPE_CHECKING, Any, Callable, Concatenate, Coroutine, ParamSpec
 
 from tsbot import (
     commands,
@@ -104,21 +97,21 @@ class TSBot:
         """
         self.event_handler.event_queue.put_nowait(event)
 
-    def on(self, event_type: str) -> Callable[[events.TEventH], events.TEventH]:
+    def on(self, event_type: str) -> Callable[[events.TEventHandler], events.TEventHandler]:
         """
         Decorator to register event handlers.
 
         :param event_type: Name of the event.
         """
 
-        def event_decorator(func: events.TEventH) -> events.TEventH:
+        def event_decorator(func: events.TEventHandler) -> events.TEventHandler:
             self.register_event_handler(event_type, func)
             return func
 
         return event_decorator
 
     def register_event_handler(
-        self, event_type: str, handler: events.TEventH
+        self, event_type: str, handler: events.TEventHandler
     ) -> events.TSEventHandler:
         """
         Register an event handler to be ran on an event
@@ -132,21 +125,21 @@ class TSBot:
         self.event_handler.register_event_handler(event_handler)
         return event_handler
 
-    def once(self, event_type: str) -> Callable[[events.TEventH], events.TEventH]:
+    def once(self, event_type: str) -> Callable[[events.TEventHandler], events.TEventHandler]:
         """
         Decorator to register once handler.
 
         :param event_type: Name of the event.
         """
 
-        def once_decorator(func: events.TEventH) -> events.TEventH:
+        def once_decorator(func: events.TEventHandler) -> events.TEventHandler:
             self.register_once_handler(event_type, func)
             return func
 
         return once_decorator
 
     def register_once_handler(
-        self, event_type: str, handler: events.TEventH
+        self, event_type: str, handler: events.TEventHandler
     ) -> events.TSEventOnceHandler:
         """
         Register an event handler to be ran once on an event.
