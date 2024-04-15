@@ -7,13 +7,13 @@ if TYPE_CHECKING:
     from tsbot import bot, events
 
 
-TEventH = Callable[["bot.TSBot", Any], Coroutine[None, None, None]]
+TEventHandler = Callable[["bot.TSBot", Any], Coroutine[None, None, None]]
 
 
 @dataclass(slots=True)
 class TSEventHandler:
     event: str
-    handler: TEventH
+    handler: TEventHandler
 
     async def run(self, bot: bot.TSBot, event: events.TSEvent) -> None:
         await self.handler(bot, event.ctx)
