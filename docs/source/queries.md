@@ -137,7 +137,7 @@ example_query = example_query.param_block(clid=2, clid=3, clid=6)
 ```
 ````
 
-Alternatively, you can pass an [Iterable](typing.Iterable)[[dict](dict)[[str](str), [ParameterTypes](tsbot.query_builder.ParameterTypes)]] as the first argument to pass multiple
+Alternatively, you can pass an [Iterable](typing.Iterable)[[dict](dict)[[str](str), [Stringable](tsbot.query_builder.builder.Stringable)]] as the first argument to pass multiple
 parameter blocks at the same time.
 
 ```python

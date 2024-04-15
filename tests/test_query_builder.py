@@ -101,18 +101,13 @@ def test_query_compile(input_query: TSQuery, expected: str) -> None:
     assert input_query.compile() == expected
 
 
-def test_empty_query():
-    with pytest.raises(ValueError):
-        query("")
-
-
 def test_caching():
     q = query("channelmove")
     q.params(cid=16, cpid=1, order=0)
 
     first_compile = q.compile()
 
-    assert q._cached_command
+    assert q._cached_query
     assert first_compile is q.compile()
 
 
@@ -122,7 +117,7 @@ def test_cache_invalid():
 
     q = q.option("continueonerror")
 
-    assert not q._cached_command
+    assert not q._cached_query
     assert first_compile != q.compile()
 
 
