@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Generator, TypeVar
 
-from tsbot import utils
+from tsbot import parsers
 
 _T = TypeVar("_T", bound="TSResponse")
 
@@ -33,8 +33,8 @@ class TSResponse:
 
     @classmethod
     def from_server_response(cls: type[_T], raw_data: list[str]) -> _T:
-        response_info = utils.parse_line(raw_data[-1].removeprefix("error "))
-        data = utils.parse_data("".join(raw_data[:-1]))
+        response_info = parsers.parse_line(raw_data[-1].removeprefix("error "))
+        data = parsers.parse_data("".join(raw_data[:-1]))
 
         error_id = int(response_info.pop("id"))
         msg = response_info.pop("msg")

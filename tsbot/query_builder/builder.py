@@ -4,7 +4,7 @@ import itertools
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Iterable, Protocol, TypeVar
 
-from tsbot import utils
+from tsbot import encoders
 
 if TYPE_CHECKING:
     from tsbot import query_builder
@@ -28,7 +28,7 @@ def query(command: query_builder.TCommands) -> TSQuery:
 
 
 def _format_value(key: str, value: Stringable) -> str:
-    return f"{key}={int(value) if isinstance(value, bool) else utils.escape(str(value))}"
+    return f"{key}={int(value) if isinstance(value, bool) else encoders.escape(str(value))}"
 
 
 def _format_parameters(params: Mapping[str, Stringable]) -> str:
