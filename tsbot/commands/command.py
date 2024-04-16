@@ -4,7 +4,7 @@ import asyncio
 import inspect
 import itertools
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Callable, Coroutine
+from typing import TYPE_CHECKING, Callable, Coroutine, cast
 
 from tsbot import exceptions, parsers
 
@@ -70,7 +70,7 @@ class TSCommand:
 
     async def run(self, bot: bot.TSBot, ctx: context.TSCtx, msg: str) -> None:
         if self.raw:
-            args, kwargs = ((msg,) if msg else (), {})
+            args, kwargs = (msg,) if msg else (), cast(dict[str, str], {})
         else:
             args, kwargs = parsers.parse_args_kwargs(msg)
 
