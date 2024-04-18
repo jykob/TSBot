@@ -363,11 +363,11 @@ class TSBot:
 
         logger.debug("Reader task done")
 
-    async def close(self) -> None:
+    def close(self) -> None:
         """
-        Async method to handle closing the bot.
+        Method to close the bot.
 
-        Emits `close` event to notify client closing,
+        Emits `close` event to notify that the client is closing,
         cancels background tasks and send quit command.
         """
 
