@@ -115,7 +115,7 @@ class TSBot:
         self, event_type: str, handler: events.TEventHandler
     ) -> events.TSEventHandler:
         """
-        Register an event handler to be ran on an event
+        Register an event handler to be ran on an event.
 
         :param event_type: Name of the event.
         :param handler: async function to handle the event.
@@ -277,7 +277,7 @@ class TSBot:
 
     async def send(self, query: query_builder.TSQuery) -> response.TSResponse:
         """
-        Sends queries to the server, assuring only one of them gets sent at a time
+        Sends queries to the server, assuring only one of them gets sent at a time.
 
         :param query: Instance of :class:`TSQuery<tsbot.query_builder.TSQuery>` to be send to the server.
         :return: Response from the server.
@@ -330,16 +330,16 @@ class TSBot:
 
         if server_response.error_id != 0:
             raise exceptions.TSResponseError(
-                msg=server_response.msg, error_id=int(server_response.error_id)
+                msg=server_response.msg,
+                error_id=int(server_response.error_id),
             )
 
         return server_response
 
     async def _reader_task(self, ready_event: asyncio.Event) -> None:
-        """Task to read messages from the server"""
+        """Task to read messages from the server."""
 
         WELCOME_MESSAGE_LENGTH = 2
-
         async for data in self._connection.read_lines(WELCOME_MESSAGE_LENGTH):
             pass
 
@@ -365,7 +365,7 @@ class TSBot:
 
     async def close(self) -> None:
         """
-        Async function to handle closing the bot
+        Async method to handle closing the bot.
 
         Emits `close` event to notify client closing,
         cancels background tasks and send quit command.
