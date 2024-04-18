@@ -69,7 +69,7 @@ class TSBot:
         self._event_handler = events.EventHandler()
         self._command_handler = commands.CommandHandler(invoker)
 
-        self.ratelimited = ratelimited
+        self._ratelimited = ratelimited
         self._ratelimiter = ratelimiter.RateLimiter(
             max_calls=ratelimit_calls, period=ratelimit_period
         )
@@ -308,7 +308,7 @@ class TSBot:
         async with self._sending_lock:
             self._response = asyncio.Future()
 
-            if self.ratelimited:
+            if self._ratelimited:
                 await self._ratelimiter.wait()
 
             logger.debug("Sending query: %r", raw_query)
