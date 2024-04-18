@@ -230,6 +230,15 @@ class TSBot:
         """
         self._command_handler.remove_command(command)
 
+    def get_command_handler(self, command: str):
+        """
+        Get :class:`TSCommand<tsbot.commands.TSCommand>` instance associated with a given `str`
+
+        :param command: command that invokes :class:`TSCommand<tsbot.commands.TSCommand>`
+        :return: :class:`TSCommand<tsbot.commands.TSCommand>` associated with `command`
+        """
+        return self._command_handler.commands.get(command)
+
     def register_every_task(
         self,
         seconds: float,
