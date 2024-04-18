@@ -18,6 +18,7 @@ from tsbot import (
     ratelimiter,
     response,
     tasks,
+    utils,
 )
 
 if TYPE_CHECKING:
@@ -284,10 +285,7 @@ class TSBot:
         try:
             return await self.send_raw(query.compile())
         except exceptions.TSResponseError as response_error:
-            if (tb := response_error.__traceback__) and tb.tb_next:
-                response_error = response_error.with_traceback(tb.tb_next.tb_next)
-
-            raise response_error
+            raise utils.pop_traceback(response_error, 2)
 
     async def send_raw(self, raw_query: str) -> response.TSResponse:
         """
@@ -302,10 +300,7 @@ class TSBot:
         try:
             return await asyncio.shield(self._send(raw_query))
         except exceptions.TSResponseError as response_error:
-            if (tb := response_error.__traceback__) and tb.tb_next:
-                response_error = response_error.with_traceback(tb.tb_next.tb_next)
-
-            raise response_error
+            raise utils.pop_traceback(response_error, 2)
 
     async def _send(self, raw_query: str) -> response.TSResponse:
         """Method responsibe for actually sending the data."""
