@@ -230,7 +230,7 @@ class TSBot:
         """
         self._command_handler.remove_command(command)
 
-    def get_command_handler(self, command: str):
+    def get_command_handler(self, command: str) -> commands.TSCommand | None:
         """
         Get :class:`TSCommand<tsbot.commands.TSCommand>` instance associated with a given `str`
 
