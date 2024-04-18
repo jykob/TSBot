@@ -4,10 +4,11 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING
 
-logger = logging.getLogger(__name__)
-
 if TYPE_CHECKING:
     from tsbot import bot, tasks
+
+
+logger = logging.getLogger(__name__)
 
 
 class TasksHandler:
@@ -28,13 +29,13 @@ class TasksHandler:
         else:
             self._start_task(bot, task)
 
-        logger.debug("Registered a task %r", task.handler)
+        logger.debug("Registered a task handler %r", task.handler.__name__)
 
     def remove_task(self, task: tasks.TSTask) -> None:
         if task.task and not task.task.done():
             task.task.cancel()
 
-        self._tasks = [t for t in self._tasks if t is not task]
+        self._tasks = list(filter(lambda t: t is not task, self._tasks))
 
     def start(self, bot: bot.TSBot) -> None:
         while self._starting_tasks:
@@ -44,9 +45,8 @@ class TasksHandler:
         logger.debug("Task handler started")
 
     async def close(self) -> None:
-        for task in self._tasks:
-            if task.task:
-                task.task.cancel()
+        for task in filter(bool, map(lambda t: t.task, self._tasks)):
+            task.cancel()  # type: ignore
 
         # Sleep until all the tasks are removed from tasks list
         while self._tasks:

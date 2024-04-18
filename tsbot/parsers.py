@@ -5,11 +5,11 @@ from tsbot import encoders
 KWARG_INDICATOR = "-"
 
 
-def parse_data(input_str: str) -> list[dict[str, str]]:
+def parse_data(input_str: str) -> tuple[dict[str, str], ...]:
     if not input_str:
-        return []
+        return tuple()
 
-    return list(map(parse_line, input_str.split("|")))
+    return tuple(map(parse_line, input_str.split("|")))
 
 
 def parse_line(input_str: str) -> dict[str, str]:
@@ -24,7 +24,7 @@ def parse_value(input_str: str) -> tuple[str, str]:
 
     if "|" in value:
         # Multiple values associated with the key. Making values comma separated
-        return key, ",".join(v for v in value.split(f"|{key}="))
+        return key, ",".join(map(encoders.unescape, value.split(f"|{key}=")))
 
     return key, encoders.unescape(value) if value else ""
 

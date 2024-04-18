@@ -28,9 +28,9 @@ class CommandHandler:
         self.commands.update({c: command for c in command.commands})
 
         logger.debug(
-            "Registered %s command to execute %r",
+            "Registered %s command to execute handler %r",
             ", ".join(repr(c) for c in command.commands),
-            command.handler,
+            command.handler.__name__,
         )
 
     def remove_command(self, command: commands.TSCommand) -> None:

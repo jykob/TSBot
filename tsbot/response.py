@@ -14,7 +14,7 @@ class TSResponse:
     Class to represent the response to a query from a Teamspeak server.
     """
 
-    data: list[dict[str, str]]
+    data: tuple[dict[str, str], ...]
     error_id: int
     msg: str
 
@@ -40,6 +40,6 @@ class TSResponse:
         msg = response_info.pop("msg")
 
         if response_info:
-            data.append(response_info)
+            data += (response_info,)
 
         return cls(data=data, error_id=error_id, msg=msg)
