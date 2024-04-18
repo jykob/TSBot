@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import logging
 from typing import AsyncGenerator
 
@@ -62,7 +61,7 @@ class TSConnection:
 
         try:
             data = await self._reader.readuntil("\n\r")
-        except (asyncio.IncompleteReadError, ConnectionResetError):
+        except Exception:
             return None
         else:
             return data.rstrip()
