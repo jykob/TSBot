@@ -8,19 +8,19 @@ from tsbot import parsers
 @pytest.mark.parametrize(
     ("input_str", "expected"),
     (
-        pytest.param("", [], id="test_empty"),
-        pytest.param("ip=0.0.0.0|ip=::", [{"ip": "0.0.0.0"}, {"ip": "::"}], id="test_simple"),
+        pytest.param("", tuple(), id="test_empty"),
+        pytest.param("ip=0.0.0.0|ip=::", ({"ip": "0.0.0.0"}, {"ip": "::"}), id="test_simple"),
         pytest.param(
             "clid=14 client_nickname=Sven|clid=17 client_nickname=SvenBot",
-            [
+            (
                 {"clid": "14", "client_nickname": "Sven"},
                 {"clid": "17", "client_nickname": "SvenBot"},
-            ],
+            ),
             id="test_multiple_data_simple",
         ),
         pytest.param(
             "cgid=1 name=Channel\\sAdmin type=0 iconid=100 savedb=1 sortid=0 namemode=0 n_modifyp=75 n_member_addp=50 n_member_removep=50|cgid=2 name=Operator type=0 iconid=200 savedb=1 sortid=0 namemode=0 n_modifyp=75 n_member_addp=30 n_member_removep=30|cgid=3 name=Voice type=0 iconid=600 savedb=1 sortid=0 namemode=0 n_modifyp=75 n_member_addp=25 n_member_removep=25|cgid=4 name=Guest type=0 iconid=0 savedb=0 sortid=0 namemode=0 n_modifyp=75 n_member_addp=0 n_member_removep=0|cgid=5 name=Channel\\sAdmin type=1 iconid=100 savedb=1 sortid=0 namemode=0 n_modifyp=75 n_member_addp=50 n_member_removep=50|cgid=6 name=Operator type=1 iconid=200 savedb=1 sortid=0 namemode=0 n_modifyp=75 n_member_addp=30 n_member_removep=30|cgid=7 name=Voice type=1 iconid=600 savedb=1 sortid=0 namemode=0 n_modifyp=75 n_member_addp=25 n_member_removep=25|cgid=8 name=Guest type=1 iconid=0 savedb=0 sortid=0 namemode=0 n_modifyp=75 n_member_addp=0 n_member_removep=0",
-            [
+            (
                 {
                     "cgid": "1",
                     "name": "Channel Admin",
@@ -117,7 +117,7 @@ from tsbot import parsers
                     "n_member_addp": "0",
                     "n_member_removep": "0",
                 },
-            ],
+            ),
             id="test_multiple_data_complex",
         ),
     ),
@@ -175,7 +175,7 @@ def test_parse_line(input_str: str, expected: dict[str, str]) -> None:
             ("client_servergroups", "6,16,20"),
             id="test_comma_sepparated",
         ),
-        pytest.param("clid=11|clid=12|clid=13", ("clid", "11,12,13"), id="test_param_block"),
+        pytest.param("clid=11|clid=12|clid=13", ("clid", "11,12,13"), id="test_multiple_values"),
         pytest.param(
             "channel_name=Bot\\sCommands",
             ("channel_name", "Bot Commands"),
