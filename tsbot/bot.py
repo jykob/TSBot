@@ -371,20 +371,20 @@ class TSBot:
         cancels background tasks and send quit command.
         """
 
-        async def _close() -> None:
-            logger.info("Closing")
-            self.emit(event_name="close")
-            await self._tasks_handler.close()
-            await self._event_handler.run_till_empty(self)
-
-            with contextlib.suppress(Exception):
-                await self.send_raw("quit")
-
-            logger.info("Closing done")
-
         if not self._closing:
             self._closing = True
-            asyncio.create_task(_close())
+            asyncio.create_task(self._close())
+
+    async def _close(self) -> None:
+        logger.info("Closing bot")
+        self.emit(event_name="close")
+        await self._tasks_handler.close()
+        await self._event_handler.run_till_empty(self)
+
+        with contextlib.suppress(Exception):
+            await self.send_raw("quit")
+
+        logger.info("Closing done")
 
     async def run(self) -> None:
         """
@@ -445,7 +445,7 @@ class TSBot:
             await reader_task
 
         finally:
-            await self.close()
+            await self._close()
             await self._connection.close()
 
     def load_plugin(self, *plugins: plugin.TSPlugin) -> None:
