@@ -62,7 +62,7 @@ class TSConnection:
 
         try:
             data = await self._reader.readuntil("\n\r")
-        except asyncio.IncompleteReadError:
+        except (asyncio.IncompleteReadError, ConnectionResetError):
             return None
         else:
             return data.rstrip()
