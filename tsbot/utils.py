@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import itertools
 from contextlib import contextmanager
-from typing import Any
+from typing import Any, Generator
 
 
 @contextmanager
-def toggle(obj: object, attr: str, enter: Any, exit: Any):
+def toggle(obj: object, attr: str, enter: Any, exit: Any) -> Generator[None, None, None]:
     setattr(obj, attr, enter)
     try:
         yield

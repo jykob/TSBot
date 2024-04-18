@@ -371,7 +371,7 @@ class TSBot:
         cancels background tasks and send quit command.
         """
 
-        async def close():
+        async def _close() -> None:
             logger.info("Closing")
             self.emit(event_name="close")
             await self._tasks_handler.close()
@@ -384,7 +384,7 @@ class TSBot:
 
         if not self._closing:
             self._closing = True
-            asyncio.create_task(close())
+            asyncio.create_task(_close())
 
     async def run(self) -> None:
         """
