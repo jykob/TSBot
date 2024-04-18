@@ -64,16 +64,16 @@ class TSBot:
 
         self._connection = connection.TSConnection(username, password, address, port)
 
-        self.tasks_handler = tasks.TasksHandler()
-        self.event_handler = events.EventHandler()
-        self.command_handler = commands.CommandHandler(invoker)
+        self._tasks_handler = tasks.TasksHandler()
+        self._event_handler = events.EventHandler()
+        self._command_handler = commands.CommandHandler(invoker)
 
-        self.is_ratelimited = ratelimited
-        self.ratelimiter = ratelimiter.RateLimiter(
+        self.ratelimited = ratelimited
+        self._ratelimiter = ratelimiter.RateLimiter(
             max_calls=ratelimit_calls, period=ratelimit_period
         )
 
-        self.is_closing = False
+        self._closing = False
 
         self._response: asyncio.Future[response.TSResponse]
         self._sending_lock = asyncio.Lock()
@@ -95,7 +95,7 @@ class TSBot:
 
         :param event: Event to be emmitted.
         """
-        self.event_handler.event_queue.put_nowait(event)
+        self._event_handler.add_event(event)
 
     def on(self, event_type: str) -> Callable[[events.TEventHandler], events.TEventHandler]:
         """
@@ -122,7 +122,7 @@ class TSBot:
         """
 
         event_handler = events.TSEventHandler(event_type, handler)
-        self.event_handler.register_event_handler(event_handler)
+        self._event_handler.register_event_handler(event_handler)
         return event_handler
 
     def once(self, event_type: str) -> Callable[[events.TEventHandler], events.TEventHandler]:
@@ -149,8 +149,8 @@ class TSBot:
         :return: The instance of :class:`TSEventOnceHandler<tsbot.events.TSEventOnceHandler>` created.
         """
 
-        event_handler = events.TSEventOnceHandler(event_type, handler, self.event_handler)
-        self.event_handler.register_event_handler(event_handler)
+        event_handler = events.TSEventOnceHandler(event_type, handler, self._event_handler)
+        self._event_handler.register_event_handler(event_handler)
         return event_handler
 
     def remove_event_handler(self, event_handler: events.TSEventHandler) -> None:
@@ -160,7 +160,7 @@ class TSBot:
         :param event_handler: Instance of the :class:`TSEventHandler<tsbot.events.TSEventHandler>` to be removed.
         """
 
-        self.event_handler.remove_event_handler(event_handler)
+        self._event_handler.remove_event_handler(event_handler)
 
     def command(
         self,
@@ -218,7 +218,7 @@ class TSBot:
             command = (command,)
 
         command_handler = commands.TSCommand(command, handler, help_text, raw, hidden, checks or [])
-        self.command_handler.register_command(command_handler)
+        self._command_handler.register_command(command_handler)
         return command_handler
 
     def remove_command(self, command: commands.TSCommand) -> None:
@@ -227,7 +227,7 @@ class TSBot:
 
         :param command: Instance of the :class:`TSCommand<tsbot.commands.TSCommand>` to be removed.
         """
-        self.command_handler.remove_command(command)
+        self._command_handler.remove_command(command)
 
     def register_every_task(
         self,
@@ -245,7 +245,7 @@ class TSBot:
         :return: Instance of :class:`TSTask<tsbot.tasks.TSTask>` created.
         """
         task = tasks.TSTask(handler=tasks.every(handler, seconds), name=name)
-        self.tasks_handler.register_task(self, task)
+        self._tasks_handler.register_task(self, task)
         return task
 
     def register_task(
@@ -263,7 +263,7 @@ class TSBot:
         """
 
         task = tasks.TSTask(handler=handler, name=name)
-        self.tasks_handler.register_task(self, task)
+        self._tasks_handler.register_task(self, task)
         return task
 
     def remove_task(self, task: tasks.TSTask) -> None:
@@ -272,7 +272,7 @@ class TSBot:
 
         :param task: Instance of the :class:`TSTask<tsbot.tasks.TSTask>` to be removed.
         """
-        self.tasks_handler.remove_task(task)
+        self._tasks_handler.remove_task(task)
 
     async def send(self, query: query_builder.TSQuery) -> response.TSResponse:
         """
@@ -313,8 +313,8 @@ class TSBot:
         async with self._sending_lock:
             self._response = asyncio.Future()
 
-            if self.is_ratelimited:
-                await self.ratelimiter.wait()
+            if self.ratelimited:
+                await self._ratelimiter.wait()
 
             logger.debug("Sending query: %r", raw_query)
             self.emit(event_name="send", ctx={"query": raw_query})
@@ -429,11 +429,11 @@ class TSBot:
             resp = await self.send_raw("whoami")
             self.uid = resp.first["client_unique_identifier"]
 
-        self.register_task(self.event_handler.handle_events_task, name="HandleEvents-Task")
-        self.register_event_handler("textmessage", self.command_handler.handle_command_event)
+        self.register_task(self._event_handler.handle_events_task, name="HandleEvents-Task")
+        self.register_event_handler("textmessage", self._command_handler.handle_command_event)
         self.load_plugin(default_plugins.Help(), default_plugins.KeepAlive())
 
-        self.tasks_handler.start(self)
+        self._tasks_handler.start(self)
         self.emit(event_name="run")
 
         logger.info("Setting up connection")
