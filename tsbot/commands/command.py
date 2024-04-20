@@ -38,7 +38,7 @@ class TSCommand:
 
     checks: list[TCommandHandler] = field(default_factory=list, repr=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.call_signature = inspect.signature(self.handler)
 
     async def run_checks(
