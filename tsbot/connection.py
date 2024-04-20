@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import itertools
 import logging
 from typing import AsyncGenerator
 
@@ -43,10 +44,9 @@ class TSConnection:
         logger.info("Connection closed")
 
     async def read_lines(self, number_of_lines: int = 1) -> AsyncGenerator[str, None]:
-        lines_read = 0
+        count = itertools.count()
 
-        while lines_read < number_of_lines and (data := await self._read()) is not None:
-            lines_read += 1
+        while (data := await self._read()) is not None and next(count) < number_of_lines:
             yield data
 
     async def read(self) -> AsyncGenerator[str, None]:

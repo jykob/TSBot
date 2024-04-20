@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import itertools
+
 from tsbot import encoders
 
 KWARG_INDICATOR = "-"
+QUOTES = ('"', "'")
 
 
 def parse_data(input_str: str) -> tuple[dict[str, str], ...]:
@@ -22,11 +25,14 @@ def parse_line(input_str: str) -> dict[str, str]:
 def parse_value(input_str: str) -> tuple[str, str]:
     key, _, value = input_str.partition("=")
 
+    if not value:
+        return key, ""
+
     if "|" in value:
         # Multiple values associated with the key. Making values comma separated
         return key, ",".join(map(encoders.unescape, value.split(f"|{key}=")))
 
-    return key, encoders.unescape(value) if value else ""
+    return key, encoders.unescape(value)
 
 
 def _parse_quoted_arg(unparsed: str) -> tuple[str, str]:
@@ -50,7 +56,7 @@ def _parse_quoted_arg(unparsed: str) -> tuple[str, str]:
 
 def _parse_arg(unparsed: str) -> tuple[str, str]:
     """Parse an argument out of unparsed message, return it and unparsed part."""
-    arg, unparsed = d if len(d := unparsed.split(maxsplit=1)) > 1 else (d[0] if d else "", "")
+    arg, unparsed = (*unparsed.split(maxsplit=1), *itertools.repeat("", times=2))[:2]
 
     return arg, unparsed
 
@@ -62,7 +68,7 @@ def _parse_kwarg(unparsed: str) -> tuple[str, str, str]:
     if unparsed.startswith(KWARG_INDICATOR):
         return key, "", unparsed
 
-    if unparsed.startswith(('"', "'")):
+    if unparsed.startswith(QUOTES):
         return key, *_parse_quoted_arg(unparsed)
 
     return key, *_parse_arg(unparsed)
@@ -81,7 +87,7 @@ def parse_args_kwargs(msg: str) -> tuple[tuple[str, ...], dict[str, str]]:
             key, value, unparsed = _parse_kwarg(unparsed)
             kwargs[key] = value
 
-        elif unparsed.startswith(('"', "'")):
+        elif unparsed.startswith(QUOTES):
             value, unparsed = _parse_quoted_arg(unparsed)
             args.append(value)
 

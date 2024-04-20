@@ -118,7 +118,7 @@ class TSBot:
         Register an event handler to be ran on an event.
 
         :param event_type: Name of the event.
-        :param handler: async function to handle the event.
+        :param handler: Async function to handle the event.
         :return: The instance of :class:`TSEventHandler<tsbot.events.TSEventHandler>` created.
         """
 
@@ -146,7 +146,7 @@ class TSBot:
         Register an event handler to be ran once on an event.
 
         :param event_type: Name of the event.
-        :param handler: async function to handle the event.
+        :param handler: Async function to handle the event.
         :return: The instance of :class:`TSEventOnceHandler<tsbot.events.TSEventOnceHandler>` created.
         """
 
@@ -234,7 +234,7 @@ class TSBot:
         """
         Get :class:`TSCommand<tsbot.commands.TSCommand>` instance associated with a given `str`
 
-        :param command: command that invokes :class:`TSCommand<tsbot.commands.TSCommand>`
+        :param command: Command that invokes :class:`TSCommand<tsbot.commands.TSCommand>`
         :return: :class:`TSCommand<tsbot.commands.TSCommand>` associated with `command`
         """
         return self._command_handler.commands.get(command)
@@ -250,7 +250,7 @@ class TSBot:
         Register task handler to be ran every given second.
 
         :param seconds: How often the task is executed.
-        :param handler: async function to be called when the task is executed.
+        :param handler: Async function to be called when the task is executed.
         :param name: Name of the task.
         :return: Instance of :class:`TSTask<tsbot.tasks.TSTask>` created.
         """
@@ -267,7 +267,7 @@ class TSBot:
         """
         Register task handler as a background task.
 
-        :param handler: async function to be called when the task is executed.
+        :param handler: Async function to be called when the task is executed.
         :param name: Name of the task.
         :return: Instance of :class:`TSTask<tsbot.tasks.TSTask>` created.
         """
@@ -303,7 +303,7 @@ class TSBot:
         Its recommended to use built-in query builder and
         :func:`send()<tsbot.TSBot.send()>` method instead.
 
-        :param raw_query: raw query command to be send to the server.
+        :param raw_query: Raw query command to be send to the server.
         :return: Response from the server.
         """
         try:

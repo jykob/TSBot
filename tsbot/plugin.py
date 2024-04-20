@@ -36,13 +36,14 @@ def command(
     def command_decorator(
         func: Callable[Concatenate[_T, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]]
     ) -> Callable[Concatenate[_T, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]]:
-        func.__ts_command__ = {  # type: ignore
+        kwargs = {
             "command": command,
             "help_text": help_text,
             "raw": raw,
             "hidden": hidden,
             "checks": checks or [],
         }
+        setattr(func, "__ts_command__", kwargs)
         return func
 
     return command_decorator
@@ -59,7 +60,7 @@ def on(
     def event_decorator(
         func: Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]
     ) -> Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]:
-        func.__ts_event__ = {"event_type": event_type}  # type: ignore
+        setattr(func, "__ts_event__", {"event_type": event_type})
         return func
 
     return event_decorator
@@ -76,7 +77,7 @@ def once(
     def once_decorator(
         func: Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]
     ) -> Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]:
-        func.__ts_once__ = {"event_type": event_type}  # type: ignore
+        setattr(func, "__ts_once__", {"event_type": event_type})
         return func
 
     return once_decorator
