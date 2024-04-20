@@ -46,7 +46,7 @@ class TSConnection:
     async def read_lines(self, number_of_lines: int = 1) -> AsyncGenerator[str, None]:
         count = itertools.count()
 
-        while (data := await self._read()) is not None and next(count) < number_of_lines:
+        while next(count) < number_of_lines and (data := await self._read()) is not None:
             yield data
 
     async def read(self) -> AsyncGenerator[str, None]:
