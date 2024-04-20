@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-import logging
+import inspect
+import itertools
 from typing import TYPE_CHECKING
 
 from tsbot import exceptions, plugin
 
 if TYPE_CHECKING:
-    from tsbot import bot, context
-
-
-logger = logging.getLogger(__name__)
+    from tsbot import bot, commands, context
 
 
 class Help(plugin.TSPlugin):
@@ -25,7 +23,28 @@ class Help(plugin.TSPlugin):
         if help_text := command_handler.help_text:
             response_text += f"{help_text}\n"
 
-        if usage := command_handler.usage:
+        if usage := self.command_usage(command_handler):
             response_text += f"{usage}"
 
         await bot.respond(ctx, response_text)
+
+    @staticmethod
+    def command_usage(command: commands.TSCommand) -> str:
+        usage: list[str] = []
+
+        for param in itertools.islice(command.call_signature.parameters.values(), 2, None):
+            match param.kind:
+                case inspect.Parameter.VAR_POSITIONAL:
+                    usage.append(f"[{param.name!r}, ...]")
+                case inspect.Parameter.KEYWORD_ONLY:
+                    usage.append(
+                        f"-{param.name} {'[!]' if param.default is param.empty else '[?]'}"
+                        f"{f' ({param.default!r})' if param.default not in (param.empty, None) else ''}"
+                    )
+                case _:
+                    usage.append(
+                        f"{param.name!r}"
+                        f"""{f" ({param.default or '?'!r})" if param.default is not param.empty else ''}"""
+                    )
+
+        return f"Usage: {' | '.join(command.commands)} {' '.join(usage)}"

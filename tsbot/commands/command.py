@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import asyncio
+import functools
 import inspect
-import itertools
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Callable, Coroutine, cast
+from typing import TYPE_CHECKING, Callable, Coroutine, TypedDict
 
 from tsbot import exceptions, parsers
 
@@ -12,55 +12,44 @@ if TYPE_CHECKING:
     from tsbot import bot, context
 
 
+TCommandHandler = Callable[..., Coroutine[None, None, None]]
+
+
+class CheckKwargs(TypedDict):
+    bot: bot.TSBot
+    ctx: context.TSCtx
+    args: tuple[str, ...]
+    kwargs: dict[str, str]
+
+
+def _create_check_task(check: TCommandHandler, kwargs: CheckKwargs) -> asyncio.Task[None]:
+    return asyncio.create_task(check(**kwargs), name="Check-Task")
+
+
 @dataclass(slots=True)
 class TSCommand:
     commands: tuple[str, ...]
-    handler: Callable[..., Coroutine[None, None, None]]
+    handler: TCommandHandler
+    call_signature: inspect.Signature = field(repr=False, init=False)
 
     help_text: str = field(repr=False, default="")
     raw: bool = field(repr=False, default=False)
     hidden: bool = field(repr=False, default=False)
 
-    checks: list[Callable[..., Coroutine[None, None, None]]] = field(
-        default_factory=list, repr=False
-    )
+    checks: list[TCommandHandler] = field(default_factory=list, repr=False)
 
-    @property
-    def call_signature(self) -> inspect.Signature:
-        return inspect.signature(self.handler)
-
-    @property
-    def usage(self) -> str:
-        usage: list[str] = []
-
-        for param in itertools.islice(self.call_signature.parameters.values(), 2, None):
-            if param.kind is inspect.Parameter.VAR_POSITIONAL:
-                usage.append(f"[{param.name!r}, ...]")
-
-            elif param.kind is inspect.Parameter.KEYWORD_ONLY:
-                usage.append(
-                    f"-{param.name} {'[!]' if param.default is param.empty else '[?]'}"
-                    f"{f' ({param.default!r})' if param.default not in (param.empty, None) else ''}"
-                )
-
-            else:
-                usage.append(
-                    f"{param.name!r}"
-                    f"""{f" ({param.default or '?'!r})" if param.default is not param.empty else ''}"""
-                )
-
-        return f"Usage: {' | '.join(self.commands)} {' '.join(usage)}"
+    def __post_init__(self):
+        self.call_signature = inspect.signature(self.handler)
 
     async def run_checks(
         self, bot: bot.TSBot, ctx: context.TSCtx, *args: str, **kwargs: str
     ) -> None:
-        done, pending = await asyncio.wait(
-            [
-                asyncio.create_task(check(bot, ctx, *args, **kwargs), name="Check-Task")
-                for check in self.checks
-            ],
-            return_when=asyncio.FIRST_EXCEPTION,
-        )
+        check_kwargs = CheckKwargs(bot=bot, ctx=ctx, args=args, kwargs=kwargs)
+        create_check_task = functools.partial(_create_check_task, kwargs=check_kwargs)
+        check_tasks = list(map(create_check_task, self.checks))
+
+        done, pending = await asyncio.wait(check_tasks, return_when=asyncio.FIRST_EXCEPTION)
+
         for pending_task in pending:
             pending_task.cancel()
 
@@ -70,7 +59,8 @@ class TSCommand:
 
     async def run(self, bot: bot.TSBot, ctx: context.TSCtx, msg: str) -> None:
         if self.raw:
-            args, kwargs = (msg,) if msg else (), cast(dict[str, str], {})
+            args: tuple[str, ...] = (msg,) if msg else ()
+            kwargs: dict[str, str] = {}
         else:
             args, kwargs = parsers.parse_args_kwargs(msg)
 
