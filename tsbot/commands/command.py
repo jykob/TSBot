@@ -68,8 +68,8 @@ class TSCommand:
             await self.run_checks(bot, ctx, *args, **kwargs)
 
         try:
-            binded_arguments = self.call_signature.bind(bot, ctx, *args, **kwargs)
+            bound_arguments = self.call_signature.bind(bot, ctx, *args, **kwargs)
         except TypeError as e:
             raise exceptions.TSInvalidParameterError(str(e).capitalize()) from e
         else:
-            await self.handler(*binded_arguments.args, **binded_arguments.kwargs)
+            await self.handler(*bound_arguments.args, **bound_arguments.kwargs)

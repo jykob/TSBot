@@ -6,7 +6,7 @@ In this chapter we are going to get you started with TSBot.
 
 ## Creating a new TeamSpeak identity
 
-It's recommended to create a new identity for your bot account. This isn't stricty necessary but separating your **_Main Identity_** from a **_Bot Identity_** allows you to set different **Permissions** and **server**/**channel** groups. Basically this allows the server to treat you and your bot differently.
+It's recommended to create a new identity for your bot account. This isn't strictly necessary but separating your **_Main Identity_** from a **_Bot Identity_** allows you to set different **Permissions** and **server**/**channel** groups. Basically this allows the server to treat you and your bot differently.
 
 Launch your TeamSpeak Client and head on to:  
 `Tools → Identities`
@@ -98,13 +98,13 @@ Now that we are connected, we are ready create the login for your **_ServerQuery
 ```
 
 ```{note}
-If you can't click on the ``ServerQuery Login``, you don't have the propper permissions on your client.
+If you can't click on the ``ServerQuery Login``, you don't have the proper permissions on your client.
 Check [](#setting-up-permissions) for more information.
 ```
 
 This will prompt you for a **_ServerQuery_** login. Enter a suitable login name for your bot.
 
-```{image} ../img/getting_started/login_promt.png
+```{image} ../img/getting_started/login_prompt.png
 :alt: Enter your ServerQuery login name
 :align: center
 :class: margin-bottom
@@ -193,7 +193,7 @@ Now run the script. A **_ServerQuery client_** should join to your server.
 
 <div class="flex flex-row">
 
-As long as the script is running, Everytime someone joins the server, they will get poked with this:
+As long as the script is running, every time someone joins the server, they will get poked with this:
 
 ```{image} ../img/getting_started/example_event.png
 :alt: Example of client joining getting poked

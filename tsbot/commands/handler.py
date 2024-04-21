@@ -27,7 +27,7 @@ class CommandHandler:
     def register_command(self, command: commands.TSCommand) -> None:
         if already_registered := tuple(filter(lambda c: c in self.commands, command.commands)):
             logger.warn(
-                "Command %s are already registered and will be overwriten",
+                "Command %s are already registered and will be overwritten",
                 ", ".join(map(repr, already_registered)),
             )
 

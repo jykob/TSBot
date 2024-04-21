@@ -18,8 +18,8 @@ class TSResponseError(TSException):
 
 class TSResponsePermissionError(TSResponseError):
     """
-    Raised when a response has error_id of '2568', idicating that the client
-    doesn't have the propper permissions to execute this query.
+    Raised when a response has error_id of '2568', indicating that the client
+    doesn't have the proper permissions to execute this query.
     """
 
     def __init__(self, msg: str, error_id: int, perm_id: int) -> None:

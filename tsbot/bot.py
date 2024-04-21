@@ -85,7 +85,7 @@ class TSBot:
         Creates :class:`TSevent<tsbot.events.TSEvent>` instance and emits it.
 
         :param event_name: Name of the event being emitted.
-        :param ctx: Addittional context for the event.
+        :param ctx: Additional context for the event.
         """
         event = events.TSEvent(event=event_name, ctx=ctx)
         self.emit_event(event)
@@ -94,7 +94,7 @@ class TSBot:
         """
         Emits an event to be handled.
 
-        :param event: Event to be emmitted.
+        :param event: Event to be emitted.
         """
         self._event_handler.add_event(event)
 
@@ -312,7 +312,7 @@ class TSBot:
             raise utils.pop_traceback(response_error, 2)
 
     async def _send(self, raw_query: str) -> response.TSResponse:
-        """Method responsibe for actually sending the data."""
+        """Method responsible for actually sending the data."""
 
         async with self._sending_lock:
             self._response = asyncio.Future()

@@ -42,7 +42,7 @@ class KeepAlive(plugin.TSPlugin):
                     timeout=self.KEEP_ALIVE_INTERVAL,
                 )
             except asyncio.TimeoutError:
-                logger.debug("Sengind keep-alive")
+                logger.debug("Sending keep-alive")
                 await bot.send_raw(self.KEEP_ALIVE_COMMAND)
 
             except asyncio.CancelledError:

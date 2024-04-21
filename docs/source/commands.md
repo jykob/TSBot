@@ -9,7 +9,7 @@ If you want clients to be able to interact with your bot while in other channels
 either by allowing them to type in **Server Chat** or by **Direct Message**
 ```
 
-All commands start with invoker (defaults to `!`) and proceded by the command name.  
+All commands start with invoker (defaults to `!`) and proceeded by the command name.  
 When sending messages to the bot (**Direct Message**), invoker is not needed.  
 You can configure invoker symbol when defining [TSBot](tsbot.bot.TSBot) instance.
 
@@ -42,7 +42,7 @@ and the following value is bound to that argument name.
 If a value starts with a quote (`"` or `'`), the argument is passed as the whole quoted string.
 This allows the arguments to have whitespace (_spaces_, _tabs_ and _new lines_).  
 The ending quote must match to the one starting the quote and it must have  
-a **whitespace behind it** or be the **last character** to be concidered as quoted value.
+a **whitespace behind it** or be the **last character** to be considered as quoted value.
 Otherwise the argument will be interpreted as a normal value, quote included.
 
 Parsed output comes in a form of [tuple](tuple)[[str](str), ...]
@@ -121,7 +121,7 @@ You should mainly raise exceptions that are based on [TSException](tsbot.excepti
 | Exception                                                           | Caused by                                                       |
 | ------------------------------------------------------------------- | --------------------------------------------------------------- |
 | [TSCommandError](tsbot.exceptions.TSCommandError)                   | Generic command exception                                       |
-| [TSPermissionError](tsbot.exceptions.TSPermissionError)             | Client doesn't have the propper permissions to run this command |
+| [TSPermissionError](tsbot.exceptions.TSPermissionError)             | Client doesn't have the proper permissions to run this command |
 | [TSInvalidParameterError](tsbot.exceptions.TSInvalidParameterError) | Client is calling the command improperly                        |
 
 Each check is passed the same arguments as it were a command.  

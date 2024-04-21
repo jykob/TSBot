@@ -39,7 +39,7 @@ def _parse_quoted_arg(unparsed: str) -> tuple[str, str]:
     """
     Parses a quoted argument, returns it and unparsed part.
 
-    If a qoute doesn't have a whitespace behind it, that part is not considered a quote end.
+    If a quote doesn't have a whitespace behind it, that part is not considered a quote end.
     If a valid quote is not found, parse as normal argument.
     """
     quote, unparsed_len = unparsed[0], len(unparsed)
