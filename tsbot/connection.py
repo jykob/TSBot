@@ -16,17 +16,18 @@ class TSConnection:
         self.address = address
         self.port = port
 
-        self._connection: asyncssh.connection.SSHClientConnection | None = None
-        self._writer: asyncssh.stream.SSHWriter[str] | None = None
-        self._reader: asyncssh.stream.SSHReader[str] | None = None
+        self._connection: asyncssh.SSHClientConnection | None = None
+        self._writer: asyncssh.SSHWriter[str] | None = None
+        self._reader: asyncssh.SSHReader[str] | None = None
 
     async def connect(self) -> None:
-        self._connection = await asyncssh.connection.connect(
-            self.address,
+        self._connection = await asyncssh.connect(
+            host=self.address,
             port=self.port,
             username=self.username,
             password=self.password,
             known_hosts=None,
+            preferred_auth="password",
         )
 
         self._writer, self._reader, _ = await self._connection.open_session()  # type: ignore
