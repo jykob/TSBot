@@ -28,7 +28,7 @@ async def mock_connect(*args: Any, **kwargs: Any):
 
 @pytest.fixture
 def conn(monkeypatch: pytest.MonkeyPatch, conn_info: ConnectionInfo):
-    monkeypatch.setattr(asyncssh.connection, "connect", mock_connect)
+    monkeypatch.setattr(asyncssh, "connect", mock_connect)
 
     return connection.TSConnection(
         conn_info.username, conn_info.password, conn_info.address, conn_info.port
@@ -37,7 +37,7 @@ def conn(monkeypatch: pytest.MonkeyPatch, conn_info: ConnectionInfo):
 
 @pytest.fixture
 def connected_conn(monkeypatch: pytest.MonkeyPatch, conn_info: ConnectionInfo):
-    monkeypatch.setattr(asyncssh.connection, "connect", mock_connect)
+    monkeypatch.setattr(asyncssh, "connect", mock_connect)
 
     c = connection.TSConnection(
         conn_info.username, conn_info.password, conn_info.address, conn_info.port
