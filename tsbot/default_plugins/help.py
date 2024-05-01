@@ -40,7 +40,7 @@ class BriefFormatter(Formatter):
                 )
 
     def format(self, command: commands.TSCommand) -> str:
-        help_text = f"Help text: {command.help_text}\n" if command.help_text else None
+        help_text = f"{command.help_text}\n" if command.help_text else None
         usage_text = f"Usage: {' | '.join(map(tsf.bold, command.commands))}"
 
         params = tuple(itertools.islice(command.call_signature.parameters.values(), 2, None))
@@ -128,9 +128,7 @@ class Help(plugin.TSPlugin):
         if not command_handler or command_handler.hidden:
             raise exceptions.TSCommandError("Command not found")
 
-        formatter = (
-            self.formatters.get("detailed") if detailed != "false" else self.formatters.get(format)
-        )
+        formatter = self.formatters.get("detailed" if detailed != "false" else format)
 
         if not formatter:
             raise exceptions.TSCommandError("Invalid formatter")
