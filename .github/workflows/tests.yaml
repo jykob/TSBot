@@ -18,7 +18,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip" # caching pip dependencies
-          cache-dependency-path: "**/pyproject.toml"
 
       - name: Install dependencies
         run: |
