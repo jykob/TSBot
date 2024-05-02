@@ -26,11 +26,21 @@ the plugin will send a ping to the server.
 ### Help
 
 The Help plugin implements `help` command.  
-When `help` command is invoked, the bot will respond to the command with the given `help_text` and usage of the command.
+When a `help` command is invoked with a `command` as its first argument, 
+the bot will respond with the given `help_text` (passed as an argument when defining the command) 
+and the usage of such command.
 
-```{image} ../img/plugins/help_example.png
-:alt: Example of help command
+```{image} ../img/plugins/help-brief.png
+:alt: Brief command help text
 ```
+
+For more detailed output, users can pass in `-detailed` flag (a keyword argument without any values after it) 
+or by passing `-format detailed` as a keyword argument.
+
+```{image} ../img/plugins/help-detailed.png
+:alt: Detailed command help text
+```
+
 
 ```{note}
 If no command were found or the command is `hidden`, the `help` command raises
