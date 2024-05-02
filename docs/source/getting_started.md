@@ -177,6 +177,7 @@ Let's copy the example and modify the script to fit our needs:
 11. Replace `ADDRESS` with your TeamSpeak server address.
 
 ```{literalinclude} ../../examples/simple_example.py
+:language: python
 :linenos: true
 :emphasize-lines: 8, 9, 10
 ```

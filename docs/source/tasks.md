@@ -35,5 +35,5 @@ Every tasks are a way for you to schedule a task to run periodically.
 For example you could implement a AFK mover:
 
 ```{literalinclude} ../../examples/plugin_AFK_mover.py
-
+:language: python
 ```

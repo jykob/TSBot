@@ -14,7 +14,7 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
 ]
-dependencies = ["asyncssh == 2.14.0"]
+dependencies = ["asyncssh == 2.14.0", "tsformatter >= 0.2.1"]
 license = { file = "LICENSE" }
 urls = { repository = "https://github.com/0x4aK/tsbot", documentation = "https://tsbot.readthedocs.io/en/latest/" }
 
