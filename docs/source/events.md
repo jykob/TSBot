@@ -45,15 +45,15 @@ async def move_on_start(bot: TSBot, ctx: None):
 
 TSBot has handful of useful built-in events. These are fired when the bot does something internally.
 
-| Event name         | Called when:                                        |
-| ------------------ | --------------------------------------------------- |
-| `run`              | The bot is starting up.                             |
-| `ready`            | The bot is ready and connected to the server.       |
-| `close`            | The bot is shutting down.                           |
-| `send`             | The bot is sending queries to the server.           |
-| `command_error`    | Handler raises `TSCommandError` exception.          |
-| `permission_error` | Handler raises `TSPermissionError` exception.       |
-| `parameter_error`  | Handler raises `TSInvalidParameterError` exception. |
+| Event name         | Called when:                                        | Context type   |
+| ------------------ | --------------------------------------------------- | -------------- |
+| `run`              | The bot is starting up.                             | [None](None)   |
+| `ready`            | The bot is ready and connected to the server.       | [None](None)   |
+| `close`            | The bot is shutting down.                           | [None](None)   |
+| `send`             | The bot is sending queries to the server.           | [TSCtx](TSCtx) |
+| `command_error`    | Handler raises `TSCommandError` exception.          | [TSCtx](TSCtx) |
+| `permission_error` | Handler raises `TSPermissionError` exception.       | [TSCtx](TSCtx) |
+| `parameter_error`  | Handler raises `TSInvalidParameterError` exception. | [TSCtx](TSCtx) |
 
 ---
 
