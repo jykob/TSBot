@@ -39,6 +39,7 @@ class TSBot:
         port: int = 10022,
         *,
         server_id: int = 1,
+        nickname: str | None = None,
         invoker: str = "!",
         ratelimited: bool = False,
         ratelimit_calls: int = 10,
@@ -51,6 +52,7 @@ class TSBot:
         :param address: Address of the TeamSpeak server.
         :param port: Port of the SSH connection.
         :param server_id: Id of the virtual server.
+        :param nickname: Display name for the bot client.
         :param invoker: Command indicator.
         :param ratelimited: If the connection should be ratelimited.
         :param ratelimit_calls: Calls per period.
@@ -58,6 +60,10 @@ class TSBot:
         :param query_timeout: Timeout for query commands.
         """
 
+        if nickname is not None and not nickname:
+            raise TypeError("Bot nickname cannot be empty")
+
+        self.nickname = nickname
         self.server_id = server_id
         self.uid: str = ""
 
@@ -413,8 +419,13 @@ class TSBot:
             return reader
 
         async def select_server() -> None:
-            """Set current virtual server"""
-            await self.send(query_builder.TSQuery("use", parameters={"sid": self.server_id}))
+            """Set current virtual server and sets nickname if specified"""
+            select_query = query_builder.TSQuery("use", parameters={"sid": self.server_id})
+
+            if self.nickname is not None:
+                select_query = select_query.params(client_nickname=self.nickname)
+
+            await self.send(select_query)
 
         async def register_notifies() -> None:
             """Coroutine to register server to send events to the bot"""
