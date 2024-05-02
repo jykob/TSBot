@@ -14,7 +14,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath("../tsbot/"))
-sys.path.append(os.path.abspath("./_ext"))
+sys.path.append(os.path.abspath("./ext"))
 
 # -- Project information -----------------------------------------------------
 
