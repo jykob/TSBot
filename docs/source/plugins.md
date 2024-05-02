@@ -4,6 +4,7 @@ In order to keep your code properly partitioned, TSBot gives you an option to wr
 Plugins allow you to split up your state and functionality from other code.
 
 ```{literalinclude} ../../examples/plugin_example.py
+:language: python
 
 ```
 
