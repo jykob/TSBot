@@ -4,7 +4,8 @@ import asyncio
 import contextlib
 import inspect
 import logging
-from typing import TYPE_CHECKING, Any, Callable, Concatenate, Coroutine, ParamSpec
+from collections.abc import Callable, Coroutine
+from typing import TYPE_CHECKING, Any, Concatenate, ParamSpec
 
 from tsbot import (
     commands,
@@ -191,7 +192,7 @@ class TSBot:
         """
 
         def command_decorator(
-            func: Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]]
+            func: Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]],
         ) -> Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]]:
             self.register_command(
                 command, func, help_text=help_text, raw=raw, hidden=hidden, checks=checks

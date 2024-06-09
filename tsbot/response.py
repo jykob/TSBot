@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Generator
 from dataclasses import dataclass
-from typing import Generator, TypeVar
+from typing import TypeVar
 
 from tsbot import parsers
 

@@ -57,9 +57,8 @@ class CommandHandler:
         if target_mode in (
             enums.TextMessageTargetMode.CHANNEL,
             enums.TextMessageTargetMode.SERVER,
-        ):
-            if not msg.startswith(self.invoker):
-                return
+        ) and not msg.startswith(self.invoker):
+            return
 
         # Remove invoker from the beginning
         msg = msg.removeprefix(self.invoker)

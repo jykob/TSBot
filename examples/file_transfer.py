@@ -1,5 +1,14 @@
 from __future__ import annotations
 
+import asyncio
+import io
+import itertools
+import os
+import socket
+
+from tsbot import TSBot, TSCtx, query
+from tsbot.exceptions import TSException
+
 """
 Example to handle file upload/download.
 
@@ -10,15 +19,6 @@ Running upload/download on another thread allows the bot to continue
 running while the synchronous operations are running.
 """
 
-
-import asyncio
-import io
-import itertools
-import os
-import socket
-
-from tsbot import TSBot, TSCtx, query
-from tsbot.exceptions import TSException
 
 _ft_id_gen = itertools.count()
 

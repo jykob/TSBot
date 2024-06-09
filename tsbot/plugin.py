@@ -1,11 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Callable, Coroutine
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
     Concatenate,
-    Coroutine,
     ParamSpec,
     TypeVar,
 )
@@ -34,7 +33,7 @@ def command(
     """Decorator to register plugin commands"""
 
     def command_decorator(
-        func: Callable[Concatenate[_T, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]]
+        func: Callable[Concatenate[_T, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]],
     ) -> Callable[Concatenate[_T, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]]:
         kwargs = {
             "command": command,
@@ -58,7 +57,7 @@ def on(
     """Decorator to register plugin events"""
 
     def event_decorator(
-        func: Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]
+        func: Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]],
     ) -> Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]:
         setattr(func, "__ts_event__", {"event_type": event_type})
         return func
@@ -75,7 +74,7 @@ def once(
     """Decorator to register plugin events to be ran only once"""
 
     def once_decorator(
-        func: Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]
+        func: Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]],
     ) -> Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]:
         setattr(func, "__ts_once__", {"event_type": event_type})
         return func
