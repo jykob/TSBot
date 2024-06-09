@@ -40,7 +40,7 @@ async def poke_on_enter(bot: TSBot, ctx: TSCtx):
 asyncio.run(bot.run())
 ```
 
-**Check out [📁examples](https://github.com/0x4aK/TSBot/blob/master/examples) for more**
+**Check out [📁examples](https://github.com/jykob/TSBot/blob/master/examples) for more**
 
 ## 📦 Installation
 
