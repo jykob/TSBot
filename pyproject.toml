@@ -20,8 +20,8 @@ urls = { repository = "https://github.com/jykob/tsbot", documentation = "https:/
 
 
 [project.optional-dependencies]
-dev = ["black >= 24.4.0", "isort >= 5.13.2", "sphinx-autobuild >= 2024.4.16"]
-tests = ["mypy >= 1.9.0", "pytest == 8.1.1"]
+dev = ["ruff >= 0.4.4", "pyright >= 1.1.362", "sphinx-autobuild >= 2024.4.16"]
+tests = ["pytest == 8.1.1"]
 docs = [
     "sphinx >= 7.3.7",
     "myst-parser >= 2.0.0",
@@ -47,48 +47,6 @@ tsbot = ["py.typed"]
 testpaths = ["tests"]
 
 
-[tool.black]
+[tool.ruff]
 line-length = 100
-target-version = ['py310']
-
-
-[tool.pyright]
-reportImportCycles = false
-
-
-[tool.mypy]
-check_untyped_defs = true
-disallow_any_generics = true
-disallow_untyped_calls = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-ignore_missing_imports = true
-no_implicit_optional = true
-show_error_codes = true
-
-
-[tool.tox]
-legacy_tox_ini = """
-[tox]
-minversion = 3.8.0
-envlist = py310, py311, py312, mypy
-isolated_build = true
-
-[gh-actions]
-python =
-    3.10: py310, mypy
-    3.11: py311
-    3.12: py312
-
-[testenv]
-setenv =
-    PYTHONPATH = {toxinidir}
-extras = tests
-commands = pytest --basetemp={envtmpdir}
-
-[testenv:mypy]
-basepython = python3.10
-deps =
-    mypy
-commands = mypy tsbot
-"""
+lint = { select = ["E", "F", "I", "UP", "SIM"], ignore = ["E501"] }
