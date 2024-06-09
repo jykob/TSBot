@@ -36,15 +36,8 @@ build-backend = "setuptools.build_meta"
 
 
 [tool.setuptools]
-packages = { find = { include = ["tsbot*"] } }
-
-
-[tool.setuptools.package-data]
-tsbot = ["py.typed"]
-
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
+packages = { find = { include = ["tsbot"] } }
+package-data = { tsbot = ["py.typed"] }
 
 
 [tool.ruff]
