@@ -8,4 +8,4 @@ build:
     python: "3.10"
   commands:
     - pip install .[docs]
-    - sphinx-build -c docs docs/source $READTHEDOCS_OUTPUT/html/
+    - python -m sphinx -c docs docs/source $READTHEDOCS_OUTPUT/html/
