@@ -3,8 +3,9 @@ from __future__ import annotations
 import asyncio
 import functools
 import inspect
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Callable, Coroutine, TypedDict
+from typing import TYPE_CHECKING, TypedDict
 
 from tsbot import exceptions, parsers
 

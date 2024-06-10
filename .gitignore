@@ -125,5 +125,8 @@ venvs/*
 .dmypy.json
 dmypy.json
 
+# ruff
+.ruff_cache
+
 todo.md
 playground.py

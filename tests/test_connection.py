@@ -5,6 +5,7 @@ from typing import Any, NamedTuple
 
 import asyncssh
 import pytest
+
 from tsbot import connection
 
 # pyright: reportPrivateUsage=false
@@ -105,9 +106,9 @@ def test_create_connection(conn_info: ConnectionInfo):
     assert conn.address == conn_info.address
     assert conn.port == conn_info.port
 
-    assert conn._connection == None
-    assert conn._writer == None
-    assert conn._reader == None
+    assert conn._connection is None
+    assert conn._writer is None
+    assert conn._reader is None
 
 
 def test_connection_connect(conn: connection.TSConnection):
@@ -253,7 +254,7 @@ def test_internal_read_exception_incomplete(
 
     line = asyncio.run(connected_conn._read())
 
-    assert line == None
+    assert line is None
 
 
 def test_internal_read_on_closed_channel(conn: connection.TSConnection):

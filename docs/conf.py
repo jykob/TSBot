@@ -22,8 +22,8 @@ sys.path.append(os.path.abspath("./ext"))
 import datetime
 
 project = "TSBot"
-copyright = "{}, 0x4aK".format(datetime.date.today().year)
-author = "0x4aK"
+copyright = f"{datetime.date.today().year}, jykob"
+author = "jykob"
 
 
 # -- General configuration ---------------------------------------------------

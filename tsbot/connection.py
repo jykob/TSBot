@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import itertools
 import logging
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 import asyncssh
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
+
 from tsbot import response
 
 
@@ -11,7 +12,7 @@ from tsbot import response
     (
         pytest.param(
             ["error id=0 msg=ok"],
-            {"data": tuple(), "error_id": 0, "msg": "ok"},
+            {"data": (), "error_id": 0, "msg": "ok"},
             id="test_acknowledgement",
         ),
         pytest.param(
@@ -25,7 +26,7 @@ from tsbot import response
         ),
         pytest.param(
             ["error id=256 msg=command\\snot\\sfound"],
-            {"data": tuple(), "error_id": 256, "msg": "command not found"},
+            {"data": (), "error_id": 256, "msg": "command not found"},
             id="test_error",
         ),
         pytest.param(

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import itertools
-from collections.abc import Mapping
-from typing import TYPE_CHECKING, Iterable, Protocol, TypeVar
+from collections.abc import Iterable, Mapping
+from typing import TYPE_CHECKING, Protocol, TypeVar
 
 from tsbot import encoders
 

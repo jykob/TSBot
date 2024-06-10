@@ -8,7 +8,7 @@ Plugins allow you to split up your state and functionality from other code.
 
 ```
 
-This example is taken from [examples/plugin_example.py](https://github.com/0x4aK/TSBot/blob/master/examples/plugin_example.py)
+This example is taken from [examples/plugin_example.py](https://github.com/jykob/TSBot/blob/master/examples/plugin_example.py)
 
 ---
 

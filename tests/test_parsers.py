@@ -8,7 +8,7 @@ from tsbot import parsers
 @pytest.mark.parametrize(
     ("input_str", "expected"),
     (
-        pytest.param("", tuple(), id="test_empty"),
+        pytest.param("", (), id="test_empty"),
         pytest.param("ip=0.0.0.0|ip=::", ({"ip": "0.0.0.0"}, {"ip": "::"}), id="test_simple"),
         pytest.param(
             "clid=14 client_nickname=Sven|clid=17 client_nickname=SvenBot",
