@@ -23,7 +23,7 @@ jobs:
           pip install .[tests]
 
       - name: Test with pytest
-        run: pytest tests
+        run: python -m pytest tests
 
   typecheck:
     runs-on: "ubuntu-latest"
