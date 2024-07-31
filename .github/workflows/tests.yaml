@@ -39,7 +39,7 @@ jobs:
       - name: Check with Pyright
         uses: jakebailey/pyright-action@v2
         with:
-          working-directory: "tsbot"
+          extra-args: "tsbot"
 
   lint:
     runs-on: "ubuntu-latest"
