@@ -1,6 +1,6 @@
 [project]
 name = "tsbot"
-version = "1.2.0"
+version = "1.2.1"
 authors = [{ name = "jykob" }]
 description = "Asynchronous framework to build TeamSpeak 3 Server Query bots"
 readme = "README.md"
@@ -36,7 +36,7 @@ build-backend = "setuptools.build_meta"
 
 
 [tool.setuptools]
-packages = { find = { include = ["tsbot"] } }
+packages = { find = { include = ["tsbot*"] } }
 package-data = { tsbot = ["py.typed"] }
 
 
