@@ -16,7 +16,7 @@ classifiers = [
 ]
 dependencies = ["asyncssh == 2.14.0", "tsformatter >= 0.2.1"]
 license = { file = "LICENSE" }
-urls = { repository = "https://github.com/jykob/tsbot", documentation = "https://tsbot.readthedocs.io/en/latest/" }
+urls = { repository = "https://github.com/jykob/tsbot", documentation = "https://tsbot.readthedocs.io/" }
 
 
 [project.optional-dependencies]
