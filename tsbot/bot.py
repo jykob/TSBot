@@ -66,7 +66,10 @@ class TSBot:
 
         self.nickname = nickname
         self.server_id = server_id
+
         self.uid: str = ""
+        self.clid: str = ""
+        self.cldbid: str = ""
 
         self.plugins: dict[str, plugin.TSPlugin] = {}
 
@@ -429,7 +432,7 @@ class TSBot:
             await self.send(select_query)
 
         async def register_notifies() -> None:
-            """Coroutine to register server to send events to the bot"""
+            """Register server to send events to the bot"""
 
             notify_query = query_builder.TSQuery("servernotifyregister")
 
@@ -437,10 +440,12 @@ class TSBot:
             for event in ("server", "textserver", "textchannel", "textprivate"):
                 await self.send(notify_query.params(event=event))
 
-        async def update_uid() -> None:
-            """Gets the uid of the client"""
-            resp = await self.send_raw("whoami")
-            self.uid = resp.first["client_unique_identifier"]
+        async def update_bot_info() -> None:
+            """Update useful information about the bot instance"""
+            info = (await self.send_raw("whoami")).first
+            self.uid = info["client_unique_identifier"]
+            self.clid = info["client_id"]
+            self.cldbid = info["client_database_id"]
 
         self.register_task(self._event_handler.handle_events_task, name="HandleEvents-Task")
         self.register_event_handler("textmessage", self._command_handler.handle_command_event)
@@ -458,7 +463,7 @@ class TSBot:
             logger.info("Connected")
 
             await select_server()
-            await update_uid()
+            await update_bot_info()
             await register_notifies()
 
             self.emit(event_name="ready")
