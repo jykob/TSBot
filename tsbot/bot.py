@@ -66,8 +66,10 @@ class TSBot:
 
         self.nickname = nickname
         self.server_id = server_id
+
         self.uid: str = ""
         self.clid: str = ""
+        self.cldbid: str = ""
 
         self.plugins: dict[str, plugin.TSPlugin] = {}
 
@@ -440,9 +442,10 @@ class TSBot:
 
         async def update_bot_info() -> None:
             """Update useful information about the bot instance"""
-            resp = await self.send_raw("whoami")
-            self.uid = resp.first["client_unique_identifier"]
-            self.clid = resp.first["client_id"]
+            info = (await self.send_raw("whoami")).first
+            self.uid = info["client_unique_identifier"]
+            self.clid = info["client_id"]
+            self.cldbid = info["client_database_id"]
 
         self.register_task(self._event_handler.handle_events_task, name="HandleEvents-Task")
         self.register_event_handler("textmessage", self._command_handler.handle_command_event)
