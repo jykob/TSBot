@@ -430,7 +430,7 @@ class TSBot:
             await self.send(select_query)
 
         async def register_notifies() -> None:
-            """Coroutine to register server to send events to the bot"""
+            """Register server to send events to the bot"""
 
             notify_query = query_builder.TSQuery("servernotifyregister")
 
@@ -439,7 +439,7 @@ class TSBot:
                 await self.send(notify_query.params(event=event))
 
         async def update_bot_info() -> None:
-            """Gets the uid of the client"""
+            """Update useful information about the bot instance"""
             resp = await self.send_raw("whoami")
             self.uid = resp.first["client_unique_identifier"]
             self.clid = resp.first["client_id"]
