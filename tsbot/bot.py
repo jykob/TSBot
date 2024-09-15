@@ -247,7 +247,7 @@ class TSBot:
         :param command: Command that invokes :class:`TSCommand<tsbot.commands.TSCommand>`
         :return: :class:`TSCommand<tsbot.commands.TSCommand>` associated with `command`
         """
-        return self._command_handler.commands.get(command)
+        return self._command_handler.get_command(command)
 
     def register_every_task(
         self,

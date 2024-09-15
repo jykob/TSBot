@@ -22,16 +22,16 @@ _ERROR_EVENT_MAP: dict[type[exceptions.TSException], str] = {
 class CommandHandler:
     def __init__(self, invoker: str = "!") -> None:
         self.invoker = invoker
-        self.commands: dict[str, commands.TSCommand] = {}
+        self._commands: dict[str, commands.TSCommand] = {}
 
     def register_command(self, command: commands.TSCommand) -> None:
-        if already_registered := tuple(filter(lambda c: c in self.commands, command.commands)):
+        if already_registered := tuple(filter(lambda c: c in self._commands, command.commands)):
             logger.warn(
                 "Command %s are already registered and will be overwritten",
                 ", ".join(map(repr, already_registered)),
             )
 
-        self.commands.update({c: command for c in command.commands})
+        self._commands.update({c: command for c in command.commands})
 
         logger.debug(
             "Registered %s command to execute handler %r",
@@ -39,9 +39,12 @@ class CommandHandler:
             command.handler.__name__,
         )
 
+    def get_command(self, command: str) -> commands.TSCommand | None:
+        return self._commands.get(command)
+
     def remove_command(self, command: commands.TSCommand) -> None:
         for c in command.commands:
-            del self.commands[c]
+            del self._commands[c]
 
     async def handle_command_event(self, bot: bot.TSBot, ctx: context.TSCtx) -> None:
         """Logic to handle commands"""
@@ -64,7 +67,7 @@ class CommandHandler:
         msg = msg.removeprefix(self.invoker)
 
         command, _, args = msg.partition(" ")
-        command_handler = self.commands.get(command)
+        command_handler = self._commands.get(command)
 
         if not command_handler:
             return
