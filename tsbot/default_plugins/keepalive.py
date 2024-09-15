@@ -5,10 +5,9 @@ import logging
 from typing import TYPE_CHECKING
 
 from tsbot import plugin
-from tsbot.tasks import task
 
 if TYPE_CHECKING:
-    from tsbot import bot, context
+    from tsbot import bot, context, tasks
 
 
 logger = logging.getLogger(__name__)
@@ -19,7 +18,7 @@ class KeepAlive(plugin.TSPlugin):
     KEEP_ALIVE_COMMAND: str = "version"
 
     def __init__(self) -> None:
-        self.keep_alive_task: task.TSTask | None = None
+        self.keep_alive_task: tasks.TSTask | None = None
         self.command_sent_event = asyncio.Event()
 
     @plugin.on("connect")
