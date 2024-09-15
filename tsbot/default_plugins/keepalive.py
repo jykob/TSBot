@@ -5,6 +5,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from tsbot import plugin
+from tsbot.tasks import task
 
 if TYPE_CHECKING:
     from tsbot import bot, context
@@ -18,11 +19,21 @@ class KeepAlive(plugin.TSPlugin):
     KEEP_ALIVE_COMMAND: str = "version"
 
     def __init__(self) -> None:
+        self.keep_alive_task: task.TSTask | None = None
         self.command_sent_event = asyncio.Event()
 
-    @plugin.once("ready")
+    @plugin.on("connect")
     async def init_keep_alive(self, bot: bot.TSBot, ctx: None) -> None:
-        bot.register_task(self._keep_alive_task, name="KeepAlive-Task")
+        self.keep_alive_task = bot.register_task(self._keep_alive_task, name="KeepAlive-Task")
+
+    @plugin.on("disconnect")
+    async def kill_keep_alive(self, bot: bot.TSBot, ctx: None) -> None:
+        if self.keep_alive_task:
+            bot.remove_task(self.keep_alive_task)
+
+    @plugin.on("send")
+    async def on_command_sent(self, bot: bot.TSBot, ctx: context.TSCtx) -> None:
+        self.command_sent_event.set()
 
     async def _keep_alive_task(self, bot: bot.TSBot) -> None:
         """
@@ -48,7 +59,3 @@ class KeepAlive(plugin.TSPlugin):
             except asyncio.CancelledError:
                 logger.debug("Keep-alive task cancelled")
                 break
-
-    @plugin.on("send")
-    async def on_command_sent(self, bot: bot.TSBot, ctx: context.TSCtx) -> None:
-        self.command_sent_event.set()
