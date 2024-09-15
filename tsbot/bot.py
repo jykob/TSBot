@@ -14,12 +14,10 @@ from tsbot import (
     default_plugins,
     enums,
     events,
-    exceptions,
     query_builder,
     ratelimiter,
     response,
     tasks,
-    utils,
 )
 
 if TYPE_CHECKING:
@@ -42,6 +40,8 @@ class TSBot:
         server_id: int = 1,
         nickname: str | None = None,
         invoker: str = "!",
+        connection_retries: int = 3,
+        connection_retry_timeout: float = 10,
         ratelimited: bool = False,
         ratelimit_calls: int = 10,
         ratelimit_period: float = 3,
@@ -55,6 +55,8 @@ class TSBot:
         :param server_id: Id of the virtual server.
         :param nickname: Display name for the bot client.
         :param invoker: Command indicator.
+        :param connection_retries: The amount of retries on connection lost.
+        :param connection_retry_timeout: The period between each connection retry.
         :param ratelimited: If the connection should be ratelimited.
         :param ratelimit_calls: Calls per period.
         :param ratelimit_period: Period interval.
@@ -73,7 +75,18 @@ class TSBot:
 
         self.plugins: dict[str, plugin.TSPlugin] = {}
 
-        self._connection = connection.TSConnection(username, password, address, port)
+        self._connection = connection.TSConnection(
+            bot=self,
+            connection=connection.SSHConnection(username, password, address, port),
+            server_id=server_id,
+            nickname=nickname,
+            query_timeout=query_timeout,
+            connection_retries=connection_retries,
+            connection_retry_interval=connection_retry_timeout,
+            ratelimiter=(
+                ratelimiter.RateLimiter(ratelimit_calls, ratelimit_period) if ratelimited else None
+            ),
+        )
 
         self._tasks_handler = tasks.TasksHandler()
         self._event_handler = events.EventHandler()
@@ -301,10 +314,7 @@ class TSBot:
         :param query: Instance of :class:`TSQuery<tsbot.query_builder.TSQuery>` to be send to the server.
         :return: Response from the server.
         """
-        try:
-            return await self.send_raw(query.compile())
-        except exceptions.TSResponseError as response_error:
-            raise utils.pop_traceback(response_error, 2)
+        return await self._connection.send(query)
 
     async def send_raw(self, raw_query: str) -> response.TSResponse:
         """
@@ -316,71 +326,7 @@ class TSBot:
         :param raw_query: Raw query command to be send to the server.
         :return: Response from the server.
         """
-        try:
-            return await asyncio.shield(self._send(raw_query))
-        except exceptions.TSResponseError as response_error:
-            raise utils.pop_traceback(response_error, 2)
-
-    async def _send(self, raw_query: str) -> response.TSResponse:
-        """Method responsible for actually sending the data."""
-
-        async with self._sending_lock:
-            self._response = asyncio.Future()
-
-            if self._ratelimited:
-                await self._ratelimiter.wait()
-
-            logger.debug("Sending query: %r", raw_query)
-            self.emit(event_name="send", ctx={"query": raw_query})
-            await self._connection.write(raw_query)
-
-            server_response = await asyncio.wait_for(
-                asyncio.shield(self._response), self._query_timeout
-            )
-
-            logger.debug("Got a response: %s", server_response)
-
-        if server_response.error_id == 2568:
-            raise exceptions.TSResponsePermissionError(
-                msg=server_response.msg,
-                error_id=server_response.error_id,
-                perm_id=int(server_response.last["failed_permid"]),
-            )
-
-        if server_response.error_id != 0:
-            raise exceptions.TSResponseError(
-                msg=server_response.msg,
-                error_id=int(server_response.error_id),
-            )
-
-        return server_response
-
-    async def _reader_task(self, ready_event: asyncio.Event) -> None:
-        """Task to read messages from the server."""
-
-        WELCOME_MESSAGE_LENGTH = 2
-        async for data in self._connection.read_lines(WELCOME_MESSAGE_LENGTH):
-            pass
-
-        logger.debug("Skipped welcome message")
-        ready_event.set()
-
-        response_buffer: list[str] = []
-
-        async for data in self._connection.read():
-            if data.startswith("notify"):
-                self.emit_event(events.TSEvent.from_server_notification(data))
-
-            elif data.startswith("error"):
-                response_buffer.append(data)
-                resp = response.TSResponse.from_server_response(response_buffer)
-                self._response.set_result(resp)
-                response_buffer.clear()
-
-            else:
-                response_buffer.append(data)
-
-        logger.debug("Reader task done")
+        return await self._connection.send_raw(raw_query)
 
     def close(self) -> None:
         """
@@ -392,10 +338,9 @@ class TSBot:
 
         if not self._closing:
             self._closing = True
-            asyncio.create_task(self._close())
+            asyncio.create_task(self._close(), name="BotClosing-Task")
 
     async def _close(self) -> None:
-        logger.info("Closing bot")
         self.emit(event_name="close")
         await self._tasks_handler.close()
         await self._event_handler.run_till_empty(self)
@@ -403,7 +348,7 @@ class TSBot:
         with contextlib.suppress(Exception):
             await self.send_raw("quit")
 
-        logger.info("Closing done")
+        self._connection.close()
 
     async def run(self) -> None:
         """
@@ -415,38 +360,6 @@ class TSBot:
         Awaits until the bot disconnects.
         """
 
-        async def get_reader_task() -> asyncio.Task[None]:
-            reader_ready = asyncio.Event()
-            reader = asyncio.create_task(self._reader_task(reader_ready))
-            await reader_ready.wait()
-
-            return reader
-
-        async def select_server() -> None:
-            """Set current virtual server and sets nickname if specified"""
-            select_query = query_builder.TSQuery("use", parameters={"sid": self.server_id})
-
-            if self.nickname is not None:
-                select_query = select_query.params(client_nickname=self.nickname)
-
-            await self.send(select_query)
-
-        async def register_notifies() -> None:
-            """Register server to send events to the bot"""
-
-            notify_query = query_builder.TSQuery("servernotifyregister")
-
-            await self.send(notify_query.params(event="channel", id=0))
-            for event in ("server", "textserver", "textchannel", "textprivate"):
-                await self.send(notify_query.params(event=event))
-
-        async def update_bot_info() -> None:
-            """Update useful information about the bot instance"""
-            info = (await self.send_raw("whoami")).first
-            self.uid = info["client_unique_identifier"]
-            self.clid = info["client_id"]
-            self.cldbid = info["client_database_id"]
-
         self.register_task(self._event_handler.handle_events_task, name="HandleEvents-Task")
         self.register_event_handler("textmessage", self._command_handler.handle_command_event)
         self.load_plugin(default_plugins.Help(), default_plugins.KeepAlive())
@@ -454,25 +367,8 @@ class TSBot:
         self._tasks_handler.start(self)
         self.emit(event_name="run")
 
-        logger.info("Setting up connection")
-
-        try:
-            await self._connection.connect()
-            reader_task = await get_reader_task()
-
-            logger.info("Connected")
-
-            await select_server()
-            await update_bot_info()
-            await register_notifies()
-
-            self.emit(event_name="ready")
-
-            await reader_task
-
-        finally:
-            await self._close()
-            await self._connection.close()
+        await self._connection.connect()
+        await self._connection.wait_closed()
 
     def load_plugin(self, *plugins: plugin.TSPlugin) -> None:
         """
