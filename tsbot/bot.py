@@ -55,8 +55,8 @@ class TSBot:
         :param server_id: Id of the virtual server.
         :param nickname: Display name for the bot client.
         :param invoker: Command indicator.
-        :param connection_retries: The amount of retries on connection lost.
-        :param connection_retry_timeout: The period between each connection retry.
+        :param connection_retries: The amount of attempts on each connection.
+        :param connection_retry_timeout: The period between each connection attempt.
         :param ratelimited: If the connection should be ratelimited.
         :param ratelimit_calls: Calls per period.
         :param ratelimit_period: Period interval.
