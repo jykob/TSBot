@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Generator
+from collections.abc import Generator, Sequence
 from dataclasses import dataclass
 from typing import TypeVar
 
@@ -33,7 +33,7 @@ class TSResponse:
         return self.data[-1]
 
     @classmethod
-    def from_server_response(cls: type[_T], raw_data: list[str]) -> _T:
+    def from_server_response(cls: type[_T], raw_data: Sequence[str]) -> _T:
         response_info = parsers.parse_line(raw_data[-1].removeprefix("error "))
         data = parsers.parse_data("".join(raw_data[:-1]))
 

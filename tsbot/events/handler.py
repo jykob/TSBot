@@ -22,7 +22,7 @@ class EventHandler:
 
     def add_event(self, event: events.TSEvent) -> None:
         if self._closed:
-            logger.warn("Event %r emitted during closing and is ignored", event.event)
+            logger.warning("Event %r emitted during closing and is ignored", event.event)
         else:
             self._event_queue.put_nowait(event)
 

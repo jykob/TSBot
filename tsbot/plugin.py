@@ -35,14 +35,17 @@ def command(
     def command_decorator(
         func: Callable[Concatenate[_T, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]],
     ) -> Callable[Concatenate[_T, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]]:
-        kwargs = {
-            "command": command,
-            "help_text": help_text,
-            "raw": raw,
-            "hidden": hidden,
-            "checks": checks or [],
-        }
-        setattr(func, "__ts_command__", kwargs)
+        setattr(
+            func,
+            "__ts_command__",
+            {
+                "command": command,
+                "help_text": help_text,
+                "raw": raw,
+                "hidden": hidden,
+                "checks": checks or [],
+            },
+        )
         return func
 
     return command_decorator

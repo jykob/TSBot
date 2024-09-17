@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import asyncio
-import functools
 import inspect
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING
 
 from tsbot import exceptions, parsers
 
@@ -14,17 +13,6 @@ if TYPE_CHECKING:
 
 
 TCommandHandler = Callable[..., Coroutine[None, None, None]]
-
-
-class CheckKwargs(TypedDict):
-    bot: bot.TSBot
-    ctx: context.TSCtx
-    args: tuple[str, ...]
-    kwargs: dict[str, str]
-
-
-def _create_check_task(check: TCommandHandler, kwargs: CheckKwargs) -> asyncio.Task[None]:
-    return asyncio.create_task(check(**kwargs), name="Check-Task")
 
 
 @dataclass(slots=True)
@@ -45,11 +33,13 @@ class TSCommand:
     async def run_checks(
         self, bot: bot.TSBot, ctx: context.TSCtx, *args: str, **kwargs: str
     ) -> None:
-        check_kwargs = CheckKwargs(bot=bot, ctx=ctx, args=args, kwargs=kwargs)
-        create_check_task = functools.partial(_create_check_task, kwargs=check_kwargs)
-        check_tasks = list(map(create_check_task, self.checks))
-
-        done, pending = await asyncio.wait(check_tasks, return_when=asyncio.FIRST_EXCEPTION)
+        done, pending = await asyncio.wait(
+            [
+                asyncio.create_task(check(bot, ctx, *args, **kwargs), name="CommandCheck-Task")
+                for check in self.checks
+            ],
+            return_when=asyncio.FIRST_EXCEPTION,
+        )
 
         for pending_task in pending:
             pending_task.cancel()
