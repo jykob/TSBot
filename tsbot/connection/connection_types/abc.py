@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class ConnectionABC(ABC):
+class Connection(ABC):
     @abstractmethod
     async def connect(self) -> None:
         """

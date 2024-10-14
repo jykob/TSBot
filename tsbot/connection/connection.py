@@ -19,7 +19,7 @@ class TSConnection:
     def __init__(
         self,
         bot: bot.TSBot,
-        connection: connection.ConnectionABC,
+        connection: connection.abc.Connection,
         *,
         server_id: int = 0,
         nickname: str | None = None,

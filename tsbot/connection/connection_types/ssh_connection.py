@@ -1,9 +1,9 @@
 import asyncssh
 
-from tsbot import connection
+from tsbot.connection.connection_types import abc
 
 
-class SSHConnection(connection.ConnectionABC):
+class SSHConnection(abc.Connection):
     def __init__(
         self,
         username: str,
@@ -58,13 +58,13 @@ class SSHConnection(connection.ConnectionABC):
         if not self._writer or self._writer.is_closing():
             raise BrokenPipeError("Trying to write on a closed connection")
 
-        self._writer.write(f"{data}\n\r")
+        self._writer.write(f"{data}")
         await self._writer.drain()
 
     async def readline(self) -> str | None:
         return await self.readuntil("\n\r")
 
-    async def readuntil(self, separator: str = "\n\r") -> str | None:
+    async def readuntil(self, separator: str) -> str | None:
         if not self._reader:
             raise ConnectionResetError("Reading on a closed connection")
 

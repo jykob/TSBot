@@ -1,5 +1,5 @@
-from tsbot.connection.abc import ConnectionABC
 from tsbot.connection.connection import TSConnection
-from tsbot.connection.ssh_connection import SSHConnection
+from tsbot.connection.connection_types import SSHConnection, abc
+from tsbot.connection.writer import QueryPriority
 
-__all__ = ("ConnectionABC", "TSConnection", "SSHConnection")
+__all__ = ("abc", "TSConnection", "SSHConnection", "QueryPriority")
