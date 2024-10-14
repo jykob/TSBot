@@ -3,10 +3,10 @@ from __future__ import annotations
 import asyncio
 import itertools
 import logging
-from collections.abc import AsyncGenerator
 from typing import TYPE_CHECKING
 
-from tsbot import context, events, exceptions, query_builder, response
+from tsbot import events, exceptions, query_builder, response
+from tsbot.connection import reader, writer
 
 if TYPE_CHECKING:
     from tsbot import bot, connection, ratelimiter
@@ -32,32 +32,45 @@ class TSConnection:
 
         self._server_id = server_id
         self._nickname = nickname
-        self._query_timeout = query_timeout
 
         self._connection = connection
         self._connection_retries = connection_retries
         self._connection_retry_interval = connection_retry_interval
 
-        self._ratelimiter = ratelimiter
-
         self._connection_task: asyncio.Task[None] | None = None
         self._connected_event = asyncio.Event()
         self._is_first_connection = True
 
-        self._write_lock = asyncio.Lock()
-        self._response: asyncio.Future[response.TSResponse]
+        self._reader = reader.Reader(
+            self._connection,
+            event_emitter=self._handle_event,
+            connected_event=self._connected_event,
+        )
+        self._writer = writer.Writer(
+            self._connection,
+            ratelimiter=ratelimiter,
+            query_timeout=query_timeout,
+            on_send=self._handle_event,
+            ready_to_write=self._connected_event,
+        )
 
         self._closed = False
 
     async def connect(self) -> None:
+        self._reader.start()
+        self._writer.start()
         self._connection_task = asyncio.create_task(
             self._connection_handler(), name="Connection-Task"
         )
 
+        await self._connected_event.wait()
+
     def close(self) -> None:
-        if not self._closed:
-            self._closed = True
-            self._connection.close()
+        if self._closed:
+            return
+
+        self._closed = True
+        self._connection.close()
 
     async def wait_closed(self) -> None:
         if not self._connection_task:
@@ -65,31 +78,8 @@ class TSConnection:
 
         await self._connection_task
 
-    async def _reader(self) -> None:
-        async def read_gen() -> AsyncGenerator[str, None]:
-            while data := await self._connection.readline():
-                logger.debug("Got data: %r", data)
-                yield data.rstrip()
-
-        response_buffer: list[str] = []
-
-        async for data in read_gen():
-            if data.startswith("notify"):
-                self._bot.emit_event(
-                    events.TSEvent.from_server_notification(data),
-                )
-
-            elif data.startswith("error"):
-                response_buffer.append(data)
-                self._response.set_result(
-                    response.TSResponse.from_server_response(response_buffer),
-                )
-                response_buffer.clear()
-
-            else:
-                response_buffer.append(data)
-
-        logger.debug("Reader done")
+    def _handle_event(self, event: events.TSEvent):
+        self._bot.emit_event(event)
 
     async def _connection_handler(self) -> None:
         """
@@ -107,7 +97,7 @@ class TSConnection:
                 )
                 try:
                     await self._connection.connect()
-                    return
+                    break
 
                 except Exception as e:
                     logger.warning(
@@ -115,16 +105,14 @@ class TSConnection:
                     )
 
                 if attempt >= self._connection_retries:
-                    break
+                    raise ConnectionAbortedError(
+                        f"Failed to connect to the server after {self._connection_retries} attempts"
+                    )
 
                 logger.info(
                     "Trying to establish connection after %ss", self._connection_retry_interval
                 )
                 await asyncio.sleep(self._connection_retry_interval)
-
-            raise ConnectionAbortedError(
-                f"Failed to connect to the server after {self._connection_retries} tries"
-            )
 
         async def select_server():
             """Set current virtual server and sets nickname if specified"""
@@ -133,22 +121,23 @@ class TSConnection:
             if self._nickname is not None:
                 select_query = select_query.params(client_nickname=self._nickname)
 
-            await self.send(select_query)
+            await self.send(select_query, writer.QueryPriority.INTERNAL)
 
         async def register_notifications():
             """Register server to send events to the bot"""
             notify_query = query_builder.TSQuery("servernotifyregister")
 
-            await self.send(notify_query.params(event="channel", id=0))
+            await self.send(
+                notify_query.params(event="channel", id=0), writer.QueryPriority.INTERNAL
+            )
             for event in ("server", "textserver", "textchannel", "textprivate"):
-                await self.send(notify_query.params(event=event))
+                await self.send(notify_query.params(event=event), writer.QueryPriority.INTERNAL)
 
         while not self._closed:
             await connect()
             await self._connection.validate_header()
-            self._connected_event.set()
 
-            asyncio.create_task(self._reader(), name="ConnectionReader-Task")
+            self._connected_event.set()
 
             await self._connection.authenticate()
 
@@ -167,26 +156,13 @@ class TSConnection:
             self._connected_event.clear()
             self._bot.emit("disconnect")
 
-    async def send(self, query: query_builder.TSQuery) -> response.TSResponse:
-        return await self.send_raw(query.compile())
+    async def send(
+        self, query: query_builder.TSQuery, priority: writer.QueryPriority
+    ) -> response.TSResponse:
+        return await self.send_raw(query.compile(), priority)
 
-    async def send_raw(self, raw_query: str) -> response.TSResponse:
-        async with self._write_lock:
-            await self._connected_event.wait()
-
-            # TODO: if connection fails at this point, retry sending
-            #       query when the next connection is established
-            self._response = asyncio.Future()
-
-            if self._ratelimiter:
-                await self._ratelimiter.wait()
-
-            self._bot.emit_event(events.TSEvent("send", context.TSCtx({"query": raw_query})))
-            await self._connection.write(f"{raw_query}\n\r")
-
-            server_response = await asyncio.wait_for(
-                asyncio.shield(self._response), self._query_timeout
-            )
+    async def send_raw(self, raw_query: str, priority: writer.QueryPriority) -> response.TSResponse:
+        server_response = await self._send(raw_query, priority)
 
         if server_response.error_id == 2568:
             raise exceptions.TSResponsePermissionError(
@@ -202,3 +178,9 @@ class TSConnection:
             )
 
         return server_response
+
+    async def _send(self, raw_query: str, priority: writer.QueryPriority) -> response.TSResponse:
+        response_future: asyncio.Future[response.TSResponse] = asyncio.Future()
+        self._writer.write(priority, writer.QueryItem(raw_query, response_future))
+        await self._reader.read_response(response_future)
+        return await response_future

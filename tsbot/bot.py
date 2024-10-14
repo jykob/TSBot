@@ -314,7 +314,7 @@ class TSBot:
         :param query: Instance of :class:`TSQuery<tsbot.query_builder.TSQuery>` to be send to the server.
         :return: Response from the server.
         """
-        return await self._connection.send(query)
+        return await self._connection.send(query, connection.QueryPriority.NORMAL)
 
     async def send_raw(self, raw_query: str) -> response.TSResponse:
         """
@@ -326,7 +326,7 @@ class TSBot:
         :param raw_query: Raw query command to be send to the server.
         :return: Response from the server.
         """
-        return await self._connection.send_raw(raw_query)
+        return await self._connection.send_raw(raw_query, connection.QueryPriority.NORMAL)
 
     def close(self) -> None:
         """
