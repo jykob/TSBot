@@ -68,10 +68,10 @@ class Reader:
         self,
         connection: connection.abc.Connection,
         event_emitter: Callable[[events.TSEvent], None],
-        connected_event: asyncio.Event,
+        ready_to_read: asyncio.Event,
     ) -> None:
         self._connection = connection
-        self._ready_to_read = connected_event
+        self._ready_to_read = ready_to_read
         self._event_emitter = event_emitter
 
         self._read_buffer = _ReadBuffer()
