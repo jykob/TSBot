@@ -5,10 +5,10 @@ from collections.abc import Callable
 from enum import IntEnum, auto
 from typing import TYPE_CHECKING, NamedTuple
 
-from tsbot import connection, context, events
+from tsbot import context, events
 
 if TYPE_CHECKING:
-    from tsbot import ratelimiter, response
+    from tsbot import connection, ratelimiter, response
 
 
 class QueryPriority(IntEnum):
@@ -62,7 +62,7 @@ class Writer:
             try:
                 await asyncio.wait_for(asyncio.shield(query.response), self._query_timeout)
 
-                # TODO: handle disconnect situation (redo)
+                # TODO: handle disconnect situation (redo), only redo QueryPriority.NORMAL
             except Exception as e:
                 if not query.response.done():
                     query.response.set_exception(e)

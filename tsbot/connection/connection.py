@@ -5,11 +5,11 @@ import itertools
 import logging
 from typing import TYPE_CHECKING
 
-from tsbot import events, exceptions, query_builder, response
+from tsbot import exceptions, query_builder
 from tsbot.connection import reader, writer
 
 if TYPE_CHECKING:
-    from tsbot import bot, connection, ratelimiter
+    from tsbot import bot, connection, events, ratelimiter, response
 
 
 logger = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ class TSConnection:
         self._reader = reader.Reader(
             self._connection,
             event_emitter=self._handle_event,
-            connected_event=self._connected_event,
+            ready_to_read=self._connected_event,
         )
         self._writer = writer.Writer(
             self._connection,
