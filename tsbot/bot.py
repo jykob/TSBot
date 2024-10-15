@@ -66,9 +66,6 @@ class TSBot:
         if nickname is not None and not nickname:
             raise TypeError("Bot nickname cannot be empty")
 
-        self.nickname = nickname
-        self.server_id = server_id
-
         self.uid: str = ""
         self.clid: str = ""
         self.cldbid: str = ""
@@ -92,16 +89,7 @@ class TSBot:
         self._event_handler = events.EventHandler()
         self._command_handler = commands.CommandHandler(invoker)
 
-        self._ratelimited = ratelimited
-        self._ratelimiter = ratelimiter.RateLimiter(
-            max_calls=ratelimit_calls, period=ratelimit_period
-        )
-
-        self._closing = False
-
-        self._response: asyncio.Future[response.TSResponse]
-        self._sending_lock = asyncio.Lock()
-        self._query_timeout = query_timeout
+        self._closing = asyncio.Event()
 
     def emit(self, event_name: str, ctx: Any | None = None) -> None:
         """
@@ -336,11 +324,11 @@ class TSBot:
         cancels background tasks and send quit command.
         """
 
-        if not self._closing:
-            self._closing = True
-            asyncio.create_task(self._close(), name="BotClosing-Task")
+        self._closing.set()
 
-    async def _close(self) -> None:
+    async def _wait_closed(self) -> None:
+        await self._closing.wait()
+
         self.emit(event_name="close")
         await self._tasks_handler.close()
         await self._event_handler.run_till_empty(self)
@@ -370,6 +358,8 @@ class TSBot:
         Awaits until the bot disconnects.
         """
 
+        self._closing.clear()
+
         self.register_task(self._event_handler.handle_events_task, name="HandleEvents-Task")
 
         self.register_event_handler("connect", self._connect_handler)
@@ -380,8 +370,8 @@ class TSBot:
         self._tasks_handler.start(self)
         self.emit(event_name="run")
 
-        await self._connection.connect()
-        await self._connection.wait_closed()
+        self._connection.connect()
+        await asyncio.gather(self._connection.wait_closed(), self._wait_closed())
 
     def load_plugin(self, *plugins: plugin.TSPlugin) -> None:
         """

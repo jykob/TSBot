@@ -56,12 +56,10 @@ class TSConnection:
 
         self._closed = False
 
-    async def connect(self) -> None:
+    def connect(self) -> None:
         self._connection_task = asyncio.create_task(
             self._connection_handler(), name="Connection-Task"
         )
-
-        await self._connected_event.wait()
 
     def close(self) -> None:
         if self._closed:
