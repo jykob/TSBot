@@ -136,11 +136,10 @@ class TSConnection:
         while not self._closed:
             await connect()
             await self._connection.validate_header()
+            await self._connection.authenticate()
 
             self._connected_event.set()
             self._reader.start()
-
-            await self._connection.authenticate()
 
             await select_server()
             await register_notifications()
