@@ -54,11 +54,11 @@ class _ReadBuffer:
 
                 raise
 
-    async def popleft(self) -> str:
+    async def pop(self) -> str:
         await self._wakeup_on_available_item()
         return self._deque.popleft()
 
-    def append(self, item: str) -> None:
+    def put(self, item: str) -> None:
         self._deque.append(item)
         self._wakeup_getters()
 
@@ -90,14 +90,14 @@ class Reader:
             if data.startswith("notify"):
                 self._event_emitter(events.TSEvent.from_server_notification(data))
             else:
-                self._read_buffer.append(data)
+                self._read_buffer.put(data)
 
-    async def _get_response(self):
-        data = await self._read_buffer.popleft()
+    async def _get_response(self) -> AsyncGenerator[str, None]:
+        data = await self._read_buffer.pop()
         yield data
 
         while not data.startswith("error"):
-            data = await self._read_buffer.popleft()
+            data = await self._read_buffer.pop()
             yield data
 
     async def read_response(self, response_future: asyncio.Future[response.TSResponse]) -> None:
