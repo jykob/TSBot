@@ -57,8 +57,6 @@ class TSConnection:
         self._closed = False
 
     async def connect(self) -> None:
-        self._reader.start()
-        self._writer.start()
         self._connection_task = asyncio.create_task(
             self._connection_handler(), name="Connection-Task"
         )
@@ -133,11 +131,14 @@ class TSConnection:
             for event in ("server", "textserver", "textchannel", "textprivate"):
                 await self.send(notify_query.params(event=event), writer.QueryPriority.INTERNAL)
 
+        self._writer.start()
+
         while not self._closed:
             await connect()
             await self._connection.validate_header()
 
             self._connected_event.set()
+            self._reader.start()
 
             await self._connection.authenticate()
 

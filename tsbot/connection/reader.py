@@ -75,9 +75,12 @@ class Reader:
         self._event_emitter = event_emitter
 
         self._read_buffer = _ReadBuffer()
-        self._reader_task: asyncio.Task[None]
+        self._reader_task: asyncio.Task[None] | None = None
 
     def start(self) -> None:
+        if self._reader_task and not self._reader_task.done():
+            self._reader_task.cancel()
+
         self._reader_task = asyncio.create_task(self._task())
 
     async def _task(self) -> None:
