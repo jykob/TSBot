@@ -90,6 +90,15 @@ class TSBot:
         self._command_handler = commands.CommandHandler(invoker)
 
         self._closing = asyncio.Event()
+        self._init()
+
+    def _init(self) -> None:
+        self.register_task(self._event_handler.handle_events_task, name="HandleEvents-Task")
+
+        self.register_event_handler("connect", self._connect_handler)
+        self.register_event_handler("textmessage", self._command_handler.handle_command_event)
+
+        self.load_plugin(default_plugins.Help(), default_plugins.KeepAlive())
 
     def emit(self, event_name: str, ctx: Any | None = None) -> None:
         """
@@ -359,15 +368,8 @@ class TSBot:
         """
 
         self._closing.clear()
-
-        self.register_task(self._event_handler.handle_events_task, name="HandleEvents-Task")
-
-        self.register_event_handler("connect", self._connect_handler)
-        self.register_event_handler("textmessage", self._command_handler.handle_command_event)
-
-        self.load_plugin(default_plugins.Help(), default_plugins.KeepAlive())
-
         self._tasks_handler.start(self)
+
         self.emit(event_name="run")
 
         self._connection.connect()
