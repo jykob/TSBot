@@ -11,10 +11,10 @@ class SSHConnection(abc.Connection):
         address: str,
         port: int,
     ) -> None:
-        self.username = username
-        self.password = password
-        self.address = address
-        self.port = port
+        self._username = username
+        self._password = password
+        self._address = address
+        self._port = port
 
         self._connection: asyncssh.SSHClientConnection | None = None
         self._writer: asyncssh.SSHWriter[str] | None = None
@@ -22,10 +22,10 @@ class SSHConnection(abc.Connection):
 
     async def connect(self) -> None:
         self._connection = await asyncssh.connect(
-            host=self.address,
-            port=self.port,
-            username=self.username,
-            password=self.password,
+            host=self._address,
+            port=self._port,
+            username=self._username,
+            password=self._password,
             known_hosts=None,
             preferred_auth="password",
         )
@@ -58,7 +58,7 @@ class SSHConnection(abc.Connection):
         if not self._writer or self._writer.is_closing():
             raise BrokenPipeError("Trying to write on a closed connection")
 
-        self._writer.write(f"{data}")
+        self._writer.write(f"{data}\n\r")
         await self._writer.drain()
 
     async def readline(self) -> str | None:
