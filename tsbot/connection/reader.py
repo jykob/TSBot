@@ -17,8 +17,8 @@ logger = logging.getLogger(__name__)
 
 
 class _ReadBuffer:
-    def __init__(self, *, maxlen: int | None = None) -> None:
-        self._deque: collections.deque[str] = collections.deque(maxlen=maxlen)
+    def __init__(self) -> None:
+        self._deque: collections.deque[str] = collections.deque()
         self._getters: collections.deque[asyncio.Future[None]] = collections.deque()
 
     def _wakeup_getters(self):
@@ -68,20 +68,24 @@ class Reader:
         self,
         connection: connection.abc.Connection,
         event_emitter: Callable[[events.TSEvent], None],
+        read_timeout: float,
         ready_to_read: asyncio.Event,
     ) -> None:
         self._connection = connection
         self._ready_to_read = ready_to_read
         self._event_emitter = event_emitter
+        self._read_timeout = read_timeout
 
         self._read_buffer = _ReadBuffer()
         self._reader_task: asyncio.Task[None] | None = None
 
     def start(self) -> None:
+        self._reader_task = asyncio.create_task(self._task(), name="Reader-Task")
+
+    def close(self) -> None:
+        self._read_buffer.clear()
         if self._reader_task and not self._reader_task.done():
             self._reader_task.cancel()
-
-        self._reader_task = asyncio.create_task(self._task())
 
     async def _task(self) -> None:
         async def read_gen() -> AsyncGenerator[str, None]:
@@ -95,7 +99,7 @@ class Reader:
             else:
                 self._read_buffer.put(data)
 
-    async def _get_response(self) -> AsyncGenerator[str, None]:
+    async def _pop_till_error_line(self) -> AsyncGenerator[str, None]:
         data = await self._read_buffer.pop()
         yield data
 
@@ -103,8 +107,10 @@ class Reader:
             data = await self._read_buffer.pop()
             yield data
 
-    async def read_response(self, response_future: asyncio.Future[response.TSResponse]) -> None:
-        # TODO: on connection reset, need a way to clear already received data
-        response_future.set_result(
-            response.TSResponse.from_server_response([line async for line in self._get_response()])
+    async def _get_response(self):
+        return tuple([line async for line in self._pop_till_error_line()])
+
+    async def read_response(self) -> response.TSResponse:
+        return response.TSResponse.from_server_response(
+            await asyncio.wait_for(self._get_response(), timeout=self._read_timeout)
         )

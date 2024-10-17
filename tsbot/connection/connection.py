@@ -29,13 +29,13 @@ class TSConnection:
         ratelimiter: ratelimiter.RateLimiter | None = None,
     ) -> None:
         self._bot = bot
+        self._connection = connection
 
         self._server_id = server_id
         self._nickname = nickname
 
-        self._connection = connection
-        self._connection_retries = connection_retries
-        self._connection_retry_interval = connection_retry_interval
+        self._retries = max(connection_retries, 1)
+        self._retry_interval = connection_retry_interval
 
         self._connection_task: asyncio.Task[None] | None = None
         self._connected_event = asyncio.Event()
@@ -45,11 +45,12 @@ class TSConnection:
             self._connection,
             event_emitter=self._handle_event,
             ready_to_read=self._connected_event,
+            read_timeout=query_timeout,
         )
+
         self._writer = writer.Writer(
             self._connection,
             ratelimiter=ratelimiter,
-            query_timeout=query_timeout,
             on_send=self._handle_event,
             ready_to_write=self._connected_event,
         )
@@ -77,6 +78,9 @@ class TSConnection:
     def _handle_event(self, event: events.TSEvent):
         self._bot.emit_event(event)
 
+    def _on_connection_close(self) -> None:
+        self._reader.close()
+
     async def _connection_handler(self) -> None:
         """
         Task to handle connection.
@@ -89,26 +93,23 @@ class TSConnection:
                 logger.info(
                     "Attempting to establish connection [%d/%d]",
                     attempt,
-                    self._connection_retries,
+                    self._retries,
                 )
                 try:
                     await self._connection.connect()
+                except Exception as e:
+                    logger.warning("Connection [%d/%d] failed: %s", attempt, self._retries, e)
+                else:
                     break
 
-                except Exception as e:
-                    logger.warning(
-                        "Connection [%d/%d] failed: %s", attempt, self._connection_retries, e
+                if attempt >= self._retries:
+                    raise ConnectionRefusedError(
+                        f"Failed to connect after {self._retries} attempt"
+                        f"{'' if self._retries == 1 else 's'}"
                     )
 
-                if attempt >= self._connection_retries:
-                    raise ConnectionAbortedError(
-                        f"Failed to connect to the server after {self._connection_retries} attempts"
-                    )
-
-                logger.info(
-                    "Trying to establish connection after %ss", self._connection_retry_interval
-                )
-                await asyncio.sleep(self._connection_retry_interval)
+                logger.info("Trying to establish connection after %ss", self._retry_interval)
+                await asyncio.sleep(self._retry_interval)
 
         async def select_server():
             """Set current virtual server and sets nickname if specified"""
@@ -117,19 +118,15 @@ class TSConnection:
             if self._nickname is not None:
                 select_query = select_query.params(client_nickname=self._nickname)
 
-            await self.send(select_query, writer.QueryPriority.INTERNAL)
+            await self.send(select_query)
 
-        async def register_notifications():
+        async def register_notifications() -> None:
             """Register server to send events to the bot"""
             notify_query = query_builder.TSQuery("servernotifyregister")
 
-            await self.send(
-                notify_query.params(event="channel", id=0), writer.QueryPriority.INTERNAL
-            )
+            await self.send(notify_query.params(event="channel", id=0))
             for event in ("server", "textserver", "textchannel", "textprivate"):
-                await self.send(notify_query.params(event=event), writer.QueryPriority.INTERNAL)
-
-        self._writer.start()
+                await self.send(notify_query.params(event=event))
 
         while not self._closed:
             await connect()
@@ -152,33 +149,27 @@ class TSConnection:
             await self._connection.wait_closed()
 
             self._connected_event.clear()
+            self._on_connection_close()
             self._bot.emit("disconnect")
 
-    async def send(
-        self, query: query_builder.TSQuery, priority: writer.QueryPriority
-    ) -> response.TSResponse:
-        return await self.send_raw(query.compile(), priority)
+    async def send(self, query: query_builder.TSQuery) -> response.TSResponse:
+        return await self.send_raw(query.compile())
 
-    async def send_raw(self, raw_query: str, priority: writer.QueryPriority) -> response.TSResponse:
-        server_response = await self._send(raw_query, priority)
+    async def send_raw(self, raw_query: str) -> response.TSResponse:
+        await self._writer.write(raw_query)
+        response = await self._reader.read_response()
 
-        if server_response.error_id == 2568:
+        if response.error_id == 2568:
             raise exceptions.TSResponsePermissionError(
-                msg=server_response.msg,
-                error_id=server_response.error_id,
-                perm_id=int(server_response.last["failed_permid"]),
+                msg=response.msg,
+                error_id=response.error_id,
+                perm_id=int(response.last["failed_permid"]),
             )
 
-        if server_response.error_id != 0:
+        if response.error_id != 0:
             raise exceptions.TSResponseError(
-                msg=server_response.msg,
-                error_id=int(server_response.error_id),
+                msg=response.msg,
+                error_id=int(response.error_id),
             )
 
-        return server_response
-
-    async def _send(self, raw_query: str, priority: writer.QueryPriority) -> response.TSResponse:
-        response_future: asyncio.Future[response.TSResponse] = asyncio.Future()
-        self._writer.write(priority, writer.QueryItem(raw_query, response_future))
-        await self._reader.read_response(response_future)
-        return await response_future
+        return response
