@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from collections.abc import Callable, Coroutine
 from typing import (
     TYPE_CHECKING,
@@ -59,6 +60,13 @@ def on(
 ]:
     """Decorator to register plugin events"""
 
+    if event_type == "ready":  # TODO: remove when 'ready' event deprecated
+        warnings.warn(
+            "'ready' event is deprecated. Use 'connect' instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
     def event_decorator(
         func: Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]],
     ) -> Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]:
@@ -75,6 +83,13 @@ def once(
     Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]],
 ]:
     """Decorator to register plugin events to be ran only once"""
+
+    if event_type == "ready":  # TODO: remove when 'ready' event deprecated
+        warnings.warn(
+            "'ready' event is deprecated. Use 'connect' instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     def once_decorator(
         func: Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]],
