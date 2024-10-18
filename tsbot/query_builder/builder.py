@@ -17,16 +17,6 @@ class Stringable(Protocol):
     def __str__(self) -> str: ...
 
 
-def query(command: query_builder.TCommands) -> TSQuery:
-    """
-    Function to create :class:`TSQuery<tsbot.query_builder.TSQuery>` instances.
-
-    :param command: Base query command.
-    :return: The created :class:`TSQuery<tsbot.query_builder.TSQuery>` instance.
-    """
-    return TSQuery(command)
-
-
 def _format_value(key: str, value: Stringable) -> str:
     return f"{key}={int(value) if isinstance(value, bool) else encoders.escape(str(value))}"
 
@@ -151,3 +141,6 @@ class TSQuery:
 
         self._cached_query = compiled
         return compiled
+
+
+query = TSQuery
