@@ -40,6 +40,9 @@ packages = { find = { include = ["tsbot*"] } }
 package-data = { tsbot = ["py.typed"] }
 
 
+[tool.pyright]
+typeCheckingMode = "strict"
+
 [tool.ruff]
 line-length = 100
 lint = { select = ["E", "F", "I", "UP", "SIM"], ignore = ["E501"] }
