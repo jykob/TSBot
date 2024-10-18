@@ -5,7 +5,7 @@ import contextlib
 import inspect
 import logging
 from collections.abc import Callable, Coroutine
-from typing import TYPE_CHECKING, Any, Concatenate, ParamSpec
+from typing import TYPE_CHECKING, Any, Concatenate, NamedTuple, ParamSpec
 
 from tsbot import (
     commands,
@@ -25,8 +25,13 @@ if TYPE_CHECKING:
 
 _P = ParamSpec("_P")
 
-
 logger = logging.getLogger(__name__)
+
+
+class BotInfo(NamedTuple):
+    uid: str = ""
+    clid: str = ""
+    cldbid: str = ""
 
 
 class TSBot:
@@ -66,9 +71,7 @@ class TSBot:
         if nickname is not None and not nickname:
             raise TypeError("Bot nickname cannot be empty")
 
-        self.uid: str = ""
-        self.clid: str = ""
-        self.cldbid: str = ""
+        self._bot_info = BotInfo()
 
         self.plugins: dict[str, plugin.TSPlugin] = {}
 
@@ -91,6 +94,18 @@ class TSBot:
 
         self._closing = asyncio.Event()
         self._init()
+
+    @property
+    def uid(self) -> str:
+        return self._bot_info.uid
+
+    @property
+    def clid(self) -> str:
+        return self._bot_info.clid
+
+    @property
+    def cldbid(self) -> str:
+        return self._bot_info.cldbid
 
     def _init(self) -> None:
         self.register_task(self._event_handler.handle_events_task, name="HandleEvents-Task")
@@ -353,9 +368,12 @@ class TSBot:
     async def _update_bot_info(self) -> None:
         """Update useful information about the bot instance"""
         info = (await self.send_raw("whoami")).first
-        self.uid = info["client_unique_identifier"]
-        self.clid = info["client_id"]
-        self.cldbid = info["client_database_id"]
+
+        self._bot_info = BotInfo(
+            uid=info["client_unique_identifier"],
+            clid=info["client_id"],
+            cldbid=info["client_database_id"],
+        )
 
     async def run(self) -> None:
         """
