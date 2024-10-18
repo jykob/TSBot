@@ -110,7 +110,7 @@ class TSBot:
     def _init(self) -> None:
         self.register_task(self._event_handler.handle_events_task, name="HandleEvents-Task")
 
-        self.register_event_handler("connect", self._connect_handler)
+        self.register_event_handler("connect", self._on_connect)
         self.register_event_handler("textmessage", self._command_handler.handle_command_event)
 
         self.load_plugin(default_plugins.Help(), default_plugins.KeepAlive())
@@ -362,7 +362,7 @@ class TSBot:
 
         self._connection.close()
 
-    async def _connect_handler(self, bot: TSBot, ctx: None):
+    async def _on_connect(self, bot: TSBot, ctx: None) -> None:
         await self._update_bot_info()
 
     async def _update_bot_info(self) -> None:
