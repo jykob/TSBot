@@ -1,4 +1,4 @@
-# TSBot
+# TSBot &nbsp; [![PyPI - Version](https://img.shields.io/pypi/v/tsbot)](https://pypi.org/project/tsbot/)
 
 Asynchronous framework to build **TeamSpeak 3 Server Query** bots
 
