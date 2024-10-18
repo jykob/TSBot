@@ -75,7 +75,7 @@ class TSConnection:
 
         await self._connection_task
 
-    def _handle_event(self, event: events.TSEvent):
+    def _handle_event(self, event: events.TSEvent) -> None:
         self._bot.emit_event(event)
 
     def _on_connection_close(self) -> None:
@@ -88,7 +88,7 @@ class TSConnection:
         Will try to upkeep connection specified by the config.
         """
 
-        async def connect():
+        async def connect() -> None:
             for attempt in itertools.count(1):
                 logger.info(
                     "Attempting to establish connection [%d/%d]",
@@ -111,7 +111,7 @@ class TSConnection:
                 logger.info("Trying to establish connection after %ss", self._retry_interval)
                 await asyncio.sleep(self._retry_interval)
 
-        async def select_server():
+        async def select_server() -> None:
             """Set current virtual server and sets nickname if specified"""
             select_query = query_builder.TSQuery("use", parameters={"sid": self._server_id})
 

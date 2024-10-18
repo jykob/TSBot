@@ -27,7 +27,7 @@ class Writer:
 
         self._write_lock = asyncio.Lock()
 
-    async def write(self, raw_query: str):
+    async def write(self, raw_query: str) -> None:
         async with self._write_lock:
             await self._ready_to_write.wait()
 

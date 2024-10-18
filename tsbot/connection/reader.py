@@ -21,7 +21,7 @@ class _ReadBuffer:
         self._deque: collections.deque[str] = collections.deque()
         self._getters: collections.deque[asyncio.Future[None]] = collections.deque()
 
-    def _wakeup_getters(self):
+    def _wakeup_getters(self) -> None:
         while self._getters:
             getter = self._getters.popleft()
             if not getter.done():
@@ -107,7 +107,7 @@ class Reader:
             data = await self._read_buffer.pop()
             yield data
 
-    async def _get_response(self):
+    async def _get_response(self) -> tuple[str, ...]:
         return tuple([line async for line in self._pop_till_error_line()])
 
     async def read_response(self) -> response.TSResponse:
