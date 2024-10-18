@@ -173,7 +173,7 @@ def test_parse_line(input_str: str, expected: dict[str, str]) -> None:
         pytest.param(
             "client_servergroups=6,16,20",
             ("client_servergroups", "6,16,20"),
-            id="test_comma_sepparated",
+            id="test_comma_separated",
         ),
         pytest.param("clid=11|clid=12|clid=13", ("clid", "11,12,13"), id="test_multiple_values"),
         pytest.param(
@@ -238,13 +238,13 @@ def test_parse_value(input_str: str, expected: tuple[str, str]) -> None:
             '-name "test account "1 2',
             ("account", '"1', "2"),
             {"name": '"test'},
-            id="test_missmatch_double_quote",
+            id="test_mismatch_double_quote",
         ),
         pytest.param(
             "-name 'test account '1 2",
             ("account", "'1", "2"),
             {"name": "'test"},
-            id="test_missmatch_single_quote",
+            id="test_mismatch_single_quote",
         ),
         pytest.param(
             "-amount '-14' '-123'", ("-123",), {"amount": "-14"}, id="test_negative_numbers"
