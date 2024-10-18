@@ -2,14 +2,16 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import sys
+import warnings
 from collections import defaultdict
+from pathlib import Path  # type: ignore
 from typing import TYPE_CHECKING
 
 from tsbot import utils
 
 if TYPE_CHECKING:
     from tsbot import bot, events
-
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +24,7 @@ class EventHandler:
 
     def add_event(self, event: events.TSEvent) -> None:
         if self._closed:
-            logger.warn("Event %r emitted during closing and is ignored", event.event)
+            logger.warning("Event %r emitted during closing and is ignored", event.event)
         else:
             self._event_queue.put_nowait(event)
 
@@ -57,6 +59,20 @@ class EventHandler:
 
     def register_event_handler(self, event_handler: events.TSEventHandler) -> None:
         """Registers event handlers that will be called when given event happens."""
+
+        if event_handler.event == "ready":  # TODO: remove when 'ready' event deprecated
+            kwargs = (
+                dict(skip_file_prefixes=(str(Path(__file__).parent.parent),))
+                if sys.version_info >= (3, 12, 0)
+                else dict(stacklevel=4)
+            )
+
+            warnings.warn(
+                "'ready' event is deprecated. Use 'connect' instead",
+                DeprecationWarning,
+                **kwargs,  # type: ignore
+            )
+
         self._event_handlers[event_handler.event].append(event_handler)
 
         logger.debug(

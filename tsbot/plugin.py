@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from collections.abc import Callable, Coroutine
 from typing import (
     TYPE_CHECKING,
@@ -35,14 +36,17 @@ def command(
     def command_decorator(
         func: Callable[Concatenate[_T, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]],
     ) -> Callable[Concatenate[_T, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]]:
-        kwargs = {
-            "command": command,
-            "help_text": help_text,
-            "raw": raw,
-            "hidden": hidden,
-            "checks": checks or [],
-        }
-        setattr(func, "__ts_command__", kwargs)
+        setattr(
+            func,
+            "__ts_command__",
+            {
+                "command": command,
+                "help_text": help_text,
+                "raw": raw,
+                "hidden": hidden,
+                "checks": checks or [],
+            },
+        )
         return func
 
     return command_decorator
@@ -55,6 +59,13 @@ def on(
     Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]],
 ]:
     """Decorator to register plugin events"""
+
+    if event_type == "ready":  # TODO: remove when 'ready' event deprecated
+        warnings.warn(
+            "'ready' event is deprecated. Use 'connect' instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     def event_decorator(
         func: Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]],
@@ -72,6 +83,13 @@ def once(
     Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]],
 ]:
     """Decorator to register plugin events to be ran only once"""
+
+    if event_type == "ready":  # TODO: remove when 'ready' event deprecated
+        warnings.warn(
+            "'ready' event is deprecated. Use 'connect' instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     def once_decorator(
         func: Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]],
