@@ -48,9 +48,11 @@ TSBot has handful of useful built-in events. These are fired when the bot does s
 | Event name         | Called when:                                        | Context type   |
 | ------------------ | --------------------------------------------------- | -------------- |
 | `run`              | The bot is starting up.                             | [None](None)   |
-| `ready`            | The bot is ready and connected to the server.       | [None](None)   |
+| `connect`          | The bot has connected to the server.                | [None](None)   |
+| `disconnect`       | The bot has lost the connection to the server.      | [None](None)   |
+| `reconnect`        | The bot has regained a connection to the server     | [None](None)   |
 | `close`            | The bot is shutting down.                           | [None](None)   |
-| `send`             | The bot is sending queries to the server.           | [TSCtx](TSCtx) |
+| `send`             | The bot is sending a query to the server.           | [TSCtx](TSCtx) |
 | `command_error`    | Handler raises `TSCommandError` exception.          | [TSCtx](TSCtx) |
 | `permission_error` | Handler raises `TSPermissionError` exception.       | [TSCtx](TSCtx) |
 | `parameter_error`  | Handler raises `TSInvalidParameterError` exception. | [TSCtx](TSCtx) |
