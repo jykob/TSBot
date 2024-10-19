@@ -18,17 +18,17 @@ class KeepAlive(plugin.TSPlugin):
     KEEP_ALIVE_COMMAND: str = "version"
 
     def __init__(self) -> None:
-        self.keep_alive_task: tasks.TSTask | None = None
+        self._task: tasks.TSTask | None = None
         self.command_sent_event = asyncio.Event()
 
     @plugin.on("connect")
     async def init_keep_alive(self, bot: bot.TSBot, ctx: None) -> None:
-        self.keep_alive_task = bot.register_task(self._keep_alive_task, name="KeepAlive-Task")
+        self._task = bot.register_task(self._keep_alive_task, name="KeepAlive-Task")
 
     @plugin.on("disconnect")
     async def kill_keep_alive(self, bot: bot.TSBot, ctx: None) -> None:
-        if self.keep_alive_task:
-            bot.remove_task(self.keep_alive_task)
+        if self._task:
+            self._task = bot.remove_task(self._task)
 
     @plugin.on("send")
     async def on_command_sent(self, bot: bot.TSBot, ctx: context.TSCtx) -> None:
