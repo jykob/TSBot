@@ -26,7 +26,7 @@ These handlers are only fired once when the given event happens.
 ```python
 from tsbot import query
 
-@bot.once("ready")
+@bot.on("connect")
 async def move_on_start(bot: TSBot, ctx: None):
     # The bot is ready and connected to the server.
     # Move the bot to a different channel.
