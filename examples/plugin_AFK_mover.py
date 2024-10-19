@@ -1,7 +1,7 @@
 import asyncio
 from contextlib import suppress
 
-from tsbot import TSBot, plugin, query
+from tsbot import TSBot, TSTask, plugin, query
 from tsbot.exceptions import TSException, TSResponseError
 
 
@@ -11,8 +11,9 @@ class AFKPlugin(plugin.TSPlugin):
     def __init__(self) -> None:
         self.afk_channel_id = "0"
         self.client_query = query("clientlist").option("away")
+        self._task: TSTask | None = None
 
-    @plugin.once("ready")
+    @plugin.on("connect")
     async def get_afk_channel(self, bot: TSBot, ctx: None):
         channel_list = await bot.send(query("channellist"))
 
@@ -23,7 +24,13 @@ class AFKPlugin(plugin.TSPlugin):
         else:
             raise TSException("No AFK channel found")
 
-        bot.register_every_task(self.CHECK_PERIOD, self.check_afk_clients)
+        self._task = bot.register_every_task(self.CHECK_PERIOD, self.check_afk_clients)
+
+    @plugin.on("disconnect")
+    async def cancel_task(self, bot: TSBot, ctx: None):
+        """Cleanup task on disconnect"""
+        if self._task:
+            self._task = bot.remove_task(self._task)
 
     async def check_afk_clients(self, bot: TSBot):
         clients = await bot.send(self.client_query)
