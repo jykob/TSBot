@@ -37,7 +37,7 @@ class _ReadBuffer:
 
     async def _wakeup_on_available_item(self) -> None:
         while self.empty:
-            getter = asyncio.get_event_loop().create_future()
+            getter = asyncio.get_running_loop().create_future()
             self._getters.append(getter)
 
             try:
