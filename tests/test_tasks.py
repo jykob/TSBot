@@ -7,15 +7,6 @@ import pytest
 from tsbot import bot, tasks
 
 
-class MockBot(bot.TSBot):
-    def __init__(self) -> None: ...
-
-
-@pytest.fixture
-def mock_bot():
-    return MockBot()
-
-
 @pytest.fixture
 def tasks_handler():
     return tasks.TasksHandler()
