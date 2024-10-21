@@ -3,13 +3,18 @@ from __future__ import annotations
 import asyncio
 
 import pytest
+import pytest_asyncio
 
 from tsbot import bot, tasks
 
 
-@pytest.fixture
-def tasks_handler():
-    return tasks.TasksHandler()
+@pytest_asyncio.fixture  # type: ignore
+async def tasks_handler():
+    handler = tasks.TasksHandler()
+    try:
+        yield handler
+    finally:
+        await handler.close()
 
 
 @pytest.fixture
@@ -70,4 +75,13 @@ async def test_close_finishes_all_tasks(
 ):
     running_tasks_handler.register_task(mock_bot, tstask)
     await running_tasks_handler.close()
-    assert running_tasks_handler.empty
+    assert running_tasks_handler.empty is True
+
+
+@pytest.mark.asyncio
+async def test_empty_means_empty(
+    running_tasks_handler: tasks.TasksHandler, tstask: tasks.TSTask, mock_bot: bot.TSBot
+):
+    assert running_tasks_handler.empty is True
+    running_tasks_handler.register_task(mock_bot, tstask)
+    assert running_tasks_handler.empty is False
