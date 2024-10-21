@@ -51,3 +51,7 @@ typeCheckingMode = "strict"
 [tool.ruff]
 line-length = 100
 lint = { select = ["E", "F", "I", "UP", "SIM"], ignore = ["E501"] }
+
+
+[tool.pytest]
+ini_options = { asyncio_default_fixture_loop_scope = "function" }
