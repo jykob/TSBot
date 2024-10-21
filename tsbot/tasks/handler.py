@@ -19,7 +19,7 @@ class TasksHandler:
 
     @property
     def empty(self):
-        return bool(self._tasks)
+        return not self._tasks
 
     def _start_task(self, bot: bot.TSBot, task: tasks.TSTask) -> None:
         task.task = asyncio.create_task(task.handler(bot), name=task.name)
