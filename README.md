@@ -1,6 +1,6 @@
 # TSBot &nbsp; [![PyPI - Version](https://img.shields.io/pypi/v/tsbot)](https://pypi.org/project/tsbot/)
 
-Asynchronous framework to build **TeamSpeak 3 Server Query** bots
+Asynchronous Python framework to build **TeamSpeak 3 Server Query** bots
 
 ## ✅ Features
 
@@ -40,7 +40,7 @@ async def poke_on_enter(bot: TSBot, ctx: TSCtx):
 asyncio.run(bot.run())
 ```
 
-**Check out [📁examples](https://github.com/jykob/TSBot/blob/master/examples) for more**
+**Check out [📁examples](https://github.com/jykob/TSBot/blob/main/examples) for more**
 
 ## 📦 Installation
 
