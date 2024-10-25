@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from unittest import mock
 
 import pytest
 
@@ -48,15 +49,10 @@ async def test_ratelimiter_multiple_calls(
 async def test_ratelimiter_throttle(
     monkeypatch: pytest.MonkeyPatch, rl: ratelimiter.RateLimiter, number_of_calls: int
 ):
-    calls = 0
-
-    async def mock_sleep(delay: float):
-        nonlocal calls
-        calls += 1
-
+    mock_sleep = mock.AsyncMock()
     monkeypatch.setattr(asyncio, "sleep", mock_sleep)
 
     for _ in range(number_of_calls):
         await rl.wait()
 
-    assert calls != 0
+    assert mock_sleep.called
