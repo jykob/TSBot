@@ -41,6 +41,8 @@ class TSConnection:
         self._connected_event = asyncio.Event()
         self._is_first_connection = True
 
+        self._sending_lock = asyncio.Lock()
+
         self._reader = reader.Reader(
             self._connection,
             event_emitter=self._handle_event,
@@ -156,8 +158,7 @@ class TSConnection:
         return await self.send_raw(query.compile())
 
     async def send_raw(self, raw_query: str) -> response.TSResponse:
-        await self._writer.write(raw_query)
-        response = await self._reader.read_response()
+        response = await self._send(raw_query)
 
         if response.error_id == 2568:
             raise exceptions.TSResponsePermissionError(
@@ -173,3 +174,8 @@ class TSConnection:
             )
 
         return response
+
+    async def _send(self, raw_query: str):
+        async with self._sending_lock:
+            await self._writer.write(raw_query)
+            return await self._reader.read_response()
