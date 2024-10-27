@@ -36,7 +36,7 @@ class CommandHandler:
         logger.debug(
             "Registered %s command to execute handler %r",
             ", ".join(map(repr, command.commands)),
-            command.handler.__name__,
+            getattr(command.handler, "__name__", command.handler),
         )
 
     def get_command(self, command: str) -> commands.TSCommand | None:
@@ -75,7 +75,7 @@ class CommandHandler:
         # Create new context dict with useful entries
         ctx = context.TSCtx({"command": command, "raw_args": args, **ctx})
 
-        logger.debug("%r executed command %r with args: %r", ctx["invokername"], command, args)
+        logger.debug("%r executed command %r with args: %r", ctx.get("invokername"), command, args)
 
         try:
             await command_handler.run(bot, ctx, args)

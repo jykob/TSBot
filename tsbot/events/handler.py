@@ -78,7 +78,7 @@ class EventHandler:
         logger.debug(
             "Registered %r event to execute handler %r",
             event_handler.event,
-            event_handler.handler.__name__,
+            getattr(event_handler.handler, "__name__", event_handler.handler),
         )
 
     def remove_event_handler(self, event_handler: events.TSEventHandler) -> None:
