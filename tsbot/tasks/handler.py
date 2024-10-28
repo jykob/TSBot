@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 from typing import TYPE_CHECKING
+
+from tsbot import logging
 
 if TYPE_CHECKING:
     from tsbot import bot, tasks
 
 
-logger = logging.getLogger(__name__)
+logger = logging.get_logger(__name__)
 
 
 class TasksHandler:

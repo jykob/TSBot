@@ -2,17 +2,16 @@ from __future__ import annotations
 
 import asyncio
 import itertools
-import logging
 from typing import TYPE_CHECKING
 
-from tsbot import exceptions, query_builder
+from tsbot import exceptions, logging, query_builder
 from tsbot.connection import reader, writer
 
 if TYPE_CHECKING:
     from tsbot import bot, connection, events, ratelimiter, response
 
 
-logger = logging.getLogger(__name__)
+logger = logging.get_logger(__name__)
 
 
 class TSConnection:

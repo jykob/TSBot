@@ -1,19 +1,18 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 import sys
 import warnings
 from collections import defaultdict
 from pathlib import Path  # type: ignore
 from typing import TYPE_CHECKING
 
-from tsbot import utils
+from tsbot import logging, utils
 
 if TYPE_CHECKING:
     from tsbot import bot, events
 
-logger = logging.getLogger(__name__)
+logger = logging.get_logger(__name__)
 
 
 class EventHandler:

@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import inspect
-import logging
 from collections.abc import Callable, Coroutine
 from typing import TYPE_CHECKING, Any, Concatenate, NamedTuple, ParamSpec
 
@@ -24,8 +23,6 @@ if TYPE_CHECKING:
     from tsbot import plugin
 
 _P = ParamSpec("_P")
-
-logger = logging.getLogger(__name__)
 
 
 class BotInfo(NamedTuple):
