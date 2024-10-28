@@ -2,7 +2,13 @@ from __future__ import annotations
 
 import logging
 from collections.abc import MutableMapping
-from typing import Any, TypedDict, cast
+from typing import TYPE_CHECKING, Any, TypedDict, cast
+
+if TYPE_CHECKING:
+    _LoggerAdapter = logging.LoggerAdapter[logging.Logger]
+else:
+    _LoggerAdapter = logging.LoggerAdapter
+
 
 _logger = logging.getLogger(__package__ or "tsbot")
 
@@ -11,7 +17,7 @@ class LoggerExtra(TypedDict):
     from_module: str
 
 
-class TSBotLogger(logging.LoggerAdapter[logging.Logger]):
+class TSBotLogger(_LoggerAdapter):
     _debug: bool = False
 
     def __init__(self, logger: logging.Logger, extra: LoggerExtra) -> None:
