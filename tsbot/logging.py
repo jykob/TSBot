@@ -4,7 +4,7 @@ import logging
 from collections.abc import MutableMapping
 from typing import Any, TypedDict, cast
 
-_logger = logging.getLogger(__package__)
+_logger = logging.getLogger(__package__ or "tsbot")
 
 
 class LoggerExtra(TypedDict):
