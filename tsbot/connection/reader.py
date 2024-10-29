@@ -3,17 +3,16 @@ from __future__ import annotations
 import asyncio
 import collections
 import contextlib
-import logging
 from collections.abc import AsyncGenerator, Callable
 from typing import TYPE_CHECKING
 
-from tsbot import events, response
+from tsbot import events, logging, response
 
 if TYPE_CHECKING:
     from tsbot import connection
 
 
-logger = logging.getLogger(__name__)
+logger = logging.get_logger(__name__)
 
 
 class _ReadBuffer:
@@ -37,7 +36,7 @@ class _ReadBuffer:
 
     async def _wakeup_on_available_item(self) -> None:
         while self.empty:
-            getter = asyncio.get_event_loop().create_future()
+            getter = asyncio.get_running_loop().create_future()
             self._getters.append(getter)
 
             try:

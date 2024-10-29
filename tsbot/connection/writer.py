@@ -25,14 +25,11 @@ class Writer:
         self._ratelimiter = ratelimiter
         self._ready_to_write = ready_to_write
 
-        self._write_lock = asyncio.Lock()
-
     async def write(self, raw_query: str) -> None:
-        async with self._write_lock:
-            await self._ready_to_write.wait()
+        await self._ready_to_write.wait()
 
-            if self._ratelimiter:
-                await self._ratelimiter.wait()
+        if self._ratelimiter:
+            await self._ratelimiter.wait()
 
-            await self._connection.write(raw_query)
-            self._on_send(events.TSEvent("send", context.TSCtx({"query": raw_query})))
+        await self._connection.write(raw_query)
+        self._on_send(events.TSEvent("send", context.TSCtx({"query": raw_query})))

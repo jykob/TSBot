@@ -1,19 +1,18 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 import sys
 import warnings
 from collections import defaultdict
 from pathlib import Path  # type: ignore
 from typing import TYPE_CHECKING
 
-from tsbot import utils
+from tsbot import logging, utils
 
 if TYPE_CHECKING:
     from tsbot import bot, events
 
-logger = logging.getLogger(__name__)
+logger = logging.get_logger(__name__)
 
 
 class EventHandler:
@@ -78,7 +77,7 @@ class EventHandler:
         logger.debug(
             "Registered %r event to execute handler %r",
             event_handler.event,
-            event_handler.handler.__name__,
+            getattr(event_handler.handler, "__name__", event_handler.handler),
         )
 
     def remove_event_handler(self, event_handler: events.TSEventHandler) -> None:

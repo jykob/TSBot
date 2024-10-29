@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import itertools
+from typing import Final
 
 from tsbot import encoders
 
-KWARG_INDICATOR = "-"
-QUOTES = ('"', "'")
+KWARG_INDICATOR: Final = "-"
+QUOTES: Final = ('"', "'")
 
 
 def parse_data(input_str: str) -> tuple[dict[str, str], ...]:

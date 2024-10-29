@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 from typing import TYPE_CHECKING
+
+from tsbot import logging
 
 if TYPE_CHECKING:
     from tsbot import bot, tasks
 
 
-logger = logging.getLogger(__name__)
+logger = logging.get_logger(__name__)
 
 
 class TasksHandler:
@@ -25,7 +26,7 @@ class TasksHandler:
         task.task = asyncio.create_task(task.handler(bot), name=task.name)
         self._tasks.add(task.task)
         task.task.add_done_callback(self._tasks.remove)
-        logger.debug("Started a task handler %r", task.handler.__name__)
+        logger.debug("Started a task handler %r", getattr(task.handler, "__name__", task.handler))
 
     def register_task(self, bot: bot.TSBot, task: tasks.TSTask) -> None:
         self._start_task(bot, task) if self._started else self._starting_tasks.append(task)

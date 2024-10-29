@@ -168,7 +168,7 @@ If you still don't see the ServerQuery client, check permissions.
 
 ## Creating ServerQuery bot with TSBot
 
-To create our first TSBot, we can use the [examples/simple_example.py](https://github.com/jykob/TSBot/blob/master/examples/simple_example.py)
+To create our first TSBot, we can use the [examples/simple_example.py](https://github.com/jykob/TSBot/blob/main/examples/simple_example.py)
 
 Let's copy the example and modify the script to fit our needs:
 

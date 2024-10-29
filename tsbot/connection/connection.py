@@ -2,17 +2,16 @@ from __future__ import annotations
 
 import asyncio
 import itertools
-import logging
 from typing import TYPE_CHECKING
 
-from tsbot import exceptions, query_builder
+from tsbot import exceptions, logging, query_builder
 from tsbot.connection import reader, writer
 
 if TYPE_CHECKING:
     from tsbot import bot, connection, events, ratelimiter, response
 
 
-logger = logging.getLogger(__name__)
+logger = logging.get_logger(__name__)
 
 
 class TSConnection:
@@ -40,6 +39,8 @@ class TSConnection:
         self._connection_task: asyncio.Task[None] | None = None
         self._connected_event = asyncio.Event()
         self._is_first_connection = True
+
+        self._sending_lock = asyncio.Lock()
 
         self._reader = reader.Reader(
             self._connection,
@@ -156,8 +157,7 @@ class TSConnection:
         return await self.send_raw(query.compile())
 
     async def send_raw(self, raw_query: str) -> response.TSResponse:
-        await self._writer.write(raw_query)
-        response = await self._reader.read_response()
+        response = await self._send(raw_query)
 
         if response.error_id == 2568:
             raise exceptions.TSResponsePermissionError(
@@ -173,3 +173,8 @@ class TSConnection:
             )
 
         return response
+
+    async def _send(self, raw_query: str):
+        async with self._sending_lock:
+            await self._writer.write(raw_query)
+            return await self._reader.read_response()
