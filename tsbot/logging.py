@@ -4,6 +4,7 @@ import logging
 from collections.abc import MutableMapping
 from typing import TYPE_CHECKING, Any, TypedDict, cast
 
+# TODO: Python 3.10 compat. Remove when 3.10 EOL
 if TYPE_CHECKING:
     _LoggerAdapter = logging.LoggerAdapter[logging.Logger]
 else:
