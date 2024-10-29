@@ -4,10 +4,11 @@ from unittest import mock
 
 import pytest
 
-from tsbot import bot
 
-
-class MockBot(mock.Mock, bot.TSBot): ...
+class MockBot(mock.Mock):
+    uid: str = "1"
+    clid: str = "1"
+    cldbid: str = "1"
 
 
 @pytest.fixture
