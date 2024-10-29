@@ -5,27 +5,19 @@ from typing import TYPE_CHECKING, Final
 
 import pytest
 
-from tsbot import commands
+from tsbot import commands, context, exceptions
 
 if TYPE_CHECKING:
     from tsbot import bot, context
 
-INVOKER: Final = "!"
-
 
 async def noop(bot: bot.TSBot, ctx: context.TSCtx): ...
+async def noop2(bot: bot.TSBot, ctx: context.TSCtx, b: str): ...
 
 
-async def noop2(bot: bot.TSBot, ctx: context.TSCtx, d: str): ...
-
-
-COMMANDS: Final = (
-    commands.TSCommand(("a",), noop),
-    commands.TSCommand(("b",), noop),
-    commands.TSCommand(("c",), noop),
-)
-
-COMMANDS_WITH_ARGS: Final = (commands.TSCommand(("d",), noop2),)
+INVOKER: Final = "!"
+COMMANDS: Final = (commands.TSCommand(("a",), noop),)
+COMMANDS_WITH_ARGS: Final = (commands.TSCommand(("b",), noop2),)
 
 
 @pytest.fixture
@@ -66,5 +58,49 @@ async def test_argument_passing(command_handler_with_commands: commands.CommandH
 
 
 @pytest.mark.asyncio
-async def test_exceptions_throwing(command_handler_with_commands: commands.CommandHandler):
+async def test_checks(command_handler_with_commands: commands.CommandHandler):
     pass
+
+
+@pytest.mark.asyncio
+async def test_checks_failing(command_handler_with_commands: commands.CommandHandler):
+    pass
+
+
+@pytest.mark.parametrize(
+    ("exception", "event_name"),
+    (
+        pytest.param(
+            exceptions.TSCommandError(),
+            "command_error",
+            id="test_command_error",
+        ),
+        pytest.param(
+            exceptions.TSPermissionError(),
+            "permission_error",
+            id="test_permission_error",
+        ),
+        pytest.param(
+            exceptions.TSInvalidParameterError(),
+            "parameter_error",
+            id="test_invalid_call_error",
+        ),
+    ),
+)
+@pytest.mark.asyncio
+async def test_exceptions_emit_events(
+    command_handler: commands.CommandHandler,
+    mock_bot: bot.TSBot,
+    exception: exceptions.TSException,
+    event_name: str,
+):
+    async def handler(bot: bot.TSBot, ctx: context.TSCtx):
+        raise exception
+
+    command_handler.register_command(commands.TSCommand(("a",), handler))
+
+    await command_handler.handle_command_event(
+        mock_bot, context.TSCtx({"targetmode": "1", "msg": "a", "invokername": "TestAccount"})
+    )
+
+    assert mock_bot.emit.call_args[0][0] == event_name  # type: ignore
