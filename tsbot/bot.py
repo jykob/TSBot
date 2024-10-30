@@ -105,8 +105,6 @@ class TSBot:
         return self._bot_info.cldbid
 
     def _init(self) -> None:
-        self.register_task(self._event_handler.handle_events_task, name="HandleEvents-Task")
-
         self.register_event_handler("connect", self._on_connect)
         self.register_event_handler("textmessage", self._command_handler.handle_command_event)
 
@@ -381,9 +379,10 @@ class TSBot:
 
         Awaits until the bot disconnects.
         """
-
         self._closing.clear()
         self._tasks_handler.start(self)
+
+        self.register_task(self._event_handler.handle_events_task, name="HandleEvents-Task")
 
         self.emit(event_name="run")
 
