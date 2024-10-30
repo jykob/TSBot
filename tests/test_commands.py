@@ -10,6 +10,8 @@ from tsbot import commands, context, exceptions
 if TYPE_CHECKING:
     from tsbot import bot, context
 
+# pyright: reportPrivateUsage=false
+
 
 async def noop(bot: bot.TSBot, ctx: context.TSCtx): ...
 async def noop2(bot: bot.TSBot, ctx: context.TSCtx, b: str): ...
@@ -28,7 +30,7 @@ def command_handler():
 @pytest.fixture
 def command_handler_with_commands(command_handler: commands.CommandHandler):
     for command in itertools.chain(COMMANDS, COMMANDS_WITH_ARGS):
-        command_handler.register_command(command)
+        command_handler._commands.update((c, command) for c in command.commands)
     return command_handler
 
 

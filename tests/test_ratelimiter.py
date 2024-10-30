@@ -7,7 +7,7 @@ import pytest
 
 from tsbot import ratelimiter
 
-# pyright: reportPrivateUsage=false, reportUnknownMemberType=false
+# pyright: reportPrivateUsage=false
 
 
 @pytest.fixture
