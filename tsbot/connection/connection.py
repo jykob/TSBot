@@ -101,6 +101,7 @@ class TSConnection:
                 except Exception as e:
                     logger.warning("Connection [%d/%d] failed: %s", attempt, self._retries, e)
                 else:
+                    logger.info("Connection established")
                     break
 
                 if attempt >= self._retries:
@@ -131,7 +132,11 @@ class TSConnection:
 
         while not self._closed:
             await connect()
+
+            logger.debug("Validating server header")
             await self._connection.validate_header()
+
+            logger.debug("Authenticating connection")
             await self._connection.authenticate()
 
             self._connected_event.set()
