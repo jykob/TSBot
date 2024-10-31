@@ -394,15 +394,17 @@ class TSBot:
 
         Awaits until the bot disconnects.
         """
-        self._closing.clear()
-        self._tasks_handler.start(self)
 
-        self.register_task(self._event_handler.handle_events_task, name="HandleEvents-Task")
+        with self as self_wait, self._connection as connection_wait:
+            tasks = list(map(asyncio.create_task, (self_wait, connection_wait)))
+            done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
 
-        self.emit(event_name="run")
+        for task in pending:
+            await task
 
-        self._connection.connect()
-        await asyncio.gather(self._connection.wait_closed(), self._wait_closed())
+        for task in done:
+            if exception := task.exception():
+                raise exception
 
     def load_plugin(self, *plugins: plugin.TSPlugin) -> None:
         """
