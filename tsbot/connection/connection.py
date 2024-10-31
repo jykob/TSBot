@@ -59,6 +59,10 @@ class TSConnection:
 
         self._closed = False
 
+    @property
+    def connected(self) -> bool:
+        return self._connected_event.is_set()
+
     def __enter__(self) -> Coroutine[None, None, None]:
         self.connect()
         return self.wait_closed()

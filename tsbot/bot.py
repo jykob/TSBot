@@ -104,6 +104,10 @@ class TSBot:
     def cldbid(self) -> str:
         return self._bot_info.cldbid
 
+    @property
+    def connected(self) -> bool:
+        return self._connection.connected
+
     def _init(self) -> None:
         self.register_event_handler("connect", self._on_connect)
         self.register_event_handler("textmessage", self._command_handler.handle_command_event)
