@@ -20,6 +20,7 @@ async def noop2(bot: bot.TSBot, ctx: context.TSCtx, b: str): ...
 INVOKER: Final = "!"
 COMMANDS: Final = (commands.TSCommand(("a",), noop),)
 COMMANDS_WITH_ARGS: Final = (commands.TSCommand(("b",), noop2),)
+RAW_ARGS_COMMANDS: Final = (commands.TSCommand(("c",), noop2, raw=True),)
 
 
 @pytest.fixture
@@ -29,7 +30,7 @@ def command_handler():
 
 @pytest.fixture
 def command_handler_with_commands(command_handler: commands.CommandHandler):
-    for command in itertools.chain(COMMANDS, COMMANDS_WITH_ARGS):
+    for command in itertools.chain(COMMANDS, COMMANDS_WITH_ARGS, RAW_ARGS_COMMANDS):
         command_handler._commands.update((c, command) for c in command.commands)
     return command_handler
 
@@ -56,6 +57,11 @@ async def test_command_handling(command_handler_with_commands: commands.CommandH
 
 @pytest.mark.asyncio
 async def test_argument_passing(command_handler_with_commands: commands.CommandHandler):
+    pass
+
+
+@pytest.mark.asyncio
+async def test_raw_argument_passing(command_handler_with_commands: commands.CommandHandler):
     pass
 
 
