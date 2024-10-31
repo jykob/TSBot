@@ -92,11 +92,12 @@ class Reader:
                 logger.debug("Got data: %r", data)
                 yield data.rstrip()
 
-        async for data in read_gen():
-            if data.startswith("notify"):
-                self._event_emitter(events.TSEvent.from_server_notification(data))
-            else:
-                self._read_buffer.put(data)
+        async with contextlib.aclosing(read_gen()) as g:
+            async for data in g:
+                if data.startswith("notify"):
+                    self._event_emitter(events.TSEvent.from_server_notification(data))
+                else:
+                    self._read_buffer.put(data)
 
     async def _pop_till_error_line(self) -> AsyncGenerator[str, None]:
         data = await self._read_buffer.pop()
@@ -107,7 +108,8 @@ class Reader:
             yield data
 
     async def _get_response(self) -> tuple[str, ...]:
-        return tuple([line async for line in self._pop_till_error_line()])
+        async with contextlib.aclosing(self._pop_till_error_line()) as g:
+            return tuple([line async for line in g])
 
     async def read_response(self) -> response.TSResponse:
         return response.TSResponse.from_server_response(
