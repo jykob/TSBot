@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import inspect
 from collections.abc import Callable, Coroutine
 from typing import TYPE_CHECKING, Any, Concatenate, NamedTuple, ParamSpec
@@ -104,11 +103,27 @@ class TSBot:
     def cldbid(self) -> str:
         return self._bot_info.cldbid
 
+    @property
+    def connected(self) -> bool:
+        return self._connection.connected
+
     def _init(self) -> None:
         self.register_event_handler("connect", self._on_connect)
         self.register_event_handler("textmessage", self._command_handler.handle_command_event)
 
         self.load_plugin(default_plugins.Help(), default_plugins.KeepAlive())
+
+    def __enter__(self) -> Coroutine[None, None, None]:
+        self._closing.clear()
+        self._tasks_handler.start(self)
+
+        self.register_task(self._event_handler.handle_events_task, name="HandleEvents-Task")
+        self.emit(event_name="run")
+
+        return self._wait_closed()
+
+    def __exit__(self, *exc: Any) -> None:
+        self.close()
 
     def emit(self, event_name: str, ctx: Any | None = None) -> None:
         """
@@ -352,7 +367,7 @@ class TSBot:
         await self._tasks_handler.close()
         await self._event_handler.run_till_empty(self)
 
-        with contextlib.suppress(Exception):
+        if self._connection.connected:
             await self.send_raw("quit")
 
         self._connection.close()
@@ -379,15 +394,17 @@ class TSBot:
 
         Awaits until the bot disconnects.
         """
-        self._closing.clear()
-        self._tasks_handler.start(self)
 
-        self.register_task(self._event_handler.handle_events_task, name="HandleEvents-Task")
+        with self as self_wait, self._connection as connection_wait:
+            tasks = list(map(asyncio.create_task, (self_wait, connection_wait)))
+            done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
 
-        self.emit(event_name="run")
+        for task in pending:
+            await task
 
-        self._connection.connect()
-        await asyncio.gather(self._connection.wait_closed(), self._wait_closed())
+        for task in done:
+            if exception := task.exception():
+                raise exception
 
     def load_plugin(self, *plugins: plugin.TSPlugin) -> None:
         """

@@ -49,12 +49,8 @@ class EventHandler:
         """Task to run events put into the event queue."""
 
         with utils.toggle(self, "_closed", enter=False, exit=True):
-            try:
-                while True:
-                    self.handle_event(bot, await self._event_queue.get())
-
-            except asyncio.CancelledError:
-                logger.debug("Cancelling event handling")
+            while True:
+                self.handle_event(bot, await self._event_queue.get())
 
     def register_event_handler(self, event_handler: events.TSEventHandler) -> None:
         """Registers event handlers that will be called when given event happens."""

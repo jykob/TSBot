@@ -4,7 +4,7 @@ import asyncio
 import collections
 import contextlib
 from collections.abc import AsyncGenerator, Callable
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from tsbot import events, logging, response
 
@@ -78,13 +78,22 @@ class Reader:
         self._read_buffer = _ReadBuffer()
         self._reader_task: asyncio.Task[None] | None = None
 
+    def __enter__(self):
+        self.start()
+
+    def __exit__(self, *exc: Any):
+        self.close()
+
     def start(self) -> None:
         self._reader_task = asyncio.create_task(self._task(), name="Reader-Task")
 
     def close(self) -> None:
         self._read_buffer.clear()
-        if self._reader_task and not self._reader_task.done():
+
+        if self._reader_task:
             self._reader_task.cancel()
+
+        self._reader_task = None
 
     async def _task(self) -> None:
         async def read_gen() -> AsyncGenerator[str, None]:
@@ -92,11 +101,12 @@ class Reader:
                 logger.debug("Got data: %r", data)
                 yield data.rstrip()
 
-        async for data in read_gen():
-            if data.startswith("notify"):
-                self._event_emitter(events.TSEvent.from_server_notification(data))
-            else:
-                self._read_buffer.put(data)
+        async with contextlib.aclosing(read_gen()) as g:
+            async for data in g:
+                if data.startswith("notify"):
+                    self._event_emitter(events.TSEvent.from_server_notification(data))
+                else:
+                    self._read_buffer.put(data)
 
     async def _pop_till_error_line(self) -> AsyncGenerator[str, None]:
         data = await self._read_buffer.pop()
@@ -107,7 +117,8 @@ class Reader:
             yield data
 
     async def _get_response(self) -> tuple[str, ...]:
-        return tuple([line async for line in self._pop_till_error_line()])
+        async with contextlib.aclosing(self._pop_till_error_line()) as g:
+            return tuple([line async for line in g])
 
     async def read_response(self) -> response.TSResponse:
         return response.TSResponse.from_server_response(
