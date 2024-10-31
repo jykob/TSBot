@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import asyncio
 import itertools
-from typing import TYPE_CHECKING
+from collections.abc import Coroutine
+from typing import TYPE_CHECKING, Any
 
 from tsbot import exceptions, logging, query_builder
 from tsbot.connection import reader, writer
@@ -58,6 +59,13 @@ class TSConnection:
 
         self._closed = False
 
+    def __enter__(self) -> Coroutine[None, None, None]:
+        self.connect()
+        return self.wait_closed()
+
+    def __exit__(self, *exc: Any) -> None:
+        self.close()
+
     def connect(self) -> None:
         self._connection_task = asyncio.create_task(
             self._connection_handler(), name="Connection-Task"
@@ -78,9 +86,6 @@ class TSConnection:
 
     def _handle_event(self, event: events.TSEvent) -> None:
         self._bot.emit_event(event)
-
-    def _on_connection_close(self) -> None:
-        self._reader.close()
 
     async def _connection_handler(self) -> None:
         """
@@ -140,22 +145,21 @@ class TSConnection:
             await self._connection.authenticate()
 
             self._connected_event.set()
-            self._reader.start()
 
-            await select_server()
-            await register_notifications()
+            with self._reader:
+                await select_server()
+                await register_notifications()
 
-            if not self._is_first_connection:
-                self._bot.emit("reconnect")
-            self._is_first_connection = False
+                if not self._is_first_connection:
+                    self._bot.emit("reconnect")
+                self._is_first_connection = False
 
-            self._bot.emit("connect")
-            self._bot.emit("ready")  # TODO: deprecated, remove when appropriate
+                self._bot.emit("connect")
+                self._bot.emit("ready")  # TODO: deprecated, remove when appropriate
 
-            await self._connection.wait_closed()
+                await self._connection.wait_closed()
 
             self._connected_event.clear()
-            self._on_connection_close()
             self._bot.emit("disconnect")
 
     async def send(self, query: query_builder.TSQuery) -> response.TSResponse:
@@ -179,7 +183,10 @@ class TSConnection:
 
         return response
 
-    async def _send(self, raw_query: str):
+    async def _send(self, raw_query: str) -> response.TSResponse:
+        if self._closed:
+            raise BrokenPipeError("Connection to the TeamSpeak server is closed")
+
         async with self._sending_lock:
             await self._writer.write(raw_query)
             return await self._reader.read_response()
