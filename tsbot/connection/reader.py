@@ -4,7 +4,7 @@ import asyncio
 import collections
 import contextlib
 from collections.abc import AsyncGenerator, Callable
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from tsbot import events, logging, response
 
@@ -78,13 +78,22 @@ class Reader:
         self._read_buffer = _ReadBuffer()
         self._reader_task: asyncio.Task[None] | None = None
 
+    def __enter__(self):
+        self.start()
+
+    def __exit__(self, *exc: Any):
+        self.close()
+
     def start(self) -> None:
         self._reader_task = asyncio.create_task(self._task(), name="Reader-Task")
 
     def close(self) -> None:
         self._read_buffer.clear()
-        if self._reader_task and not self._reader_task.done():
+
+        if self._reader_task:
             self._reader_task.cancel()
+
+        self._reader_task = None
 
     async def _task(self) -> None:
         async def read_gen() -> AsyncGenerator[str, None]:
