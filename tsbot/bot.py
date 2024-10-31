@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import inspect
 from collections.abc import Callable, Coroutine
 from typing import TYPE_CHECKING, Any, Concatenate, NamedTuple, ParamSpec
@@ -113,6 +112,18 @@ class TSBot:
         self.register_event_handler("textmessage", self._command_handler.handle_command_event)
 
         self.load_plugin(default_plugins.Help(), default_plugins.KeepAlive())
+
+    def __enter__(self) -> Coroutine[None, None, None]:
+        self._closing.clear()
+        self._tasks_handler.start(self)
+
+        self.register_task(self._event_handler.handle_events_task, name="HandleEvents-Task")
+        self.emit(event_name="run")
+
+        return self._wait_closed()
+
+    def __exit__(self, *exc: Any) -> None:
+        self.close()
 
     def emit(self, event_name: str, ctx: Any | None = None) -> None:
         """
@@ -356,7 +367,7 @@ class TSBot:
         await self._tasks_handler.close()
         await self._event_handler.run_till_empty(self)
 
-        with contextlib.suppress(Exception):
+        if self._connection.connected:
             await self.send_raw("quit")
 
         self._connection.close()
