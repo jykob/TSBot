@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncssh
 
 from tsbot.connection.connection_types import abc
