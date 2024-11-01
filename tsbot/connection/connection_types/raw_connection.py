@@ -39,7 +39,9 @@ class RawConnection(abc.Connection):
 
         resp = parsers.parse_line(data.rstrip().removeprefix("error "))
         if resp["id"] != "0":
-            raise ConnectionAbortedError(resp["msg"])
+            raise ConnectionAbortedError(
+                "".join((resp["msg"], f" ({extra})" if (extra := resp.get("extra_msg")) else ""))
+            )
 
     def close(self) -> None:
         if self._writer:
