@@ -29,6 +29,8 @@ class Connection(ABC):
 
         This method is called after the header is validated.
         Normal communication with the server allowed.
+
+        Will raise `ConnectionAbortedError` if cannot authenticate connection.
         """
 
     @abstractmethod
@@ -41,8 +43,12 @@ class Connection(ABC):
 
     @abstractmethod
     async def write(self, data: str) -> None:
-        """Write data to the server."""
+        """
+        Write data to the server.
+
+        This method must terminate data with line ending.
+        """
 
     @abstractmethod
     async def readline(self) -> str | None:
-        """Reads a single line."""
+        """Reads a single line determined by line ending sequence."""
