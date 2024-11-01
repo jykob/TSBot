@@ -2,7 +2,7 @@
 name = "tsbot"
 version = "1.4.0"
 authors = [{ name = "jykob" }]
-description = "Asynchronous framework to build TeamSpeak 3 Server Query bots"
+description = "Asynchronous Python framework to build TeamSpeak 3 Server Query bots"
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
