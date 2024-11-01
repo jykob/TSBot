@@ -44,7 +44,3 @@ class Connection(ABC):
     @abstractmethod
     async def readline(self) -> str | None:
         """Reads a single line."""
-
-    @abstractmethod
-    async def readuntil(self, separator: str) -> str | None:
-        """Reads until given separator."""

@@ -64,13 +64,10 @@ class SSHConnection(abc.Connection):
         await self._writer.drain()
 
     async def readline(self) -> str | None:
-        return await self.readuntil("\n\r")
-
-    async def readuntil(self, separator: str) -> str | None:
         if not self._reader:
             raise ConnectionResetError("Reading on a closed connection")
 
         try:
-            return await self._reader.readuntil(separator)
+            return await self._reader.readuntil("\n\r")
         except Exception:
             return None
