@@ -24,10 +24,7 @@ def every(every_handler: TTaskHandler, seconds: float) -> TTaskHandler:
     @functools.wraps(every_handler)
     async def every_wrapper(bot: bot.TSBot) -> None:
         while True:
-            try:
-                await asyncio.sleep(seconds)
-                await every_handler(bot)
-            except asyncio.CancelledError:
-                break
+            await asyncio.sleep(seconds)
+            await every_handler(bot)
 
     return every_wrapper
