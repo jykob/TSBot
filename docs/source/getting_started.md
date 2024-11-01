@@ -1,6 +1,9 @@
 # Getting started
 
-In this chapter we are going to get you started with TSBot.
+TSBot is a great way to create your own TeamSpeak Server Query bots.
+
+TSBot will manage connection to your TeamSpeak server,  
+schedule background tasks, and handle events and commands.
 
 ---
 

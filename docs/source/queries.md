@@ -8,7 +8,7 @@ myst:
 # Queries
 
 TSBot implements a query builder to ease the use of building commands.  
-In this chapter you will learn how to use the query system in TSBot.
+In this chapter you will learn how to use the query system.
 
 ---
 
@@ -108,8 +108,6 @@ example_query = example_query.params(msg="Wake up!")
 params = {"clid": 1, "msg": "Wake up!"}
 example_query = example_query.params(**params)
 ```
-
-
 
 ### Adding parameter blocks
 
