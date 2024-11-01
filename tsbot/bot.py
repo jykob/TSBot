@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 from collections.abc import Callable, Coroutine
-from typing import TYPE_CHECKING, Any, Concatenate, NamedTuple, ParamSpec
+from typing import TYPE_CHECKING, Any, Concatenate, Literal, NamedTuple, ParamSpec
 
 from tsbot import (
     commands,
@@ -38,6 +38,7 @@ class TSBot:
         address: str,
         port: int = 10022,
         *,
+        protocol: Literal["ssh", "raw"] = "ssh",
         server_id: int = 1,
         nickname: str | None = None,
         invoker: str = "!",
@@ -53,6 +54,7 @@ class TSBot:
         :param password: Generated password for the query account.
         :param address: Address of the TeamSpeak server.
         :param port: Port of the SSH connection.
+        :param protocol: Type of connection to be used.
         :param server_id: Id of the virtual server.
         :param nickname: Display name for the bot client.
         :param invoker: Command indicator.
@@ -71,17 +73,24 @@ class TSBot:
 
         self.plugins: dict[str, plugin.TSPlugin] = {}
 
+        connection_type = (
+            connection.RawConnection(username, password, address, port)
+            if protocol == "raw"
+            else connection.SSHConnection(username, password, address, port)
+        )
+        connection_ratelimiter = (
+            ratelimiter.RateLimiter(ratelimit_calls, ratelimit_period) if ratelimited else None
+        )
+
         self._connection = connection.TSConnection(
             bot=self,
-            connection=connection.SSHConnection(username, password, address, port),
+            connection=connection_type,
             server_id=server_id,
             nickname=nickname,
             query_timeout=query_timeout,
             connection_retries=connection_retries,
             connection_retry_interval=connection_retry_timeout,
-            ratelimiter=(
-                ratelimiter.RateLimiter(ratelimit_calls, ratelimit_period) if ratelimited else None
-            ),
+            ratelimiter=connection_ratelimiter,
         )
 
         self._tasks_handler = tasks.TasksHandler()
