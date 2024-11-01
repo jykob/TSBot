@@ -51,4 +51,8 @@ class Connection(ABC):
 
     @abstractmethod
     async def readline(self) -> str | None:
-        """Reads a single line determined by line ending sequence."""
+        """
+        Reads a single line determined by line ending sequence.
+
+        Will include line ending sequence in return str
+        """
