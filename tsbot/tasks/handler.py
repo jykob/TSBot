@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from typing import TYPE_CHECKING
 
 from tsbot import logging
@@ -21,8 +22,15 @@ class TasksHandler:
     def _start_task(self, bot: bot.TSBot, task: tasks.TSTask) -> None:
         task.task = asyncio.create_task(task.handler(bot), name=task.name)
         self._tasks.add(task.task)
-        task.task.add_done_callback(self._tasks.remove)
+        task.task.add_done_callback(self._task_callback)
         logger.debug("Started a task handler %r", getattr(task.handler, "__name__", task.handler))
+
+    def _task_callback(self, task: asyncio.Task[None]) -> None:
+        self._tasks.remove(task)
+
+        with contextlib.suppress(asyncio.CancelledError):
+            if e := task.exception():
+                logger.exception("Task finished with an exception: %r", e, exc_info=e)
 
     def register_task(self, bot: bot.TSBot, task: tasks.TSTask) -> None:
         self._start_task(bot, task) if self._started else self._starting_tasks.append(task)
