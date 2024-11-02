@@ -24,6 +24,9 @@ if TYPE_CHECKING:
 _P = ParamSpec("_P")
 
 
+_DEFAULT_PORTS = {"ssh": 10022, "raw": 10011}
+
+
 class BotInfo(NamedTuple):
     uid: str = ""
     clid: str = ""
@@ -36,7 +39,7 @@ class TSBot:
         username: str,
         password: str,
         address: str,
-        port: int = 10022,
+        port: int | None = None,
         *,
         protocol: Literal["ssh", "raw"] = "ssh",
         server_id: int = 1,
@@ -69,9 +72,7 @@ class TSBot:
         if nickname is not None and not nickname:
             raise TypeError("Bot nickname cannot be empty")
 
-        self._bot_info = BotInfo()
-
-        self.plugins: dict[str, plugin.TSPlugin] = {}
+        port = _DEFAULT_PORTS[protocol] if port is None else port
 
         connection_type = (
             connection.RawConnection(username, password, address, port)
@@ -97,6 +98,9 @@ class TSBot:
         self._event_handler = events.EventHandler()
         self._command_handler = commands.CommandHandler(invoker)
 
+        self.plugins: dict[str, plugin.TSPlugin] = {}
+
+        self._bot_info = BotInfo()
         self._closing = asyncio.Event()
         self._init()
 
