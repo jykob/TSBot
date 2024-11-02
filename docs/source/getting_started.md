@@ -231,7 +231,6 @@ bot = TSBot(
     username="USERNAME",
     password="PASSWORD",
     address="ADDRESS",
-    port=10011,  # Important! The default port is 10022, the port for SSH.
     protocol="raw"
 )
 ```
