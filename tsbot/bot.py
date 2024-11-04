@@ -109,18 +109,22 @@ class TSBot:
 
     @property
     def uid(self) -> str:
+        """Bots UID"""
         return self._bot_info.uid
 
     @property
     def clid(self) -> str:
+        """Bots current client id"""
         return self._bot_info.clid
 
     @property
     def cldbid(self) -> str:
+        """Bots client database id"""
         return self._bot_info.cldbid
 
     @property
     def connected(self) -> bool:
+        """Is the bot currently connected to a server"""
         return self._connection.connected
 
     def _init(self) -> None:
