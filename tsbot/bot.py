@@ -18,6 +18,7 @@ from tsbot import (
     ratelimiter,
     response,
     tasks,
+    utils,
 )
 
 if TYPE_CHECKING:
@@ -174,6 +175,8 @@ class TSBot:
         :param event_type: Name of the event.
         """
 
+        utils.check_for_deprecated_event(event_type)
+
         def event_decorator(func: events.TEventHandler) -> events.TEventHandler:
             self.register_event_handler(event_type, func)
             return func
@@ -202,6 +205,8 @@ class TSBot:
         :return: The instance of :class:`TSEventHandler<tsbot.events.TSEventHandler>` created.
         """
 
+        utils.check_for_deprecated_event(event_type)
+
         event_handler = events.TSEventHandler(event_type, handler)
         self._event_handler.register_event_handler(event_handler)
         return event_handler
@@ -221,6 +226,8 @@ class TSBot:
 
         :param event_type: Name of the event.
         """
+
+        utils.check_for_deprecated_event(event_type)
 
         def once_decorator(func: events.TEventHandler) -> events.TEventHandler:
             self.register_once_handler(event_type, func)
@@ -249,6 +256,8 @@ class TSBot:
         :param handler: Async function to handle the event.
         :return: The instance of :class:`TSEventOnceHandler<tsbot.events.TSEventOnceHandler>` created.
         """
+
+        utils.check_for_deprecated_event(event_type)
 
         event_handler = events.TSEventOnceHandler(event_type, handler, self._event_handler)
         self._event_handler.register_event_handler(event_handler)
