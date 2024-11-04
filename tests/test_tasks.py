@@ -55,7 +55,8 @@ async def test_removing_task_cancels_task(
     running_tasks_handler.remove_task(tstask)
 
     assert tstask.task
-    assert tstask.task.cancelling() or tstask.task.cancelled()
+    with pytest.raises(asyncio.CancelledError):
+        await tstask.task
 
 
 @pytest.mark.asyncio
