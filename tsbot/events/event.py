@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import Any, NamedTuple, TypeVar
+from typing import Any, NamedTuple
+
+from typing_extensions import Self
 
 from tsbot import context, parsers
-
-_T = TypeVar("_T", bound="TSEvent")
 
 
 class TSEvent(NamedTuple):
@@ -12,7 +12,7 @@ class TSEvent(NamedTuple):
     ctx: Any
 
     @classmethod
-    def from_server_notification(cls: type[_T], raw_data: str) -> _T:
+    def from_server_notification(cls, raw_data: str) -> Self:
         """
         Creates a TSEvent instance from server notify
 

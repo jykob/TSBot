@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncssh
+from typing_extensions import override
 
 from tsbot.connection.connection_types import abc
 
@@ -22,6 +23,7 @@ class SSHConnection(abc.Connection):
         self._writer: asyncssh.SSHWriter[str] | None = None
         self._reader: asyncssh.SSHReader[str] | None = None
 
+    @override
     async def connect(self) -> None:
         self._connection = await asyncssh.connect(
             host=self._address,
@@ -34,6 +36,7 @@ class SSHConnection(abc.Connection):
 
         self._writer, self._reader, _ = await self._connection.open_session()  # type: ignore
 
+    @override
     async def validate_header(self) -> None:
         if (data := await self.readline()) and data != "TS3\n\r":
             raise ConnectionAbortedError("Invalid TeamSpeak server")
@@ -42,6 +45,7 @@ class SSHConnection(abc.Connection):
     async def authenticate(self) -> None:
         """Teamspeak SSH query clients are already authenticated on connect"""
 
+    @override
     def close(self) -> None:
         if self._writer:
             self._writer.close()
@@ -49,6 +53,7 @@ class SSHConnection(abc.Connection):
         if self._connection:
             self._connection.close()
 
+    @override
     async def wait_closed(self) -> None:
         if not self._writer or not self._connection:
             raise ConnectionError("Trying to wait on uninitialized connection")
@@ -56,6 +61,7 @@ class SSHConnection(abc.Connection):
         await self._writer.wait_closed()
         await self._connection.wait_closed()
 
+    @override
     async def write(self, data: str) -> None:
         if not self._writer or self._writer.is_closing():
             raise BrokenPipeError("Trying to write on a closed connection")
@@ -63,6 +69,7 @@ class SSHConnection(abc.Connection):
         self._writer.write(f"{data}\n\r")
         await self._writer.drain()
 
+    @override
     async def readline(self) -> str | None:
         if not self._reader:
             raise ConnectionResetError("Reading on a closed connection")
