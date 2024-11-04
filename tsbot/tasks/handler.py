@@ -19,6 +19,10 @@ class TasksHandler:
         self._tasks: set[asyncio.Task[None]] = set()
         self._starting_tasks: list[tasks.TSTask] = []
 
+    @property
+    def empty(self):
+        return not self._tasks
+
     def _start_task(self, bot: bot.TSBot, task: tasks.TSTask) -> None:
         task.task = asyncio.create_task(task.handler(bot), name=task.name)
         self._tasks.add(task.task)
@@ -54,5 +58,5 @@ class TasksHandler:
             task.cancel()
 
         # Sleep until all the tasks are removed from tasks list
-        while self._tasks:
+        while not self.empty:
             await asyncio.sleep(0)
