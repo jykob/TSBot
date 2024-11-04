@@ -3,7 +3,9 @@ from __future__ import annotations
 import asyncio
 import inspect
 from collections.abc import Callable, Coroutine
-from typing import TYPE_CHECKING, Any, Concatenate, Literal, NamedTuple, ParamSpec
+from typing import TYPE_CHECKING, Any, Concatenate, Literal, NamedTuple, ParamSpec, overload
+
+from typing_extensions import deprecated
 
 from tsbot import (
     commands,
@@ -156,6 +158,15 @@ class TSBot:
         """
         self._event_handler.add_event(event)
 
+    @overload
+    @deprecated("'ready' event is deprecated. Use 'connect' instead")
+    def on(
+        self, event_type: Literal["ready"]
+    ) -> Callable[[events.TEventHandler], events.TEventHandler]: ...
+
+    @overload
+    def on(self, event_type: str) -> Callable[[events.TEventHandler], events.TEventHandler]: ...
+
     def on(self, event_type: str) -> Callable[[events.TEventHandler], events.TEventHandler]:
         """
         Decorator to register event handlers.
@@ -168,6 +179,17 @@ class TSBot:
             return func
 
         return event_decorator
+
+    @overload
+    @deprecated("'ready' event is deprecated. Use 'connect' instead")
+    def register_event_handler(
+        self, event_type: Literal["ready"], handler: events.TEventHandler
+    ) -> events.TSEventHandler: ...
+
+    @overload
+    def register_event_handler(
+        self, event_type: str, handler: events.TEventHandler
+    ) -> events.TSEventHandler: ...
 
     def register_event_handler(
         self, event_type: str, handler: events.TEventHandler
@@ -184,6 +206,15 @@ class TSBot:
         self._event_handler.register_event_handler(event_handler)
         return event_handler
 
+    @overload
+    @deprecated("'ready' event is deprecated. Use 'connect' instead")
+    def once(
+        self, event_type: Literal["ready"]
+    ) -> Callable[[events.TEventHandler], events.TEventHandler]: ...
+
+    @overload
+    def once(self, event_type: str) -> Callable[[events.TEventHandler], events.TEventHandler]: ...
+
     def once(self, event_type: str) -> Callable[[events.TEventHandler], events.TEventHandler]:
         """
         Decorator to register once handler.
@@ -196,6 +227,17 @@ class TSBot:
             return func
 
         return once_decorator
+
+    @overload
+    @deprecated("'ready' event is deprecated. Use 'connect' instead")
+    def register_once_handler(
+        self, event_type: Literal["ready"], handler: events.TEventHandler
+    ) -> events.TSEventOnceHandler: ...
+
+    @overload
+    def register_once_handler(
+        self, event_type: str, handler: events.TEventHandler
+    ) -> events.TSEventOnceHandler: ...
 
     def register_once_handler(
         self, event_type: str, handler: events.TEventHandler

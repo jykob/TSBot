@@ -2,13 +2,10 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Callable, Coroutine
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Concatenate,
-    ParamSpec,
-    TypeVar,
-)
+from typing import TYPE_CHECKING, Any, Concatenate, Literal, ParamSpec, TypeVar, overload
+
+from typing_extensions import deprecated
+
 
 if TYPE_CHECKING:
     from tsbot import bot, context
@@ -52,6 +49,25 @@ def command(
     return command_decorator
 
 
+@overload
+@deprecated("'ready' event is deprecated. Use 'connect' instead")
+def on(
+    event_type: Literal["ready"],
+) -> Callable[
+    [Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]],
+    Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]],
+]: ...
+
+
+@overload
+def on(
+    event_type: str,
+) -> Callable[
+    [Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]],
+    Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]],
+]: ...
+
+
 def on(
     event_type: str,
 ) -> Callable[
@@ -74,6 +90,25 @@ def on(
         return func
 
     return event_decorator
+
+
+@overload
+@deprecated("'ready' event is deprecated. Use 'connect' instead")
+def once(
+    event_type: Literal["ready"],
+) -> Callable[
+    [Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]],
+    Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]],
+]: ...
+
+
+@overload
+def once(
+    event_type: str,
+) -> Callable[
+    [Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]],
+    Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]],
+]: ...
 
 
 def once(
