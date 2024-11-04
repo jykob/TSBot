@@ -55,4 +55,4 @@ async def test_ratelimiter_throttle(
     for _ in range(number_of_calls):
         await rl.wait()
 
-    assert mock_sleep.called
+    mock_sleep.assert_awaited()
