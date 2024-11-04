@@ -1,10 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-import sys
-import warnings
 from collections import defaultdict
-from pathlib import Path  # type: ignore
 from typing import TYPE_CHECKING
 
 from tsbot import logging, utils
@@ -54,19 +51,6 @@ class EventHandler:
 
     def register_event_handler(self, event_handler: events.TSEventHandler) -> None:
         """Registers event handlers that will be called when given event happens."""
-
-        if event_handler.event == "ready":  # TODO: remove when 'ready' event deprecated
-            kwargs = (
-                dict(skip_file_prefixes=(str(Path(__file__).parent.parent),))
-                if sys.version_info >= (3, 12, 0)
-                else dict(stacklevel=4)
-            )
-
-            warnings.warn(
-                "'ready' event is deprecated. Use 'connect' instead",
-                DeprecationWarning,
-                **kwargs,  # type: ignore
-            )
 
         self._event_handlers[event_handler.event].append(event_handler)
 

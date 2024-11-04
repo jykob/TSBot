@@ -1,6 +1,15 @@
 # Tasks
 
-Tasks are a great way to schedule coroutines to be run outside your event/command handler.  
+Tasks are a great way to schedule coroutines to be run outside your event/command handler.
+
+```{warning}
+Task handlers should be well behaved. Tasks handlers can be cancelled at any point.
+This mainly happens when the bot is closing and cleaning up running tasks.
+You should never block task cancelling by catching [asyncio.CancelledError](asyncio.CancelledError) and ignoring it.
+This will hang your bot on close.
+If you need to do clean up in your task, catch the [asyncio.CancelledError](asyncio.CancelledError), do clean up, and return or re raise the exception.
+```
+
 Tasks handlers have one argument, the instance of [TSBot](tsbot.bot.TSBot).
 
 ```python

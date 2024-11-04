@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-import asyncssh
+import asyncio
+
 from typing_extensions import override
 
+from tsbot import parsers
 from tsbot.connection.connection_types import abc
 
 
-class SSHConnection(abc.Connection):
+class RawConnection(abc.Connection):
     def __init__(
         self,
         username: str,
@@ -19,22 +21,12 @@ class SSHConnection(abc.Connection):
         self._address = address
         self._port = port
 
-        self._connection: asyncssh.SSHClientConnection | None = None
-        self._writer: asyncssh.SSHWriter[str] | None = None
-        self._reader: asyncssh.SSHReader[str] | None = None
+        self._writer: asyncio.StreamWriter | None = None
+        self._reader: asyncio.StreamReader | None = None
 
     @override
     async def connect(self) -> None:
-        self._connection = await asyncssh.connect(
-            host=self._address,
-            port=self._port,
-            username=self._username,
-            password=self._password,
-            known_hosts=None,
-            preferred_auth="password",
-        )
-
-        self._writer, self._reader, _ = await self._connection.open_session()  # type: ignore
+        self._reader, self._writer = await asyncio.open_connection(self._address, self._port)
 
     @override
     async def validate_header(self) -> None:
@@ -42,31 +34,38 @@ class SSHConnection(abc.Connection):
             raise ConnectionAbortedError("Invalid TeamSpeak server")
         await self.readline()
 
+    @override
     async def authenticate(self) -> None:
-        """Teamspeak SSH query clients are already authenticated on connect"""
+        await self.write(f"login {self._username} {self._password}")
+
+        data = await self.readline()
+        if data is None:
+            raise ConnectionAbortedError
+
+        resp = parsers.parse_line(data.rstrip().removeprefix("error "))
+        if resp["id"] != "0":
+            raise ConnectionAbortedError(
+                "".join((resp["msg"], f" ({extra})" if (extra := resp.get("extra_msg")) else ""))
+            )
 
     @override
     def close(self) -> None:
         if self._writer:
             self._writer.close()
 
-        if self._connection:
-            self._connection.close()
-
     @override
     async def wait_closed(self) -> None:
-        if not self._writer or not self._connection:
+        if not self._writer:
             raise ConnectionError("Trying to wait on uninitialized connection")
 
         await self._writer.wait_closed()
-        await self._connection.wait_closed()
 
     @override
     async def write(self, data: str) -> None:
         if not self._writer or self._writer.is_closing():
             raise BrokenPipeError("Trying to write on a closed connection")
 
-        self._writer.write(f"{data}\n\r")
+        self._writer.write(f"{data}\n\r".encode())
         await self._writer.drain()
 
     @override
@@ -75,6 +74,6 @@ class SSHConnection(abc.Connection):
             raise ConnectionResetError("Reading on a closed connection")
 
         try:
-            return await self._reader.readuntil("\n\r")
+            return (await self._reader.readuntil(b"\n\r")).decode()
         except Exception:
             return None

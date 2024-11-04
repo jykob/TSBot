@@ -1,6 +1,8 @@
 # Events
 
-Chapter all about the events and event system.
+TSBot handles all kinds of events for you.  
+Bot emits [built-in events](#built-in-events) and notifications from the TeamSpeak server.  
+You can attach handlers for any kind of event and react to them as you wish.
 
 ## Event handlers
 

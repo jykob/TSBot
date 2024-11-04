@@ -1,6 +1,9 @@
 # Getting started
 
-In this chapter we are going to get you started with TSBot.
+TSBot is a great way to create your own TeamSpeak Server Query bots.
+
+TSBot will manage connection to your TeamSpeak server,  
+schedule background tasks, and handle events and commands.
 
 ---
 
@@ -190,7 +193,7 @@ Now run the script. A **_ServerQuery client_** should join to your server.
 :class: margin-bottom
 ```
 
----
+<br />
 
 <div class="flex flex-row">
 
@@ -202,9 +205,7 @@ As long as the script is running, every time someone joins the server, they will
 ```
 
 </div>
-
----
-
+<br />
 <div class="flex flex-row">
 
 And you can use command `!hello` to say hello to the bot
@@ -215,3 +216,21 @@ And you can use command `!hello` to say hello to the bot
 ```
 
 </div>
+
+---
+
+## Using raw connection
+
+By default, TSBot will use SSH connection.
+
+If you don't need the connection to be encrypted E.g. the bot is running on same host as the TeamSpeak server,
+or the TeamSpeak server doesn't have SSH connections enabled, you can use raw connections.
+
+```python
+bot = TSBot(
+    username="USERNAME",
+    password="PASSWORD",
+    address="ADDRESS",
+    protocol="raw"
+)
+```

@@ -3,7 +3,9 @@ from __future__ import annotations
 import asyncio
 import inspect
 from collections.abc import Callable, Coroutine
-from typing import TYPE_CHECKING, Any, Concatenate, NamedTuple, ParamSpec
+from typing import TYPE_CHECKING, Any, Concatenate, Literal, NamedTuple, ParamSpec, overload
+
+from typing_extensions import deprecated
 
 from tsbot import (
     commands,
@@ -16,12 +18,16 @@ from tsbot import (
     ratelimiter,
     response,
     tasks,
+    utils,
 )
 
 if TYPE_CHECKING:
     from tsbot import plugin
 
 _P = ParamSpec("_P")
+
+
+_DEFAULT_PORTS = {"ssh": 10022, "raw": 10011}
 
 
 class BotInfo(NamedTuple):
@@ -36,8 +42,9 @@ class TSBot:
         username: str,
         password: str,
         address: str,
-        port: int = 10022,
+        port: int | None = None,
         *,
+        protocol: Literal["ssh", "raw"] = "ssh",
         server_id: int = 1,
         nickname: str | None = None,
         invoker: str = "!",
@@ -53,6 +60,7 @@ class TSBot:
         :param password: Generated password for the query account.
         :param address: Address of the TeamSpeak server.
         :param port: Port of the SSH connection.
+        :param protocol: Type of connection to be used.
         :param server_id: Id of the virtual server.
         :param nickname: Display name for the bot client.
         :param invoker: Command indicator.
@@ -67,44 +75,56 @@ class TSBot:
         if nickname is not None and not nickname:
             raise TypeError("Bot nickname cannot be empty")
 
-        self._bot_info = BotInfo()
+        port = _DEFAULT_PORTS[protocol] if port is None else port
 
-        self.plugins: dict[str, plugin.TSPlugin] = {}
+        connection_type = (
+            connection.RawConnection(username, password, address, port)
+            if protocol == "raw"
+            else connection.SSHConnection(username, password, address, port)
+        )
+        connection_ratelimiter = (
+            ratelimiter.RateLimiter(ratelimit_calls, ratelimit_period) if ratelimited else None
+        )
 
         self._connection = connection.TSConnection(
             bot=self,
-            connection=connection.SSHConnection(username, password, address, port),
+            connection=connection_type,
             server_id=server_id,
             nickname=nickname,
             query_timeout=query_timeout,
             connection_retries=connection_retries,
             connection_retry_interval=connection_retry_timeout,
-            ratelimiter=(
-                ratelimiter.RateLimiter(ratelimit_calls, ratelimit_period) if ratelimited else None
-            ),
+            ratelimiter=connection_ratelimiter,
         )
 
         self._tasks_handler = tasks.TasksHandler()
         self._event_handler = events.EventHandler()
         self._command_handler = commands.CommandHandler(invoker)
 
+        self.plugins: dict[str, plugin.TSPlugin] = {}
+
+        self._bot_info = BotInfo()
         self._closing = asyncio.Event()
         self._init()
 
     @property
     def uid(self) -> str:
+        """Bots UID"""
         return self._bot_info.uid
 
     @property
     def clid(self) -> str:
+        """Bots current client id"""
         return self._bot_info.clid
 
     @property
     def cldbid(self) -> str:
+        """Bots client database id"""
         return self._bot_info.cldbid
 
     @property
     def connected(self) -> bool:
+        """Is the bot currently connected to a server"""
         return self._connection.connected
 
     def _init(self) -> None:
@@ -143,6 +163,15 @@ class TSBot:
         """
         self._event_handler.add_event(event)
 
+    @overload
+    @deprecated("'ready' event is deprecated. Use 'connect' instead")
+    def on(
+        self, event_type: Literal["ready"]
+    ) -> Callable[[events.TEventHandler], events.TEventHandler]: ...
+
+    @overload
+    def on(self, event_type: str) -> Callable[[events.TEventHandler], events.TEventHandler]: ...
+
     def on(self, event_type: str) -> Callable[[events.TEventHandler], events.TEventHandler]:
         """
         Decorator to register event handlers.
@@ -150,11 +179,24 @@ class TSBot:
         :param event_type: Name of the event.
         """
 
+        utils.check_for_deprecated_event(event_type)
+
         def event_decorator(func: events.TEventHandler) -> events.TEventHandler:
             self.register_event_handler(event_type, func)
             return func
 
         return event_decorator
+
+    @overload
+    @deprecated("'ready' event is deprecated. Use 'connect' instead")
+    def register_event_handler(
+        self, event_type: Literal["ready"], handler: events.TEventHandler
+    ) -> events.TSEventHandler: ...
+
+    @overload
+    def register_event_handler(
+        self, event_type: str, handler: events.TEventHandler
+    ) -> events.TSEventHandler: ...
 
     def register_event_handler(
         self, event_type: str, handler: events.TEventHandler
@@ -167,9 +209,20 @@ class TSBot:
         :return: The instance of :class:`TSEventHandler<tsbot.events.TSEventHandler>` created.
         """
 
+        utils.check_for_deprecated_event(event_type)
+
         event_handler = events.TSEventHandler(event_type, handler)
         self._event_handler.register_event_handler(event_handler)
         return event_handler
+
+    @overload
+    @deprecated("'ready' event is deprecated. Use 'connect' instead")
+    def once(
+        self, event_type: Literal["ready"]
+    ) -> Callable[[events.TEventHandler], events.TEventHandler]: ...
+
+    @overload
+    def once(self, event_type: str) -> Callable[[events.TEventHandler], events.TEventHandler]: ...
 
     def once(self, event_type: str) -> Callable[[events.TEventHandler], events.TEventHandler]:
         """
@@ -178,11 +231,24 @@ class TSBot:
         :param event_type: Name of the event.
         """
 
+        utils.check_for_deprecated_event(event_type)
+
         def once_decorator(func: events.TEventHandler) -> events.TEventHandler:
             self.register_once_handler(event_type, func)
             return func
 
         return once_decorator
+
+    @overload
+    @deprecated("'ready' event is deprecated. Use 'connect' instead")
+    def register_once_handler(
+        self, event_type: Literal["ready"], handler: events.TEventHandler
+    ) -> events.TSEventOnceHandler: ...
+
+    @overload
+    def register_once_handler(
+        self, event_type: str, handler: events.TEventHandler
+    ) -> events.TSEventOnceHandler: ...
 
     def register_once_handler(
         self, event_type: str, handler: events.TEventHandler
@@ -194,6 +260,8 @@ class TSBot:
         :param handler: Async function to handle the event.
         :return: The instance of :class:`TSEventOnceHandler<tsbot.events.TSEventOnceHandler>` created.
         """
+
+        utils.check_for_deprecated_event(event_type)
 
         event_handler = events.TSEventOnceHandler(event_type, handler, self._event_handler)
         self._event_handler.register_event_handler(event_handler)
@@ -419,10 +487,10 @@ class TSBot:
                     self.register_command(handler=member, **command_kwargs)
 
                 elif event_kwargs := getattr(member, "__ts_event__", None):
-                    self.register_event_handler(handler=member, **event_kwargs)
+                    self.register_event_handler(handler=member, **event_kwargs)  # type: ignore  #TODO: REMOVE
 
                 elif once_kwargs := getattr(member, "__ts_once__", None):
-                    self.register_once_handler(handler=member, **once_kwargs)
+                    self.register_once_handler(handler=member, **once_kwargs)  # type: ignore  #TODO: REMOVE
 
             self.plugins[plugin_to_be_loaded.__class__.__name__] = plugin_to_be_loaded
 

@@ -2,15 +2,14 @@ from __future__ import annotations
 
 import itertools
 from collections.abc import Iterable, Mapping
-from typing import TYPE_CHECKING, Protocol, TypeVar
+from typing import TYPE_CHECKING, Protocol
+
+from typing_extensions import Self
 
 from tsbot import encoders
 
 if TYPE_CHECKING:
     from tsbot import query_builder
-
-
-_T = TypeVar("_T", bound="TSQuery")
 
 
 class Stringable(Protocol):
@@ -61,7 +60,7 @@ class TSQuery:
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}({self._command!r})"
 
-    def option(self: _T, *args: Stringable) -> _T:
+    def option(self, *args: Stringable) -> Self:
         """
         Add options to the command eg. ``-groups``.
 
@@ -76,7 +75,7 @@ class TSQuery:
             self._parameter_blocks,
         )
 
-    def params(self: _T, **kwargs: Stringable) -> _T:
+    def params(self, **kwargs: Stringable) -> Self:
         """
         Add parameters to the command eg. ``cldbid=12``.
 
@@ -92,11 +91,8 @@ class TSQuery:
         )
 
     def param_block(
-        self: _T,
-        blocks: Iterable[Mapping[str, Stringable]] | None = None,
-        /,
-        **kwargs: Stringable,
-    ) -> _T:
+        self, blocks: Iterable[Mapping[str, Stringable]] | None = None, /, **kwargs: Stringable
+    ) -> Self:
         """
         Add parameter blocks eg. ``clid=1 | clid=2 | clid=3`` to the command.
         Takes in either an iterable of parameters in form of dict[str, Stringable]
