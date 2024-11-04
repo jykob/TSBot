@@ -32,7 +32,7 @@ class TSResponse:
         return self.data[-1]
 
     @classmethod
-    def from_server_response(cls: type[Self], raw_data: Sequence[str]) -> Self:
+    def from_server_response(cls, raw_data: Sequence[str]) -> Self:
         response_info = parsers.parse_line(raw_data[-1].removeprefix("error "))
         data = parsers.parse_data("".join(raw_data[:-1]))
 

@@ -12,7 +12,7 @@ class TSEvent(NamedTuple):
     ctx: Any
 
     @classmethod
-    def from_server_notification(cls: type[Self], raw_data: str) -> Self:
+    def from_server_notification(cls, raw_data: str) -> Self:
         """
         Creates a TSEvent instance from server notify
 
