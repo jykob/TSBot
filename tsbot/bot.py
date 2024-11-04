@@ -483,10 +483,10 @@ class TSBot:
                     self.register_command(handler=member, **command_kwargs)
 
                 elif event_kwargs := getattr(member, "__ts_event__", None):
-                    self.register_event_handler(handler=member, **event_kwargs)
+                    self.register_event_handler(handler=member, **event_kwargs)  # type: ignore  #TODO: REMOVE
 
                 elif once_kwargs := getattr(member, "__ts_once__", None):
-                    self.register_once_handler(handler=member, **once_kwargs)
+                    self.register_once_handler(handler=member, **once_kwargs)  # type: ignore  #TODO: REMOVE
 
             self.plugins[plugin_to_be_loaded.__class__.__name__] = plugin_to_be_loaded
 
