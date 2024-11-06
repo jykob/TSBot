@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 from collections.abc import Callable, Coroutine, Sequence
-from typing import TYPE_CHECKING, Any, Literal, NamedTuple, ParamSpec, cast, overload
+from typing import Any, Literal, NamedTuple, ParamSpec, cast, overload
 
 from typing_extensions import deprecated
 
@@ -14,15 +14,13 @@ from tsbot import (
     default_plugins,
     enums,
     events,
+    plugin,
     query_builder,
     ratelimiter,
     response,
     tasks,
     utils,
 )
-
-if TYPE_CHECKING:
-    from tsbot import plugin
 
 _P = ParamSpec("_P")
 
