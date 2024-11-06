@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Coroutine
-from typing import TYPE_CHECKING, Any, Concatenate, Literal, ParamSpec, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Concatenate, Literal, ParamSpec, TypedDict, TypeVar, overload
 
 from typing_extensions import deprecated
 
@@ -13,9 +13,25 @@ if TYPE_CHECKING:
 _T = TypeVar("_T", bound="TSPlugin")
 _P = ParamSpec("_P")
 
+COMMAND_ATTR = "__ts_command__"
+EVENT_ATTR = "__ts_event__"
+ONCE_ATTR = "__ts_once__"
+
 
 class TSPlugin:
     """Base class for plugins"""
+
+
+class TCommandKwargs(TypedDict):
+    command: tuple[str, ...]
+    help_text: str
+    raw: bool
+    hidden: bool
+    checks: tuple[TCommandHandler[...], ...]
+
+
+class TEventKwargs(TypedDict):
+    event_type: str
 
 
 def command(
@@ -116,10 +132,7 @@ def once(
 
     utils.check_for_deprecated_event(event_type)
 
-    def once_decorator(
-        func: Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]],
-    ) -> Callable[[_T, bot.TSBot, Any], Coroutine[None, None, None]]:
-        setattr(func, "__ts_once__", {"event_type": event_type})
+        setattr(func, ONCE_ATTR, TEventKwargs(event_type=event_type))
         return func
 
     return once_decorator
