@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Coroutine, Sequence
-from typing import TYPE_CHECKING, Any, Concatenate, Literal, ParamSpec, TypedDict, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Literal, ParamSpec, Protocol, TypedDict, TypeVar, overload
 
 from typing_extensions import deprecated
 
@@ -12,13 +12,25 @@ if TYPE_CHECKING:
     from tsbot.commands import TCommandHandler
 
 
-_T = TypeVar("_T", bound="TSPlugin")
+_T = TypeVar("_T", bound="TSPlugin", contravariant=True)
+_TC = TypeVar("_TC", contravariant=True)
 _P = ParamSpec("_P")
 
-TPluginEventHandler = Callable[[_T, "bot.TSBot", Any], Coroutine[None, None, None]]
-TPluginCommandHandler = Callable[
-    Concatenate[_T, "bot.TSBot", "context.TSCtx", _P], Coroutine[None, None, None]
-]
+
+class TPluginCommandHandler(Protocol[_T, _P]):
+    def __call__(
+        self,
+        inst: _T,
+        bot: bot.TSBot,
+        ctx: context.TSCtx,
+        /,
+        *args: _P.args,
+        **kwargs: _P.kwargs,
+    ) -> Coroutine[None, None, None]: ...
+
+
+class TPluginEventHandler(Protocol[_T, _TC]):
+    def __call__(self, inst: _T, bot: bot.TSBot, ctx: _TC, /) -> Coroutine[None, None, None]: ...
 
 
 COMMAND_ATTR = "__ts_command__"

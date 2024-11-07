@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import asyncio
 import inspect
-from collections.abc import Callable, Coroutine
+from collections.abc import Coroutine
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Concatenate, ParamSpec
+from typing import TYPE_CHECKING, ParamSpec, Protocol
 
 from tsbot import exceptions, parsers
 
@@ -15,9 +15,15 @@ if TYPE_CHECKING:
 _P = ParamSpec("_P")
 
 
-TCommandHandler = Callable[
-    Concatenate["bot.TSBot", "context.TSCtx", _P], Coroutine[None, None, None]
-]
+class TCommandHandler(Protocol[_P]):
+    def __call__(
+        self,
+        bot: bot.TSBot,
+        ctx: context.TSCtx,
+        /,
+        *args: _P.args,
+        **kwargs: _P.kwargs,
+    ) -> Coroutine[None, None, None]: ...
 
 
 @dataclass(slots=True)
