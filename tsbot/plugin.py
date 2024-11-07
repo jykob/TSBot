@@ -84,19 +84,27 @@ def command(
 @deprecated("'ready' event is deprecated. Use 'connect' instead")
 def on(
     event_type: Literal["ready"],
-) -> Callable[[TPluginEventHandler[_T]], TPluginEventHandler[_T]]: ...
+) -> Callable[[TPluginEventHandler[_T, None]], TPluginEventHandler[_T, None]]: ...
 
 
 @overload
-def on(event_type: str) -> Callable[[TPluginEventHandler[_T]], TPluginEventHandler[_T]]: ...
+def on(
+    event_type: Literal["run", "connect", "disconnect", "reconnect", "close"],
+) -> Callable[[TPluginEventHandler[_T, None]], TPluginEventHandler[_T, None]]: ...
 
 
-def on(event_type: str) -> Callable[[TPluginEventHandler[_T]], TPluginEventHandler[_T]]:
+@overload
+def on(
+    event_type: Literal["send", "command_error", "permission_error", "parameter_error"],
+) -> Callable[[TPluginEventHandler[_T, context.TSCtx]], TPluginEventHandler[_T, context.TSCtx]]: ...
+
+
+def on(event_type: str) -> Callable[[TPluginEventHandler[_T, Any]], TPluginEventHandler[_T, Any]]:
     """Decorator to register plugin events"""
 
     utils.check_for_deprecated_event(event_type)
 
-    def event_decorator(func: TPluginEventHandler[_T]) -> TPluginEventHandler[_T]:
+    def event_decorator(func: TPluginEventHandler[_T, Any]) -> TPluginEventHandler[_T, Any]:
         setattr(func, EVENT_ATTR, TEventKwargs(event_type=event_type))
         return func
 
@@ -107,19 +115,27 @@ def on(event_type: str) -> Callable[[TPluginEventHandler[_T]], TPluginEventHandl
 @deprecated("'ready' event is deprecated. Use 'connect' instead")
 def once(
     event_type: Literal["ready"],
-) -> Callable[[TPluginEventHandler[_T]], TPluginEventHandler[_T]]: ...
+) -> Callable[[TPluginEventHandler[_T, None]], TPluginEventHandler[_T, None]]: ...
 
 
 @overload
-def once(event_type: str) -> Callable[[TPluginEventHandler[_T]], TPluginEventHandler[_T]]: ...
+def once(
+    event_type: Literal["run", "connect", "disconnect", "reconnect", "close"],
+) -> Callable[[TPluginEventHandler[_T, None]], TPluginEventHandler[_T, None]]: ...
 
 
-def once(event_type: str) -> Callable[[TPluginEventHandler[_T]], TPluginEventHandler[_T]]:
+@overload
+def once(
+    event_type: Literal["send", "command_error", "permission_error", "parameter_error"],
+) -> Callable[[TPluginEventHandler[_T, context.TSCtx]], TPluginEventHandler[_T, context.TSCtx]]: ...
+
+
+def once(event_type: str) -> Callable[[TPluginEventHandler[_T, Any]], TPluginEventHandler[_T, Any]]:
     """Decorator to register plugin events to be ran only once"""
 
     utils.check_for_deprecated_event(event_type)
 
-    def once_decorator(func: TPluginEventHandler[_T]) -> TPluginEventHandler[_T]:
+    def once_decorator(func: TPluginEventHandler[_T, Any]) -> TPluginEventHandler[_T, Any]:
         setattr(func, ONCE_ATTR, TEventKwargs(event_type=event_type))
         return func
 
