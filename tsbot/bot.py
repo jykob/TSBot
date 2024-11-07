@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import inspect
 from collections.abc import Callable, Coroutine
 from typing import TYPE_CHECKING, Any, Concatenate, Literal, NamedTuple, ParamSpec, overload
@@ -132,18 +133,6 @@ class TSBot:
         self.register_event_handler("textmessage", self._command_handler.handle_command_event)
 
         self.load_plugin(default_plugins.Help(), default_plugins.KeepAlive())
-
-    def __enter__(self) -> Coroutine[None, None, None]:
-        self._closing.clear()
-        self._tasks_handler.start(self)
-
-        self.register_task(self._event_handler.handle_events_task, name="HandleEvents-Task")
-        self.emit(event_name="run")
-
-        return self._wait_closed()
-
-    def __exit__(self, *exc: Any) -> None:
-        self.close()
 
     def emit(self, event_name: str, ctx: Any | None = None) -> None:
         """
@@ -463,8 +452,14 @@ class TSBot:
         Awaits until the bot disconnects.
         """
 
-        with self as self_wait, self._connection as connection_wait:
-            tasks = list(map(asyncio.create_task, (self_wait, connection_wait)))
+        self._closing.clear()
+        self._tasks_handler.start(self)
+
+        self.register_task(self._event_handler.handle_events_task, name="HandleEvents-Task")
+        self.emit(event_name="run")
+
+        with contextlib.closing(self), self._connection as connection_wait:
+            tasks = list(map(asyncio.create_task, (self._wait_closed(), connection_wait)))
             done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
 
         for task in pending:
