@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import inspect
-from collections.abc import Callable, Coroutine, Sequence
+from collections.abc import Callable, Sequence
 from typing import Any, Literal, NamedTuple, ParamSpec, cast, overload
 
 from typing_extensions import deprecated
