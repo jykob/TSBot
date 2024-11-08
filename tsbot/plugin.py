@@ -59,7 +59,7 @@ def command(
     help_text: str = "",
     raw: bool = False,
     hidden: bool = False,
-    checks: Sequence[TCommandHandler[_P]] | None = None,
+    checks: Sequence[TCommandHandler[_P]] = (),
 ) -> Callable[[TPluginCommandHandler[_T, _P]], TPluginCommandHandler[_T, _P]]:
     """Decorator to register plugin commands"""
 
@@ -72,7 +72,7 @@ def command(
                 help_text=help_text,
                 raw=raw,
                 hidden=hidden,
-                checks=tuple(checks) if checks is not None else (),
+                checks=tuple(checks),
             ),
         )
         return func

@@ -336,7 +336,7 @@ class TSBot:
         help_text: str = "",
         raw: bool = False,
         hidden: bool = False,
-        checks: Sequence[commands.TCommandHandler[_P]] | None = None,
+        checks: Sequence[commands.TCommandHandler[_P]] = (),
     ) -> Callable[[commands.TCommandHandler[_P]], commands.TCommandHandler[_P]]:
         """
         Decorator to register command handlers.
@@ -369,7 +369,7 @@ class TSBot:
         help_text: str = "",
         raw: bool = False,
         hidden: bool = False,
-        checks: Sequence[commands.TCommandHandler[_P]] | None = None,
+        checks: Sequence[commands.TCommandHandler[_P]] = (),
     ) -> commands.TSCommand:
         """
         Register command handler to be ran on specific command.
@@ -391,7 +391,7 @@ class TSBot:
             help_text,
             raw,
             hidden,
-            tuple(checks) if checks is not None else (),
+            tuple(checks),
         )
         self._command_handler.register_command(command_handler)
         return command_handler
