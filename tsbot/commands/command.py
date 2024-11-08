@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import asyncio
 import inspect
-from collections.abc import Callable, Coroutine
+from collections.abc import Coroutine
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ParamSpec, Protocol
 
 from tsbot import exceptions, parsers
 
@@ -12,20 +12,31 @@ if TYPE_CHECKING:
     from tsbot import bot, context
 
 
-TCommandHandler = Callable[..., Coroutine[None, None, None]]
+_P = ParamSpec("_P")
+
+
+class TCommandHandler(Protocol[_P]):
+    def __call__(
+        self,
+        bot: bot.TSBot,
+        ctx: context.TSCtx,
+        /,
+        *args: _P.args,
+        **kwargs: _P.kwargs,
+    ) -> Coroutine[None, None, None]: ...
 
 
 @dataclass(slots=True)
 class TSCommand:
     commands: tuple[str, ...]
-    handler: TCommandHandler
+    handler: TCommandHandler[...]
     call_signature: inspect.Signature = field(repr=False, init=False)
 
     help_text: str = field(repr=False, default="")
     raw: bool = field(repr=False, default=False)
     hidden: bool = field(repr=False, default=False)
 
-    checks: list[TCommandHandler] = field(default_factory=list, repr=False)
+    checks: tuple[TCommandHandler[...], ...] = field(default=(), repr=False)
 
     def __post_init__(self) -> None:
         self.call_signature = inspect.signature(self.handler)
