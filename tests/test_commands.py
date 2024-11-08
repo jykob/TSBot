@@ -161,7 +161,7 @@ async def test_checks(
     monkeypatch.setattr(command, "handler", mock_handler)
 
     mock_check = mock.AsyncMock()
-    command.checks = (mock_check,)
+    command.checks.append(mock_check)
 
     command_context = context.TSCtx(
         {
@@ -192,7 +192,7 @@ async def test_checks_failing(
     mock_handler = mock.AsyncMock()
     monkeypatch.setattr(command, "handler", mock_handler)
 
-    command.checks = (check,)
+    command.checks.append(check)
 
     command_context = context.TSCtx(
         {

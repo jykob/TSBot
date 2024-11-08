@@ -3,8 +3,8 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import inspect
-from collections.abc import Callable, Coroutine, Sequence
-from typing import Any, Literal, NamedTuple, ParamSpec, cast, overload
+from collections.abc import Callable, Coroutine
+from typing import TYPE_CHECKING, Any, Concatenate, Literal, NamedTuple, ParamSpec, overload
 
 from typing_extensions import deprecated
 
@@ -15,13 +15,15 @@ from tsbot import (
     default_plugins,
     enums,
     events,
-    plugin,
     query_builder,
     ratelimiter,
     response,
     tasks,
     utils,
 )
+
+if TYPE_CHECKING:
+    from tsbot import plugin
 
 _P = ParamSpec("_P")
 
@@ -154,26 +156,12 @@ class TSBot:
     @deprecated("'ready' event is deprecated. Use 'connect' instead")
     def on(
         self, event_type: Literal["ready"]
-    ) -> Callable[[events.TEventHandler[None]], events.TEventHandler[None]]: ...
+    ) -> Callable[[events.TEventHandler], events.TEventHandler]: ...
 
     @overload
-    def on(
-        self, event_type: Literal["run", "connect", "disconnect", "reconnect", "close"]
-    ) -> Callable[[events.TEventHandler[None]], events.TEventHandler[None]]: ...
+    def on(self, event_type: str) -> Callable[[events.TEventHandler], events.TEventHandler]: ...
 
-    @overload
-    def on(
-        self, event_type: Literal["send", "command_error", "permission_error", "parameter_error"]
-    ) -> Callable[[events.TEventHandler[context.TSCtx]], events.TEventHandler[context.TSCtx]]: ...
-
-    @overload
-    def on(
-        self, event_type: str
-    ) -> Callable[[events.TEventHandler[Any]], events.TEventHandler[Any]]: ...
-
-    def on(
-        self, event_type: str
-    ) -> Callable[[events.TEventHandler[Any]], events.TEventHandler[Any]]:
+    def on(self, event_type: str) -> Callable[[events.TEventHandler], events.TEventHandler]:
         """
         Decorator to register event handlers.
 
@@ -182,7 +170,7 @@ class TSBot:
 
         utils.check_for_deprecated_event(event_type)
 
-        def event_decorator(func: events.TEventHandler[Any]) -> events.TEventHandler[Any]:
+        def event_decorator(func: events.TEventHandler) -> events.TEventHandler:
             self.register_event_handler(event_type, func)
             return func
 
@@ -191,30 +179,16 @@ class TSBot:
     @overload
     @deprecated("'ready' event is deprecated. Use 'connect' instead")
     def register_event_handler(
-        self, event_type: Literal["ready"], handler: events.TEventHandler[None]
+        self, event_type: Literal["ready"], handler: events.TEventHandler
     ) -> events.TSEventHandler: ...
 
     @overload
     def register_event_handler(
-        self,
-        event_type: Literal["run", "connect", "disconnect", "reconnect", "close"],
-        handler: events.TEventHandler[None],
-    ) -> events.TSEventHandler: ...
-
-    @overload
-    def register_event_handler(
-        self,
-        event_type: Literal["send", "command_error", "permission_error", "parameter_error"],
-        handler: events.TEventHandler[context.TSCtx],
-    ) -> events.TSEventHandler: ...
-
-    @overload
-    def register_event_handler(
-        self, event_type: str, handler: events.TEventHandler[Any]
+        self, event_type: str, handler: events.TEventHandler
     ) -> events.TSEventHandler: ...
 
     def register_event_handler(
-        self, event_type: str, handler: events.TEventHandler[Any]
+        self, event_type: str, handler: events.TEventHandler
     ) -> events.TSEventHandler:
         """
         Register an event handler to be ran on an event.
@@ -234,26 +208,12 @@ class TSBot:
     @deprecated("'ready' event is deprecated. Use 'connect' instead")
     def once(
         self, event_type: Literal["ready"]
-    ) -> Callable[[events.TEventHandler[None]], events.TEventHandler[None]]: ...
+    ) -> Callable[[events.TEventHandler], events.TEventHandler]: ...
 
     @overload
-    def once(
-        self, event_type: Literal["run", "connect", "disconnect", "reconnect", "close"]
-    ) -> Callable[[events.TEventHandler[None]], events.TEventHandler[None]]: ...
+    def once(self, event_type: str) -> Callable[[events.TEventHandler], events.TEventHandler]: ...
 
-    @overload
-    def once(
-        self, event_type: Literal["send", "command_error", "permission_error", "parameter_error"]
-    ) -> Callable[[events.TEventHandler[context.TSCtx]], events.TEventHandler[context.TSCtx]]: ...
-
-    @overload
-    def once(
-        self, event_type: str
-    ) -> Callable[[events.TEventHandler[Any]], events.TEventHandler[Any]]: ...
-
-    def once(
-        self, event_type: str
-    ) -> Callable[[events.TEventHandler[Any]], events.TEventHandler[Any]]:
+    def once(self, event_type: str) -> Callable[[events.TEventHandler], events.TEventHandler]:
         """
         Decorator to register once handler.
 
@@ -262,7 +222,7 @@ class TSBot:
 
         utils.check_for_deprecated_event(event_type)
 
-        def once_decorator(func: events.TEventHandler[Any]) -> events.TEventHandler[Any]:
+        def once_decorator(func: events.TEventHandler) -> events.TEventHandler:
             self.register_once_handler(event_type, func)
             return func
 
@@ -271,30 +231,16 @@ class TSBot:
     @overload
     @deprecated("'ready' event is deprecated. Use 'connect' instead")
     def register_once_handler(
-        self, event_type: Literal["ready"], handler: events.TEventHandler[None]
+        self, event_type: Literal["ready"], handler: events.TEventHandler
     ) -> events.TSEventOnceHandler: ...
 
     @overload
     def register_once_handler(
-        self,
-        event_type: Literal["run", "connect", "disconnect", "reconnect", "close"],
-        handler: events.TEventHandler[None],
-    ) -> events.TSEventOnceHandler: ...
-
-    @overload
-    def register_once_handler(
-        self,
-        event_type: Literal["send", "command_error", "permission_error", "parameter_error"],
-        handler: events.TEventHandler[context.TSCtx],
-    ) -> events.TSEventOnceHandler: ...
-
-    @overload
-    def register_once_handler(
-        self, event_type: str, handler: events.TEventHandler[Any]
+        self, event_type: str, handler: events.TEventHandler
     ) -> events.TSEventOnceHandler: ...
 
     def register_once_handler(
-        self, event_type: str, handler: events.TEventHandler[Any]
+        self, event_type: str, handler: events.TEventHandler
     ) -> events.TSEventOnceHandler:
         """
         Register an event handler to be ran once on an event.
@@ -325,8 +271,11 @@ class TSBot:
         help_text: str = "",
         raw: bool = False,
         hidden: bool = False,
-        checks: Sequence[commands.TCommandHandler[_P]] = (),
-    ) -> Callable[[commands.TCommandHandler[_P]], commands.TCommandHandler[_P]]:
+        checks: list[Callable[..., Coroutine[None, None, None]]] | None = None,
+    ) -> Callable[
+        [Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]]],
+        Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]],
+    ]:
         """
         Decorator to register command handlers.
 
@@ -337,14 +286,11 @@ class TSBot:
         :param checks: List of async functions to be called before the command is executed.
         """
 
-        def command_decorator(func: commands.TCommandHandler[_P]) -> commands.TCommandHandler[_P]:
+        def command_decorator(
+            func: Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]],
+        ) -> Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]]:
             self.register_command(
-                command,
-                func,
-                help_text=help_text,
-                raw=raw,
-                hidden=hidden,
-                checks=checks,
+                command, func, help_text=help_text, raw=raw, hidden=hidden, checks=checks
             )
             return func
 
@@ -353,12 +299,12 @@ class TSBot:
     def register_command(
         self,
         command: str | tuple[str, ...],
-        handler: commands.TCommandHandler[_P],
+        handler: Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]],
         *,
         help_text: str = "",
         raw: bool = False,
         hidden: bool = False,
-        checks: Sequence[commands.TCommandHandler[_P]] = (),
+        checks: list[Callable[..., Coroutine[None, None, None]]] | None = None,
     ) -> commands.TSCommand:
         """
         Register command handler to be ran on specific command.
@@ -374,14 +320,7 @@ class TSBot:
         if isinstance(command, str):
             command = (command,)
 
-        command_handler = commands.TSCommand(
-            command,
-            handler,
-            help_text,
-            raw,
-            hidden,
-            tuple(checks),
-        )
+        command_handler = commands.TSCommand(command, handler, help_text, raw, hidden, checks or [])
         self._command_handler.register_command(command_handler)
         return command_handler
 
@@ -539,20 +478,14 @@ class TSBot:
 
         for plugin_to_be_loaded in plugins:
             for _, member in inspect.getmembers(plugin_to_be_loaded):
-                if command_kwargs := getattr(member, plugin.COMMAND_ATTR, None):
-                    self.register_command(
-                        handler=member, **cast(plugin.TCommandKwargs, command_kwargs)
-                    )
+                if command_kwargs := getattr(member, "__ts_command__", None):
+                    self.register_command(handler=member, **command_kwargs)
 
-                elif event_kwargs := getattr(member, plugin.EVENT_ATTR, None):
-                    self.register_event_handler(
-                        handler=member, **cast(plugin.TEventKwargs, event_kwargs)
-                    )
+                elif event_kwargs := getattr(member, "__ts_event__", None):
+                    self.register_event_handler(handler=member, **event_kwargs)  # type: ignore  #TODO: REMOVE
 
-                elif once_kwargs := getattr(member, plugin.ONCE_ATTR, None):
-                    self.register_once_handler(
-                        handler=member, **cast(plugin.TEventKwargs, once_kwargs)
-                    )
+                elif once_kwargs := getattr(member, "__ts_once__", None):
+                    self.register_once_handler(handler=member, **once_kwargs)  # type: ignore  #TODO: REMOVE
 
             self.plugins[plugin_to_be_loaded.__class__.__name__] = plugin_to_be_loaded
 
