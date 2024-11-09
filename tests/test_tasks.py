@@ -18,9 +18,9 @@ async def task_manager():
 
 
 @pytest.fixture
-def running_task_manager(tasks_handler: tasks.TaskManager, mock_bot: bot.TSBot):
-    tasks_handler.start(mock_bot)
-    return tasks_handler
+def running_task_manager(task_manager: tasks.TaskManager, mock_bot: bot.TSBot):
+    task_manager.start(mock_bot)
+    return task_manager
 
 
 @pytest.fixture
@@ -41,9 +41,9 @@ async def test_registered_task_has_remove_callback(
 
 
 def test_register_task_on_not_started_handler(
-    tasks_handler: tasks.TaskManager, tstask: tasks.TSTask, mock_bot: bot.TSBot
+    task_manager: tasks.TaskManager, tstask: tasks.TSTask, mock_bot: bot.TSBot
 ):
-    tasks_handler.register_task(mock_bot, tstask)
+    task_manager.register_task(mock_bot, tstask)
     assert tstask.task is None
 
 
@@ -61,12 +61,12 @@ async def test_removing_task_cancels_task(
 
 @pytest.mark.asyncio
 async def test_register_task_on_not_started_handler_start(
-    tasks_handler: tasks.TaskManager, tstask: tasks.TSTask, mock_bot: bot.TSBot
+    task_manager: tasks.TaskManager, tstask: tasks.TSTask, mock_bot: bot.TSBot
 ):
-    tasks_handler.register_task(mock_bot, tstask)
+    task_manager.register_task(mock_bot, tstask)
     assert tstask.task is None
 
-    tasks_handler.start(mock_bot)
+    task_manager.start(mock_bot)
     assert tstask.task
 
 
