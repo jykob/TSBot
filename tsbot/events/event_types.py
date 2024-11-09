@@ -31,5 +31,3 @@ TS_EVENTS = Literal[
     "channelpasswordchanged",
     "tokenused",
 ]
-
-ALL_EVENTS = BUILTIN_EVENTS | BUILTIN_NO_CTX_EVENTS | TS_EVENTS | str
