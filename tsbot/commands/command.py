@@ -4,7 +4,7 @@ import asyncio
 import inspect
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Concatenate
 
 from tsbot import exceptions, parsers
 
@@ -12,7 +12,9 @@ if TYPE_CHECKING:
     from tsbot import bot, context
 
 
-CommandHandler = Callable[..., Coroutine[None, None, None]]
+CommandHandler = Callable[
+    Concatenate["bot.TSBot", "context.TSCtx", ...], Coroutine[None, None, None]
+]
 
 
 @dataclass(slots=True)
@@ -25,7 +27,7 @@ class TSCommand:
     raw: bool = field(repr=False, default=False)
     hidden: bool = field(repr=False, default=False)
 
-    checks: list[CommandHandler] = field(default_factory=list, repr=False)
+    checks: tuple[CommandHandler, ...] = field(default=(), repr=False)
 
     def __post_init__(self) -> None:
         self.call_signature = inspect.signature(self.handler)
