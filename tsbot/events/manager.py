@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 logger = logging.get_logger(__name__)
 
 
-class EventHandler:
+class EventManager:
     def __init__(self) -> None:
         self._event_handlers: defaultdict[str, list[events.TSEventHandler]] = defaultdict(list)
         self._event_queue: asyncio.Queue[events.TSEvent] = asyncio.Queue()
