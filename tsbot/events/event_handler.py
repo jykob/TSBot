@@ -10,14 +10,14 @@ if TYPE_CHECKING:
 _TC = TypeVar("_TC", contravariant=True)
 
 
-class TEventHandler(Protocol[_TC]):
+class EventHandler(Protocol[_TC]):
     def __call__(self, bot: bot.TSBot, ctx: _TC, /) -> Coroutine[None, None, None]: ...
 
 
 @dataclass(slots=True)
 class TSEventHandler:
     event: str
-    handler: TEventHandler[Any]
+    handler: EventHandler[Any]
 
     async def run(self, bot: bot.TSBot, event: events.TSEvent) -> None:
         await self.handler(bot, event.ctx)

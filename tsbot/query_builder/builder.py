@@ -39,7 +39,7 @@ class TSQuery:
 
     def __init__(
         self,
-        command: commands.TCommands,
+        command: commands.Commands,
         options: tuple[Stringable, ...] | None = None,
         parameters: dict[str, Stringable] | None = None,
         parameter_blocks: tuple[dict[str, Stringable], ...] | None = None,

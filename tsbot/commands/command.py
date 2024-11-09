@@ -12,20 +12,20 @@ if TYPE_CHECKING:
     from tsbot import bot, context
 
 
-TCommandHandler = Callable[..., Coroutine[None, None, None]]
+CommandHandler = Callable[..., Coroutine[None, None, None]]
 
 
 @dataclass(slots=True)
 class TSCommand:
     commands: tuple[str, ...]
-    handler: TCommandHandler
+    handler: CommandHandler
     call_signature: inspect.Signature = field(repr=False, init=False)
 
     help_text: str = field(repr=False, default="")
     raw: bool = field(repr=False, default=False)
     hidden: bool = field(repr=False, default=False)
 
-    checks: list[TCommandHandler] = field(default_factory=list, repr=False)
+    checks: list[CommandHandler] = field(default_factory=list, repr=False)
 
     def __post_init__(self) -> None:
         self.call_signature = inspect.signature(self.handler)
