@@ -1,7 +1,17 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Coroutine
-from typing import TYPE_CHECKING, Any, Concatenate, Literal, ParamSpec, Protocol, TypeVar, overload
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Concatenate,
+    Literal,
+    ParamSpec,
+    Protocol,
+    TypedDict,
+    TypeVar,
+    overload,
+)
 
 from typing_extensions import deprecated
 
@@ -18,6 +28,23 @@ _P = ParamSpec("_P")
 
 class TPluginEventHandler(Protocol[_TP, _TC]):
     def __call__(self, inst: _TP, bot: bot.TSBot, ctx: _TC, /) -> Coroutine[None, None, None]: ...
+
+
+class CommandKwargs(TypedDict):
+    command: tuple[str, ...]
+    help_text: str
+    raw: bool
+    hidden: bool
+    checks: list[Callable[..., Coroutine[None, None, None]]]
+
+
+class EventKwargs(TypedDict):
+    event_type: str
+
+
+COMMAND_ATTR = "__ts_command__"
+EVENT_ATTR = "__ts_event__"
+ONCE_ATTR = "__ts_once__"
 
 
 class TSPlugin:
@@ -41,14 +68,14 @@ def command(
     ) -> Callable[Concatenate[_TP, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]]:
         setattr(
             func,
-            "__ts_command__",
-            {
-                "command": command,
-                "help_text": help_text,
-                "raw": raw,
-                "hidden": hidden,
-                "checks": checks or [],
-            },
+            COMMAND_ATTR,
+            CommandKwargs(
+                command=command,
+                help_text=help_text,
+                raw=raw,
+                hidden=hidden,
+                checks=checks or [],
+            ),
         )
         return func
 
@@ -98,7 +125,7 @@ def on(
     utils.check_for_deprecated_event(event_type)
 
     def event_decorator(func: TPluginEventHandler[_TP, Any]) -> TPluginEventHandler[_TP, Any]:
-        setattr(func, "__ts_event__", {"event_type": event_type})
+        setattr(func, EVENT_ATTR, EventKwargs(event_type=event_type))
         return func
 
     return event_decorator
@@ -147,7 +174,7 @@ def once(
     utils.check_for_deprecated_event(event_type)
 
     def once_decorator(func: TPluginEventHandler[_TP, Any]) -> TPluginEventHandler[_TP, Any]:
-        setattr(func, "__ts_once__", {"event_type": event_type})
+        setattr(func, ONCE_ATTR, EventKwargs(event_type=event_type))
         return func
 
     return once_decorator

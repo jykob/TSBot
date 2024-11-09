@@ -4,7 +4,7 @@ import asyncio
 import contextlib
 import inspect
 from collections.abc import Callable, Coroutine
-from typing import TYPE_CHECKING, Any, Concatenate, Literal, NamedTuple, ParamSpec, overload
+from typing import TYPE_CHECKING, Any, Concatenate, Literal, NamedTuple, ParamSpec, cast, overload
 
 from typing_extensions import deprecated
 
@@ -15,6 +15,7 @@ from tsbot import (
     default_plugins,
     enums,
     events,
+    plugin,
     query_builder,
     ratelimiter,
     response,
@@ -23,7 +24,6 @@ from tsbot import (
 )
 
 if TYPE_CHECKING:
-    from tsbot import plugin
     from tsbot.events import event_types
 
 _P = ParamSpec("_P")
@@ -547,14 +547,20 @@ class TSBot:
 
         for plugin_to_be_loaded in plugins:
             for _, member in inspect.getmembers(plugin_to_be_loaded):
-                if command_kwargs := getattr(member, "__ts_command__", None):
-                    self.register_command(handler=member, **command_kwargs)
+                if command_kwargs := getattr(member, plugin.COMMAND_ATTR, None):
+                    self.register_command(
+                        handler=member, **cast(plugin.CommandKwargs, command_kwargs)
+                    )
 
                 elif event_kwargs := getattr(member, "__ts_event__", None):
-                    self.register_event_handler(handler=member, **event_kwargs)  # type: ignore  #TODO: REMOVE
+                    self.register_event_handler(
+                        handler=member, **cast(plugin.EventKwargs, event_kwargs)
+                    )
 
                 elif once_kwargs := getattr(member, "__ts_once__", None):
-                    self.register_once_handler(handler=member, **once_kwargs)  # type: ignore  #TODO: REMOVE
+                    self.register_once_handler(
+                        handler=member, **cast(plugin.EventKwargs, once_kwargs)
+                    )
 
             self.plugins[plugin_to_be_loaded.__class__.__name__] = plugin_to_be_loaded
 
