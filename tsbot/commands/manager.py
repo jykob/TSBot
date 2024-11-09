@@ -18,7 +18,7 @@ _ERROR_EVENT_MAP: dict[type[exceptions.TSException], str] = {
 }
 
 
-class CommandHandler:
+class CommandManager:
     def __init__(self, invoker: str = "!") -> None:
         self.invoker = invoker
         self._commands: dict[str, commands.TSCommand] = {}

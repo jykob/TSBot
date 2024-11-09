@@ -10,17 +10,17 @@ if TYPE_CHECKING:
     from tsbot import bot
 
 
-TTaskHandler = Callable[["bot.TSBot"], Coroutine[None, None, None]]
+TaskHandler = Callable[["bot.TSBot"], Coroutine[None, None, None]]
 
 
 @dataclass(slots=True)
 class TSTask:
-    handler: TTaskHandler
+    handler: TaskHandler
     name: str | None = None
     task: asyncio.Task[None] | None = None
 
 
-def every(every_handler: TTaskHandler, seconds: float) -> TTaskHandler:
+def every(every_handler: TaskHandler, seconds: float) -> TaskHandler:
     @functools.wraps(every_handler)
     async def every_wrapper(bot: bot.TSBot) -> None:
         while True:

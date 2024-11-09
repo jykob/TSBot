@@ -1,4 +1,4 @@
-from tsbot.tasks.handler import TasksHandler
-from tsbot.tasks.task import TSTask, TTaskHandler, every
+from tsbot.tasks.manager import TaskManager
+from tsbot.tasks.task import TaskHandler, TSTask, every
 
-__all__ = ("TSTask", "TasksHandler", "every", "TTaskHandler")
+__all__ = ("TSTask", "TaskManager", "every", "TaskHandler")

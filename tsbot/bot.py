@@ -99,9 +99,9 @@ class TSBot:
             ratelimiter=connection_ratelimiter,
         )
 
-        self._tasks_handler = tasks.TasksHandler()
-        self._event_handler = events.EventHandler()
-        self._command_handler = commands.CommandHandler(invoker)
+        self._task_manager = tasks.TaskManager()
+        self._event_manager = events.EventManager()
+        self._command_manager = commands.CommandManager(invoker)
 
         self.plugins: dict[str, plugin.TSPlugin] = {}
 
@@ -131,7 +131,7 @@ class TSBot:
 
     def _init(self) -> None:
         self.register_event_handler("connect", self._on_connect)
-        self.register_event_handler("textmessage", self._command_handler.handle_command_event)
+        self.register_event_handler("textmessage", self._command_manager.handle_command_event)
 
         self.load_plugin(default_plugins.Help(), default_plugins.KeepAlive())
 
@@ -151,37 +151,35 @@ class TSBot:
 
         :param event: Event to be emitted.
         """
-        self._event_handler.add_event(event)
+        self._event_manager.add_event(event)
 
     @overload
     @deprecated("'ready' event is deprecated. Use 'connect' instead")
     def on(
         self, event_type: Literal["ready"]
-    ) -> Callable[[events.TEventHandler[None]], events.TEventHandler[None]]: ...
+    ) -> Callable[[events.EventHandler[None]], events.EventHandler[None]]: ...
 
     @overload
     def on(
         self, event_type: event_types.BUILTIN_EVENTS
-    ) -> Callable[[events.TEventHandler[context.TSCtx]], events.TEventHandler[context.TSCtx]]: ...
+    ) -> Callable[[events.EventHandler[context.TSCtx]], events.EventHandler[context.TSCtx]]: ...
 
     @overload
     def on(
         self, event_type: event_types.BUILTIN_NO_CTX_EVENTS
-    ) -> Callable[[events.TEventHandler[None]], events.TEventHandler[None]]: ...
+    ) -> Callable[[events.EventHandler[None]], events.EventHandler[None]]: ...
 
     @overload
     def on(
         self, event_type: event_types.TS_EVENTS
-    ) -> Callable[[events.TEventHandler[context.TSCtx]], events.TEventHandler[context.TSCtx]]: ...
+    ) -> Callable[[events.EventHandler[context.TSCtx]], events.EventHandler[context.TSCtx]]: ...
 
     @overload
     def on(
         self, event_type: str
-    ) -> Callable[[events.TEventHandler[Any]], events.TEventHandler[Any]]: ...
+    ) -> Callable[[events.EventHandler[Any]], events.EventHandler[Any]]: ...
 
-    def on(
-        self, event_type: str
-    ) -> Callable[[events.TEventHandler[Any]], events.TEventHandler[Any]]:
+    def on(self, event_type: str) -> Callable[[events.EventHandler[Any]], events.EventHandler[Any]]:
         """
         Decorator to register event handlers.
 
@@ -190,7 +188,9 @@ class TSBot:
 
         utils.check_for_deprecated_event(event_type)
 
-        def event_decorator(func: events.TEventHandler[Any]) -> events.TEventHandler[Any]:
+        def event_decorator(
+            func: events.EventHandler[Any],
+        ) -> events.EventHandler[Any]:
             self.register_event_handler(event_type, func)
             return func
 
@@ -199,31 +199,35 @@ class TSBot:
     @overload
     @deprecated("'ready' event is deprecated. Use 'connect' instead")
     def register_event_handler(
-        self, event_type: Literal["ready"], handler: events.TEventHandler[None]
+        self, event_type: Literal["ready"], handler: events.EventHandler[None]
     ) -> events.TSEventHandler: ...
 
     @overload
     def register_event_handler(
-        self, event_type: event_types.BUILTIN_EVENTS, handler: events.TEventHandler[context.TSCtx]
+        self,
+        event_type: event_types.BUILTIN_EVENTS,
+        handler: events.EventHandler[context.TSCtx],
     ) -> events.TSEventHandler: ...
 
     @overload
     def register_event_handler(
-        self, event_type: event_types.BUILTIN_NO_CTX_EVENTS, handler: events.TEventHandler[None]
+        self,
+        event_type: event_types.BUILTIN_NO_CTX_EVENTS,
+        handler: events.EventHandler[None],
     ) -> events.TSEventHandler: ...
 
     @overload
     def register_event_handler(
-        self, event_type: event_types.TS_EVENTS, handler: events.TEventHandler[context.TSCtx]
+        self, event_type: event_types.TS_EVENTS, handler: events.EventHandler[context.TSCtx]
     ) -> events.TSEventHandler: ...
 
     @overload
     def register_event_handler(
-        self, event_type: str, handler: events.TEventHandler[Any]
+        self, event_type: str, handler: events.EventHandler[Any]
     ) -> events.TSEventHandler: ...
 
     def register_event_handler(
-        self, event_type: str, handler: events.TEventHandler[Any]
+        self, event_type: str, handler: events.EventHandler[Any]
     ) -> events.TSEventHandler:
         """
         Register an event handler to be ran on an event.
@@ -236,38 +240,38 @@ class TSBot:
         utils.check_for_deprecated_event(event_type)
 
         event_handler = events.TSEventHandler(event_type, handler)
-        self._event_handler.register_event_handler(event_handler)
+        self._event_manager.register_event_handler(event_handler)
         return event_handler
 
     @overload
     @deprecated("'ready' event is deprecated. Use 'connect' instead")
     def once(
         self, event_type: Literal["ready"]
-    ) -> Callable[[events.TEventHandler[None]], events.TEventHandler[None]]: ...
+    ) -> Callable[[events.EventHandler[None]], events.EventHandler[None]]: ...
 
     @overload
     def once(
         self, event_type: event_types.BUILTIN_EVENTS
-    ) -> Callable[[events.TEventHandler[context.TSCtx]], events.TEventHandler[context.TSCtx]]: ...
+    ) -> Callable[[events.EventHandler[context.TSCtx]], events.EventHandler[context.TSCtx]]: ...
 
     @overload
     def once(
         self, event_type: event_types.BUILTIN_NO_CTX_EVENTS
-    ) -> Callable[[events.TEventHandler[None]], events.TEventHandler[None]]: ...
+    ) -> Callable[[events.EventHandler[None]], events.EventHandler[None]]: ...
 
     @overload
     def once(
         self, event_type: event_types.TS_EVENTS
-    ) -> Callable[[events.TEventHandler[context.TSCtx]], events.TEventHandler[context.TSCtx]]: ...
+    ) -> Callable[[events.EventHandler[context.TSCtx]], events.EventHandler[context.TSCtx]]: ...
 
     @overload
     def once(
         self, event_type: str
-    ) -> Callable[[events.TEventHandler[Any]], events.TEventHandler[Any]]: ...
+    ) -> Callable[[events.EventHandler[Any]], events.EventHandler[Any]]: ...
 
     def once(
         self, event_type: str
-    ) -> Callable[[events.TEventHandler[Any]], events.TEventHandler[Any]]:
+    ) -> Callable[[events.EventHandler[Any]], events.EventHandler[Any]]:
         """
         Decorator to register once handler.
 
@@ -276,7 +280,9 @@ class TSBot:
 
         utils.check_for_deprecated_event(event_type)
 
-        def once_decorator(func: events.TEventHandler[Any]) -> events.TEventHandler[Any]:
+        def once_decorator(
+            func: events.EventHandler[Any],
+        ) -> events.EventHandler[Any]:
             self.register_once_handler(event_type, func)
             return func
 
@@ -285,31 +291,35 @@ class TSBot:
     @overload
     @deprecated("'ready' event is deprecated. Use 'connect' instead")
     def register_once_handler(
-        self, event_type: Literal["ready"], handler: events.TEventHandler[None]
+        self, event_type: Literal["ready"], handler: events.EventHandler[None]
     ) -> events.TSEventOnceHandler: ...
 
     @overload
     def register_once_handler(
-        self, event_type: event_types.BUILTIN_EVENTS, handler: events.TEventHandler[context.TSCtx]
+        self,
+        event_type: event_types.BUILTIN_EVENTS,
+        handler: events.EventHandler[context.TSCtx],
     ) -> events.TSEventOnceHandler: ...
 
     @overload
     def register_once_handler(
-        self, event_type: event_types.BUILTIN_NO_CTX_EVENTS, handler: events.TEventHandler[None]
+        self,
+        event_type: event_types.BUILTIN_NO_CTX_EVENTS,
+        handler: events.EventHandler[None],
     ) -> events.TSEventOnceHandler: ...
 
     @overload
     def register_once_handler(
-        self, event_type: event_types.TS_EVENTS, handler: events.TEventHandler[context.TSCtx]
+        self, event_type: event_types.TS_EVENTS, handler: events.EventHandler[context.TSCtx]
     ) -> events.TSEventOnceHandler: ...
 
     @overload
     def register_once_handler(
-        self, event_type: str, handler: events.TEventHandler[Any]
+        self, event_type: str, handler: events.EventHandler[Any]
     ) -> events.TSEventOnceHandler: ...
 
     def register_once_handler(
-        self, event_type: str, handler: events.TEventHandler[Any]
+        self, event_type: str, handler: events.EventHandler[Any]
     ) -> events.TSEventOnceHandler:
         """
         Register an event handler to be ran once on an event.
@@ -321,8 +331,8 @@ class TSBot:
 
         utils.check_for_deprecated_event(event_type)
 
-        event_handler = events.TSEventOnceHandler(event_type, handler, self._event_handler)
-        self._event_handler.register_event_handler(event_handler)
+        event_handler = events.TSEventOnceHandler(event_type, handler, self._event_manager)
+        self._event_manager.register_event_handler(event_handler)
         return event_handler
 
     def remove_event_handler(self, event_handler: events.TSEventHandler) -> None:
@@ -332,7 +342,7 @@ class TSBot:
         :param event_handler: Instance of the :class:`TSEventHandler<tsbot.events.TSEventHandler>` to be removed.
         """
 
-        self._event_handler.remove_event_handler(event_handler)
+        self._event_manager.remove_event_handler(event_handler)
 
     def command(
         self,
@@ -390,7 +400,7 @@ class TSBot:
             command = (command,)
 
         command_handler = commands.TSCommand(command, handler, help_text, raw, hidden, checks or [])
-        self._command_handler.register_command(command_handler)
+        self._command_manager.register_command(command_handler)
         return command_handler
 
     def remove_command(self, command: commands.TSCommand) -> None:
@@ -399,7 +409,7 @@ class TSBot:
 
         :param command: Instance of the :class:`TSCommand<tsbot.commands.TSCommand>` to be removed.
         """
-        self._command_handler.remove_command(command)
+        self._command_manager.remove_command(command)
 
     def get_command_handler(self, command: str) -> commands.TSCommand | None:
         """
@@ -408,12 +418,12 @@ class TSBot:
         :param command: Command that invokes :class:`TSCommand<tsbot.commands.TSCommand>`
         :return: :class:`TSCommand<tsbot.commands.TSCommand>` associated with `command`
         """
-        return self._command_handler.get_command(command)
+        return self._command_manager.get_command(command)
 
     def register_every_task(
         self,
         seconds: float,
-        handler: tasks.TTaskHandler,
+        handler: tasks.TaskHandler,
         *,
         name: str | None = None,
     ) -> tasks.TSTask:
@@ -426,12 +436,12 @@ class TSBot:
         :return: Instance of :class:`TSTask<tsbot.tasks.TSTask>` created.
         """
         task = tasks.TSTask(handler=tasks.every(handler, seconds), name=name)
-        self._tasks_handler.register_task(self, task)
+        self._task_manager.register_task(self, task)
         return task
 
     def register_task(
         self,
-        handler: tasks.TTaskHandler,
+        handler: tasks.TaskHandler,
         *,
         name: str | None = None,
     ) -> tasks.TSTask:
@@ -444,7 +454,7 @@ class TSBot:
         """
 
         task = tasks.TSTask(handler=handler, name=name)
-        self._tasks_handler.register_task(self, task)
+        self._task_manager.register_task(self, task)
         return task
 
     def remove_task(self, task: tasks.TSTask) -> None:
@@ -453,7 +463,7 @@ class TSBot:
 
         :param task: Instance of the :class:`TSTask<tsbot.tasks.TSTask>` to be removed.
         """
-        self._tasks_handler.remove_task(task)
+        self._task_manager.remove_task(task)
 
     async def send(self, query: query_builder.TSQuery) -> response.TSResponse:
         """
@@ -490,8 +500,8 @@ class TSBot:
         await self._closing.wait()
 
         self.emit(event_name="close")
-        await self._tasks_handler.close()
-        await self._event_handler.run_till_empty(self)
+        await self._task_manager.close()
+        await self._event_manager.run_till_empty(self)
 
         if self._connection.connected:
             await self.send_raw("quit")
@@ -522,9 +532,9 @@ class TSBot:
         """
 
         self._closing.clear()
-        self._tasks_handler.start(self)
+        self._task_manager.start(self)
 
-        self.register_task(self._event_handler.handle_events_task, name="HandleEvents-Task")
+        self.register_task(self._event_manager.handle_events_task, name="HandleEvents-Task")
         self.emit(event_name="run")
 
         with contextlib.closing(self), self._connection as connection_wait:
