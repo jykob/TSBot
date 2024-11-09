@@ -9,7 +9,7 @@ from typing_extensions import Self
 from tsbot import encoders
 
 if TYPE_CHECKING:
-    from tsbot import query_builder
+    from tsbot.query_builder import commands
 
 
 class Stringable(Protocol):
@@ -39,7 +39,7 @@ class TSQuery:
 
     def __init__(
         self,
-        command: query_builder.TCommands,
+        command: commands.TCommands,
         options: tuple[Stringable, ...] | None = None,
         parameters: dict[str, Stringable] | None = None,
         parameter_blocks: tuple[dict[str, Stringable], ...] | None = None,
