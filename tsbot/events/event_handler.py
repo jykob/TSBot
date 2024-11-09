@@ -1,14 +1,15 @@
 from __future__ import annotations
 
-from collections.abc import Callable, Coroutine
+from collections.abc import Coroutine
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
     from tsbot import bot, events
 
 
-TEventHandler = Callable[["bot.TSBot", Any], Coroutine[None, None, None]]
+class TEventHandler(Protocol):
+    def __call__(self, bot: bot.TSBot, ctx: Any, /) -> Coroutine[None, None, None]: ...
 
 
 @dataclass(slots=True)
