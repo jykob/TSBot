@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+from collections.abc import Generator
 from typing import TYPE_CHECKING
 
 from tsbot import logging
@@ -13,15 +14,31 @@ if TYPE_CHECKING:
 logger = logging.get_logger(__name__)
 
 
+class TaskList:
+    def __init__(self) -> None:
+        self._tasks: set[asyncio.Task[None]] = set()
+        self._empty = asyncio.Event()
+
+    def __iter__(self) -> Generator[asyncio.Task[None], None, None]:
+        yield from self._tasks
+
+    def add(self, task: asyncio.Task[None]) -> None:
+        self._empty.clear()
+        self._tasks.add(task)
+
+    def remove(self, task: asyncio.Task[None]) -> None:
+        self._tasks.remove(task)
+        self._empty.set()
+
+    async def join(self) -> None:
+        await self._empty.wait()
+
+
 class TaskManager:
     def __init__(self) -> None:
         self._started = False
-        self._tasks: set[asyncio.Task[None]] = set()
+        self._tasks = TaskList()
         self._starting_tasks: list[tasks.TSTask] = []
-
-    @property
-    def empty(self):
-        return not self._tasks
 
     def _start_task(self, bot: bot.TSBot, task: tasks.TSTask) -> None:
         task.task = asyncio.create_task(task.handler(bot), name=task.name)
@@ -57,6 +74,4 @@ class TaskManager:
         for task in self._tasks:
             task.cancel()
 
-        # Sleep until all the tasks are removed from tasks list
-        while not self.empty:
-            await asyncio.sleep(0)
+        await self._tasks.join()
