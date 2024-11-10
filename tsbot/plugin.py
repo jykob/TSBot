@@ -102,41 +102,41 @@ def command(
 @deprecated("'ready' event is deprecated. Use 'connect' instead")
 def on(
     event_type: Literal["ready"],
-) -> Callable[[PluginEventHandler[_TP, None]], PluginEventHandler[_TP, None]]: ...
+) -> Callable[[PluginEventHandler[TP, None]], PluginEventHandler[TP, None]]: ...
 
 
 @overload
 def on(
     event_type: event_types.BUILTIN_EVENTS,
-) -> Callable[[PluginEventHandler[_TP, context.TSCtx]], PluginEventHandler[_TP, context.TSCtx]]: ...
+) -> Callable[[PluginEventHandler[TP, context.TSCtx]], PluginEventHandler[TP, context.TSCtx]]: ...
 
 
 @overload
 def on(
     event_type: event_types.BUILTIN_NO_CTX_EVENTS,
-) -> Callable[[PluginEventHandler[_TP, None]], PluginEventHandler[_TP, None]]: ...
+) -> Callable[[PluginEventHandler[TP, None]], PluginEventHandler[TP, None]]: ...
 
 
 @overload
 def on(
     event_type: event_types.TS_EVENTS,
-) -> Callable[[PluginEventHandler[_TP, context.TSCtx]], PluginEventHandler[_TP, context.TSCtx]]: ...
+) -> Callable[[PluginEventHandler[TP, context.TSCtx]], PluginEventHandler[TP, context.TSCtx]]: ...
 
 
 @overload
 def on(
     event_type: str,
-) -> Callable[[PluginEventHandler[_TP, Any]], PluginEventHandler[_TP, Any]]: ...
+) -> Callable[[PluginEventHandler[TP, Any]], PluginEventHandler[TP, Any]]: ...
 
 
 def on(
     event_type: str,
-) -> Callable[[PluginEventHandler[_TP, Any]], PluginEventHandler[_TP, Any]]:
+) -> Callable[[PluginEventHandler[TP, Any]], PluginEventHandler[TP, Any]]:
     """Decorator to register plugin events"""
 
     utils.check_for_deprecated_event(event_type)
 
-    def event_decorator(func: PluginEventHandler[_TP, Any]) -> PluginEventHandler[_TP, Any]:
+    def event_decorator(func: PluginEventHandler[TP, Any]) -> PluginEventHandler[TP, Any]:
         setattr(func, EVENT_ATTR, EventKwargs(event_type=event_type))
         return func
 
@@ -147,41 +147,41 @@ def on(
 @deprecated("'ready' event is deprecated. Use 'connect' instead")
 def once(
     event_type: Literal["ready"],
-) -> Callable[[PluginEventHandler[_TP, None]], PluginEventHandler[_TP, None]]: ...
+) -> Callable[[PluginEventHandler[TP, None]], PluginEventHandler[TP, None]]: ...
 
 
 @overload
 def once(
     event_type: event_types.BUILTIN_EVENTS,
-) -> Callable[[PluginEventHandler[_TP, context.TSCtx]], PluginEventHandler[_TP, context.TSCtx]]: ...
+) -> Callable[[PluginEventHandler[TP, context.TSCtx]], PluginEventHandler[TP, context.TSCtx]]: ...
 
 
 @overload
 def once(
     event_type: event_types.BUILTIN_NO_CTX_EVENTS,
-) -> Callable[[PluginEventHandler[_TP, None]], PluginEventHandler[_TP, None]]: ...
+) -> Callable[[PluginEventHandler[TP, None]], PluginEventHandler[TP, None]]: ...
 
 
 @overload
 def once(
     event_type: event_types.TS_EVENTS,
-) -> Callable[[PluginEventHandler[_TP, context.TSCtx]], PluginEventHandler[_TP, context.TSCtx]]: ...
+) -> Callable[[PluginEventHandler[TP, context.TSCtx]], PluginEventHandler[TP, context.TSCtx]]: ...
 
 
 @overload
 def once(
     event_type: str,
-) -> Callable[[PluginEventHandler[_TP, Any]], PluginEventHandler[_TP, Any]]: ...
+) -> Callable[[PluginEventHandler[TP, Any]], PluginEventHandler[TP, Any]]: ...
 
 
 def once(
     event_type: str,
-) -> Callable[[PluginEventHandler[_TP, Any]], PluginEventHandler[_TP, Any]]:
+) -> Callable[[PluginEventHandler[TP, Any]], PluginEventHandler[TP, Any]]:
     """Decorator to register plugin events to be ran only once"""
 
     utils.check_for_deprecated_event(event_type)
 
-    def once_decorator(func: PluginEventHandler[_TP, Any]) -> PluginEventHandler[_TP, Any]:
+    def once_decorator(func: PluginEventHandler[TP, Any]) -> PluginEventHandler[TP, Any]:
         setattr(func, ONCE_ATTR, EventKwargs(event_type=event_type))
         return func
 
