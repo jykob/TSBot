@@ -9,7 +9,7 @@ import pytest
 from tsbot import commands, context, exceptions
 
 if TYPE_CHECKING:
-    from tsbot import bot, context
+    from tsbot import bot
 
 # pyright: reportPrivateUsage=false
 
@@ -46,37 +46,37 @@ def all_commands(
 
 
 @pytest.fixture
-def command_handler():
-    return commands.CommandHandler(INVOKER)
+def command_manager():
+    return commands.CommandManager(INVOKER)
 
 
 @pytest.fixture
-def command_handler_with_commands(
-    command_handler: commands.CommandHandler, all_commands: Sequence[commands.TSCommand]
+def command_manager_with_commands(
+    command_manager: commands.CommandManager, all_commands: Sequence[commands.TSCommand]
 ):
     for command in all_commands:
-        command_handler._commands.update((c, command) for c in command.commands)
-    return command_handler
+        command_manager._commands.update((c, command) for c in command.commands)
+    return command_manager
 
 
-def test_register_command(command_handler: commands.CommandHandler, command: commands.TSCommand):
-    assert command_handler.get_command(command.commands[0]) is None
-    command_handler.register_command(command)
-    assert command_handler.get_command(command.commands[0]) is command
+def test_register_command(command_manager: commands.CommandManager, command: commands.TSCommand):
+    assert command_manager.get_command(command.commands[0]) is None
+    command_manager.register_command(command)
+    assert command_manager.get_command(command.commands[0]) is command
 
 
 def test_remove_command(
-    command_handler_with_commands: commands.CommandHandler, command: commands.TSCommand
+    command_manager_with_commands: commands.CommandManager, command: commands.TSCommand
 ):
-    assert command_handler_with_commands.get_command(command.commands[0]) is command
-    command_handler_with_commands.remove_command(command)
-    assert command_handler_with_commands.get_command(command.commands[0]) is None
+    assert command_manager_with_commands.get_command(command.commands[0]) is command
+    command_manager_with_commands.remove_command(command)
+    assert command_manager_with_commands.get_command(command.commands[0]) is None
 
 
 @pytest.mark.asyncio
 async def test_command_handling(
     monkeypatch: pytest.MonkeyPatch,
-    command_handler: commands.CommandHandler,
+    command_manager: commands.CommandManager,
     command: commands.TSCommand,
     mock_bot: bot.TSBot,
 ):
@@ -92,8 +92,8 @@ async def test_command_handling(
         }
     )
 
-    command_handler.register_command(command)
-    await command_handler.handle_command_event(mock_bot, command_context)
+    command_manager.register_command(command)
+    await command_manager.handle_command_event(mock_bot, command_context)
 
     mock_handler.assert_awaited_once_with(mock_bot, mock.ANY)
 
@@ -101,7 +101,7 @@ async def test_command_handling(
 @pytest.mark.asyncio
 async def test_argument_passing(
     monkeypatch: pytest.MonkeyPatch,
-    command_handler: commands.CommandHandler,
+    command_manager: commands.CommandManager,
     command_with_args: commands.TSCommand,
     mock_bot: bot.TSBot,
 ):
@@ -118,8 +118,8 @@ async def test_argument_passing(
         }
     )
 
-    command_handler.register_command(command_with_args)
-    await command_handler.handle_command_event(mock_bot, command_context)
+    command_manager.register_command(command_with_args)
+    await command_manager.handle_command_event(mock_bot, command_context)
 
     mock_handler.assert_awaited_once_with(mock_bot, mock.ANY, command_args)
 
@@ -127,7 +127,7 @@ async def test_argument_passing(
 @pytest.mark.asyncio
 async def test_raw_argument_passing(
     monkeypatch: pytest.MonkeyPatch,
-    command_handler: commands.CommandHandler,
+    command_manager: commands.CommandManager,
     command_with_raw_args: commands.TSCommand,
     mock_bot: bot.TSBot,
 ):
@@ -144,8 +144,8 @@ async def test_raw_argument_passing(
         }
     )
 
-    command_handler.register_command(command_with_raw_args)
-    await command_handler.handle_command_event(mock_bot, command_context)
+    command_manager.register_command(command_with_raw_args)
+    await command_manager.handle_command_event(mock_bot, command_context)
 
     mock_handler.assert_awaited_once_with(mock_bot, mock.ANY, command_args)
 
@@ -153,7 +153,7 @@ async def test_raw_argument_passing(
 @pytest.mark.asyncio
 async def test_checks(
     monkeypatch: pytest.MonkeyPatch,
-    command_handler: commands.CommandHandler,
+    command_manager: commands.CommandManager,
     command: commands.TSCommand,
     mock_bot: bot.TSBot,
 ):
@@ -161,7 +161,7 @@ async def test_checks(
     monkeypatch.setattr(command, "handler", mock_handler)
 
     mock_check = mock.AsyncMock()
-    command.checks.append(mock_check)
+    command.checks = (mock_check,)
 
     command_context = context.TSCtx(
         {
@@ -172,8 +172,8 @@ async def test_checks(
         }
     )
 
-    command_handler.register_command(command)
-    await command_handler.handle_command_event(mock_bot, command_context)
+    command_manager.register_command(command)
+    await command_manager.handle_command_event(mock_bot, command_context)
 
     mock_handler.assert_awaited_once()
     mock_check.assert_awaited_once()
@@ -182,17 +182,17 @@ async def test_checks(
 @pytest.mark.asyncio
 async def test_checks_failing(
     monkeypatch: pytest.MonkeyPatch,
-    command_handler: commands.CommandHandler,
+    command_manager: commands.CommandManager,
     command: commands.TSCommand,
     mock_bot: bot.TSBot,
 ):
-    async def check(bot: bot.TSBot, ctx: context.TSCtx, *args: str, **kwargs: str):
+    async def check(bot: bot.TSBot, ctx: context.TSCtx, *args: str, **kwargs: str) -> None:
         raise exceptions.TSPermissionError("Test exception")
 
     mock_handler = mock.AsyncMock()
     monkeypatch.setattr(command, "handler", mock_handler)
 
-    command.checks.append(check)
+    command.checks = (check,)
 
     command_context = context.TSCtx(
         {
@@ -203,8 +203,8 @@ async def test_checks_failing(
         }
     )
 
-    command_handler.register_command(command)
-    await command_handler.handle_command_event(mock_bot, command_context)
+    command_manager.register_command(command)
+    await command_manager.handle_command_event(mock_bot, command_context)
 
     mock_handler.assert_not_called()
 
@@ -231,7 +231,7 @@ async def test_checks_failing(
 )
 @pytest.mark.asyncio
 async def test_exceptions_emit_events(
-    command_handler: commands.CommandHandler,
+    command_manager: commands.CommandManager,
     mock_bot: bot.TSBot,
     exception: exceptions.TSException,
     event_name: str,
@@ -249,7 +249,7 @@ async def test_exceptions_emit_events(
         }
     )
 
-    command_handler.register_command(command)
-    await command_handler.handle_command_event(mock_bot, command_context)
+    command_manager.register_command(command)
+    await command_manager.handle_command_event(mock_bot, command_context)
 
     mock_bot.emit.assert_called_with(event_name, mock.ANY)  # type: ignore

@@ -49,6 +49,12 @@ jobs:
           warnings: true
           extra-args: "tsbot"
 
+      - name: Typecheck examples folder
+        uses: jakebailey/pyright-action@v2
+        with:
+          warnings: true
+          extra-args: "examples"
+
   lint:
     runs-on: "ubuntu-latest"
 

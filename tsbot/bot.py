@@ -3,8 +3,8 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import inspect
-from collections.abc import Callable, Coroutine
-from typing import TYPE_CHECKING, Any, Concatenate, Literal, NamedTuple, ParamSpec, overload
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Any, Literal, NamedTuple, cast, overload
 
 from typing_extensions import deprecated
 
@@ -15,6 +15,7 @@ from tsbot import (
     default_plugins,
     enums,
     events,
+    plugin,
     query_builder,
     ratelimiter,
     response,
@@ -23,9 +24,8 @@ from tsbot import (
 )
 
 if TYPE_CHECKING:
-    from tsbot import plugin
-
-_P = ParamSpec("_P")
+    from tsbot.commands import CommandHandler, RawCommandHandler
+    from tsbot.events import event_types
 
 
 _DEFAULT_PORTS = {"ssh": 10022, "raw": 10011}
@@ -98,9 +98,9 @@ class TSBot:
             ratelimiter=connection_ratelimiter,
         )
 
-        self._tasks_handler = tasks.TasksHandler()
-        self._event_handler = events.EventHandler()
-        self._command_handler = commands.CommandHandler(invoker)
+        self._task_manager = tasks.TaskManager()
+        self._event_manager = events.EventManager()
+        self._command_manager = commands.CommandManager(invoker)
 
         self.plugins: dict[str, plugin.TSPlugin] = {}
 
@@ -130,7 +130,7 @@ class TSBot:
 
     def _init(self) -> None:
         self.register_event_handler("connect", self._on_connect)
-        self.register_event_handler("textmessage", self._command_handler.handle_command_event)
+        self.register_event_handler("textmessage", self._command_manager.handle_command_event)
 
         self.load_plugin(default_plugins.Help(), default_plugins.KeepAlive())
 
@@ -150,18 +150,35 @@ class TSBot:
 
         :param event: Event to be emitted.
         """
-        self._event_handler.add_event(event)
+        self._event_manager.add_event(event)
 
     @overload
     @deprecated("'ready' event is deprecated. Use 'connect' instead")
     def on(
         self, event_type: Literal["ready"]
-    ) -> Callable[[events.TEventHandler], events.TEventHandler]: ...
+    ) -> Callable[[events.EventHandler[None]], events.EventHandler[None]]: ...
 
     @overload
-    def on(self, event_type: str) -> Callable[[events.TEventHandler], events.TEventHandler]: ...
+    def on(
+        self, event_type: event_types.BUILTIN_EVENTS
+    ) -> Callable[[events.EventHandler[context.TSCtx]], events.EventHandler[context.TSCtx]]: ...
 
-    def on(self, event_type: str) -> Callable[[events.TEventHandler], events.TEventHandler]:
+    @overload
+    def on(
+        self, event_type: event_types.BUILTIN_NO_CTX_EVENTS
+    ) -> Callable[[events.EventHandler[None]], events.EventHandler[None]]: ...
+
+    @overload
+    def on(
+        self, event_type: event_types.TS_EVENTS
+    ) -> Callable[[events.EventHandler[context.TSCtx]], events.EventHandler[context.TSCtx]]: ...
+
+    @overload
+    def on(
+        self, event_type: str
+    ) -> Callable[[events.EventHandler[Any]], events.EventHandler[Any]]: ...
+
+    def on(self, event_type: str) -> Callable[[events.EventHandler[Any]], events.EventHandler[Any]]:
         """
         Decorator to register event handlers.
 
@@ -170,7 +187,9 @@ class TSBot:
 
         utils.check_for_deprecated_event(event_type)
 
-        def event_decorator(func: events.TEventHandler) -> events.TEventHandler:
+        def event_decorator(
+            func: events.EventHandler[Any],
+        ) -> events.EventHandler[Any]:
             self.register_event_handler(event_type, func)
             return func
 
@@ -179,16 +198,35 @@ class TSBot:
     @overload
     @deprecated("'ready' event is deprecated. Use 'connect' instead")
     def register_event_handler(
-        self, event_type: Literal["ready"], handler: events.TEventHandler
+        self, event_type: Literal["ready"], handler: events.EventHandler[None]
     ) -> events.TSEventHandler: ...
 
     @overload
     def register_event_handler(
-        self, event_type: str, handler: events.TEventHandler
+        self,
+        event_type: event_types.BUILTIN_EVENTS,
+        handler: events.EventHandler[context.TSCtx],
+    ) -> events.TSEventHandler: ...
+
+    @overload
+    def register_event_handler(
+        self,
+        event_type: event_types.BUILTIN_NO_CTX_EVENTS,
+        handler: events.EventHandler[None],
+    ) -> events.TSEventHandler: ...
+
+    @overload
+    def register_event_handler(
+        self, event_type: event_types.TS_EVENTS, handler: events.EventHandler[context.TSCtx]
+    ) -> events.TSEventHandler: ...
+
+    @overload
+    def register_event_handler(
+        self, event_type: str, handler: events.EventHandler[Any]
     ) -> events.TSEventHandler: ...
 
     def register_event_handler(
-        self, event_type: str, handler: events.TEventHandler
+        self, event_type: str, handler: events.EventHandler[Any]
     ) -> events.TSEventHandler:
         """
         Register an event handler to be ran on an event.
@@ -201,19 +239,38 @@ class TSBot:
         utils.check_for_deprecated_event(event_type)
 
         event_handler = events.TSEventHandler(event_type, handler)
-        self._event_handler.register_event_handler(event_handler)
+        self._event_manager.register_event_handler(event_handler)
         return event_handler
 
     @overload
     @deprecated("'ready' event is deprecated. Use 'connect' instead")
     def once(
         self, event_type: Literal["ready"]
-    ) -> Callable[[events.TEventHandler], events.TEventHandler]: ...
+    ) -> Callable[[events.EventHandler[None]], events.EventHandler[None]]: ...
 
     @overload
-    def once(self, event_type: str) -> Callable[[events.TEventHandler], events.TEventHandler]: ...
+    def once(
+        self, event_type: event_types.BUILTIN_EVENTS
+    ) -> Callable[[events.EventHandler[context.TSCtx]], events.EventHandler[context.TSCtx]]: ...
 
-    def once(self, event_type: str) -> Callable[[events.TEventHandler], events.TEventHandler]:
+    @overload
+    def once(
+        self, event_type: event_types.BUILTIN_NO_CTX_EVENTS
+    ) -> Callable[[events.EventHandler[None]], events.EventHandler[None]]: ...
+
+    @overload
+    def once(
+        self, event_type: event_types.TS_EVENTS
+    ) -> Callable[[events.EventHandler[context.TSCtx]], events.EventHandler[context.TSCtx]]: ...
+
+    @overload
+    def once(
+        self, event_type: str
+    ) -> Callable[[events.EventHandler[Any]], events.EventHandler[Any]]: ...
+
+    def once(
+        self, event_type: str
+    ) -> Callable[[events.EventHandler[Any]], events.EventHandler[Any]]:
         """
         Decorator to register once handler.
 
@@ -222,7 +279,9 @@ class TSBot:
 
         utils.check_for_deprecated_event(event_type)
 
-        def once_decorator(func: events.TEventHandler) -> events.TEventHandler:
+        def once_decorator(
+            func: events.EventHandler[Any],
+        ) -> events.EventHandler[Any]:
             self.register_once_handler(event_type, func)
             return func
 
@@ -231,16 +290,35 @@ class TSBot:
     @overload
     @deprecated("'ready' event is deprecated. Use 'connect' instead")
     def register_once_handler(
-        self, event_type: Literal["ready"], handler: events.TEventHandler
+        self, event_type: Literal["ready"], handler: events.EventHandler[None]
     ) -> events.TSEventOnceHandler: ...
 
     @overload
     def register_once_handler(
-        self, event_type: str, handler: events.TEventHandler
+        self,
+        event_type: event_types.BUILTIN_EVENTS,
+        handler: events.EventHandler[context.TSCtx],
+    ) -> events.TSEventOnceHandler: ...
+
+    @overload
+    def register_once_handler(
+        self,
+        event_type: event_types.BUILTIN_NO_CTX_EVENTS,
+        handler: events.EventHandler[None],
+    ) -> events.TSEventOnceHandler: ...
+
+    @overload
+    def register_once_handler(
+        self, event_type: event_types.TS_EVENTS, handler: events.EventHandler[context.TSCtx]
+    ) -> events.TSEventOnceHandler: ...
+
+    @overload
+    def register_once_handler(
+        self, event_type: str, handler: events.EventHandler[Any]
     ) -> events.TSEventOnceHandler: ...
 
     def register_once_handler(
-        self, event_type: str, handler: events.TEventHandler
+        self, event_type: str, handler: events.EventHandler[Any]
     ) -> events.TSEventOnceHandler:
         """
         Register an event handler to be ran once on an event.
@@ -252,8 +330,8 @@ class TSBot:
 
         utils.check_for_deprecated_event(event_type)
 
-        event_handler = events.TSEventOnceHandler(event_type, handler, self._event_handler)
-        self._event_handler.register_event_handler(event_handler)
+        event_handler = events.TSEventOnceHandler(event_type, handler, self._event_manager)
+        self._event_manager.register_event_handler(event_handler)
         return event_handler
 
     def remove_event_handler(self, event_handler: events.TSEventHandler) -> None:
@@ -263,7 +341,27 @@ class TSBot:
         :param event_handler: Instance of the :class:`TSEventHandler<tsbot.events.TSEventHandler>` to be removed.
         """
 
-        self._event_handler.remove_event_handler(event_handler)
+        self._event_manager.remove_event_handler(event_handler)
+
+    @overload
+    def command(
+        self,
+        *command: str,
+        help_text: str = "",
+        raw: Literal[True],
+        hidden: bool = False,
+        checks: Sequence[CommandHandler] = (),
+    ) -> Callable[[RawCommandHandler], RawCommandHandler]: ...
+
+    @overload
+    def command(
+        self,
+        *command: str,
+        help_text: str = "",
+        raw: Literal[False] = False,
+        hidden: bool = False,
+        checks: Sequence[CommandHandler] = (),
+    ) -> Callable[[CommandHandler], CommandHandler]: ...
 
     def command(
         self,
@@ -271,11 +369,8 @@ class TSBot:
         help_text: str = "",
         raw: bool = False,
         hidden: bool = False,
-        checks: list[Callable[..., Coroutine[None, None, None]]] | None = None,
-    ) -> Callable[
-        [Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]]],
-        Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]],
-    ]:
+        checks: Sequence[CommandHandler] = (),
+    ) -> Any:
         """
         Decorator to register command handlers.
 
@@ -286,25 +381,52 @@ class TSBot:
         :param checks: List of async functions to be called before the command is executed.
         """
 
-        def command_decorator(
-            func: Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]],
-        ) -> Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]]:
+        def command_decorator(func: Any) -> Any:
             self.register_command(
-                command, func, help_text=help_text, raw=raw, hidden=hidden, checks=checks
+                command=command,
+                handler=func,
+                help_text=help_text,
+                raw=raw,  # type: ignore
+                hidden=hidden,
+                checks=checks,
             )
             return func
 
         return command_decorator
 
+    @overload
     def register_command(
         self,
         command: str | tuple[str, ...],
-        handler: Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]],
+        handler: RawCommandHandler,
+        *,
+        help_text: str = "",
+        raw: Literal[True],
+        hidden: bool = False,
+        checks: Sequence[CommandHandler] = (),
+    ) -> commands.TSCommand: ...
+
+    @overload
+    def register_command(
+        self,
+        command: str | tuple[str, ...],
+        handler: CommandHandler,
+        *,
+        help_text: str = "",
+        raw: Literal[False] = False,
+        hidden: bool = False,
+        checks: Sequence[CommandHandler] = (),
+    ) -> commands.TSCommand: ...
+
+    def register_command(
+        self,
+        command: str | tuple[str, ...],
+        handler: Any,
         *,
         help_text: str = "",
         raw: bool = False,
         hidden: bool = False,
-        checks: list[Callable[..., Coroutine[None, None, None]]] | None = None,
+        checks: Sequence[CommandHandler] = (),
     ) -> commands.TSCommand:
         """
         Register command handler to be ran on specific command.
@@ -320,8 +442,15 @@ class TSBot:
         if isinstance(command, str):
             command = (command,)
 
-        command_handler = commands.TSCommand(command, handler, help_text, raw, hidden, checks or [])
-        self._command_handler.register_command(command_handler)
+        command_handler = commands.TSCommand(
+            commands=command,
+            handler=handler,
+            help_text=help_text,
+            raw=raw,
+            hidden=hidden,
+            checks=tuple(checks),
+        )
+        self._command_manager.register_command(command_handler)
         return command_handler
 
     def remove_command(self, command: commands.TSCommand) -> None:
@@ -330,7 +459,7 @@ class TSBot:
 
         :param command: Instance of the :class:`TSCommand<tsbot.commands.TSCommand>` to be removed.
         """
-        self._command_handler.remove_command(command)
+        self._command_manager.remove_command(command)
 
     def get_command_handler(self, command: str) -> commands.TSCommand | None:
         """
@@ -339,12 +468,12 @@ class TSBot:
         :param command: Command that invokes :class:`TSCommand<tsbot.commands.TSCommand>`
         :return: :class:`TSCommand<tsbot.commands.TSCommand>` associated with `command`
         """
-        return self._command_handler.get_command(command)
+        return self._command_manager.get_command(command)
 
     def register_every_task(
         self,
         seconds: float,
-        handler: tasks.TTaskHandler,
+        handler: tasks.TaskHandler,
         *,
         name: str | None = None,
     ) -> tasks.TSTask:
@@ -357,12 +486,12 @@ class TSBot:
         :return: Instance of :class:`TSTask<tsbot.tasks.TSTask>` created.
         """
         task = tasks.TSTask(handler=tasks.every(handler, seconds), name=name)
-        self._tasks_handler.register_task(self, task)
+        self._task_manager.register_task(self, task)
         return task
 
     def register_task(
         self,
-        handler: tasks.TTaskHandler,
+        handler: tasks.TaskHandler,
         *,
         name: str | None = None,
     ) -> tasks.TSTask:
@@ -375,7 +504,7 @@ class TSBot:
         """
 
         task = tasks.TSTask(handler=handler, name=name)
-        self._tasks_handler.register_task(self, task)
+        self._task_manager.register_task(self, task)
         return task
 
     def remove_task(self, task: tasks.TSTask) -> None:
@@ -384,7 +513,7 @@ class TSBot:
 
         :param task: Instance of the :class:`TSTask<tsbot.tasks.TSTask>` to be removed.
         """
-        self._tasks_handler.remove_task(task)
+        self._task_manager.remove_task(task)
 
     async def send(self, query: query_builder.TSQuery) -> response.TSResponse:
         """
@@ -421,8 +550,8 @@ class TSBot:
         await self._closing.wait()
 
         self.emit(event_name="close")
-        await self._tasks_handler.close()
-        await self._event_handler.run_till_empty(self)
+        await self._task_manager.close()
+        await self._event_manager.run_till_empty(self)
 
         if self._connection.connected:
             await self.send_raw("quit")
@@ -453,9 +582,9 @@ class TSBot:
         """
 
         self._closing.clear()
-        self._tasks_handler.start(self)
+        self._task_manager.start(self)
 
-        self.register_task(self._event_handler.handle_events_task, name="HandleEvents-Task")
+        self.register_task(self._event_manager.handle_events_task, name="HandleEvents-Task")
         self.emit(event_name="run")
 
         with contextlib.closing(self), self._connection as connection_wait:
@@ -478,14 +607,27 @@ class TSBot:
 
         for plugin_to_be_loaded in plugins:
             for _, member in inspect.getmembers(plugin_to_be_loaded):
-                if command_kwargs := getattr(member, "__ts_command__", None):
-                    self.register_command(handler=member, **command_kwargs)
+                if command_kwargs := cast(
+                    plugin.CommandKwargs | None, getattr(member, plugin.COMMAND_ATTR, None)
+                ):
+                    self.register_command(
+                        command=command_kwargs["command"],
+                        handler=member,
+                        help_text=command_kwargs["help_text"],
+                        raw=command_kwargs["raw"],  # type: ignore
+                        hidden=command_kwargs["hidden"],
+                        checks=command_kwargs["checks"],
+                    )
 
                 elif event_kwargs := getattr(member, "__ts_event__", None):
-                    self.register_event_handler(handler=member, **event_kwargs)  # type: ignore  #TODO: REMOVE
+                    self.register_event_handler(
+                        handler=member, **cast(plugin.EventKwargs, event_kwargs)
+                    )
 
                 elif once_kwargs := getattr(member, "__ts_once__", None):
-                    self.register_once_handler(handler=member, **once_kwargs)  # type: ignore  #TODO: REMOVE
+                    self.register_once_handler(
+                        handler=member, **cast(plugin.EventKwargs, once_kwargs)
+                    )
 
             self.plugins[plugin_to_be_loaded.__class__.__name__] = plugin_to_be_loaded
 

@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 logger = logging.get_logger(__name__)
 
 
-class TasksHandler:
+class TaskManager:
     def __init__(self) -> None:
         self._started = False
         self._tasks: set[asyncio.Task[None]] = set()

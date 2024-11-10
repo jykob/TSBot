@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-TCommands = Literal[
+Commands = Literal[
     "apikeyadd",
     "apikeydel",
     "apikeylist",
