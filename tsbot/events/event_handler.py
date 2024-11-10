@@ -7,11 +7,11 @@ from typing import TYPE_CHECKING, Any, Protocol, TypeVar
 if TYPE_CHECKING:
     from tsbot import bot, events
 
-_TC = TypeVar("_TC", contravariant=True)
+TC = TypeVar("TC", contravariant=True)
 
 
-class EventHandler(Protocol[_TC]):
-    def __call__(self, bot: bot.TSBot, ctx: _TC, /) -> Coroutine[None, None, None]: ...
+class EventHandler(Protocol[TC]):
+    def __call__(self, bot: bot.TSBot, ctx: TC, /) -> Coroutine[None, None, None]: ...
 
 
 @dataclass(slots=True)
