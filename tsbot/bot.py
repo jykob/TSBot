@@ -607,9 +607,16 @@ class TSBot:
 
         for plugin_to_be_loaded in plugins:
             for _, member in inspect.getmembers(plugin_to_be_loaded):
-                if command_kwargs := getattr(member, plugin.COMMAND_ATTR, None):
+                if command_kwargs := cast(
+                    plugin.CommandKwargs | None, getattr(member, plugin.COMMAND_ATTR, None)
+                ):
                     self.register_command(
-                        handler=member, **cast(plugin.CommandKwargs, command_kwargs)
+                        command=command_kwargs["command"],
+                        handler=member,
+                        help_text=command_kwargs["help_text"],
+                        raw=command_kwargs["raw"],  # type: ignore
+                        hidden=command_kwargs["hidden"],
+                        checks=command_kwargs["checks"],
                     )
 
                 elif event_kwargs := getattr(member, "__ts_event__", None):
