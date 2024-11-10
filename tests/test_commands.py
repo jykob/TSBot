@@ -9,7 +9,7 @@ import pytest
 from tsbot import commands, context, exceptions
 
 if TYPE_CHECKING:
-    from tsbot import bot, context
+    from tsbot import bot
 
 # pyright: reportPrivateUsage=false
 
@@ -161,7 +161,7 @@ async def test_checks(
     monkeypatch.setattr(command, "handler", mock_handler)
 
     mock_check = mock.AsyncMock()
-    command.checks.append(mock_check)
+    command.checks = (mock_check,)
 
     command_context = context.TSCtx(
         {
@@ -186,13 +186,13 @@ async def test_checks_failing(
     command: commands.TSCommand,
     mock_bot: bot.TSBot,
 ):
-    async def check(bot: bot.TSBot, ctx: context.TSCtx, *args: str, **kwargs: str):
+    async def check(bot: bot.TSBot, ctx: context.TSCtx, *args: str, **kwargs: str) -> None:
         raise exceptions.TSPermissionError("Test exception")
 
     mock_handler = mock.AsyncMock()
     monkeypatch.setattr(command, "handler", mock_handler)
 
-    command.checks.append(check)
+    command.checks = (check,)
 
     command_context = context.TSCtx(
         {

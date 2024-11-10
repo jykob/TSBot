@@ -3,8 +3,8 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import inspect
-from collections.abc import Callable, Coroutine
-from typing import TYPE_CHECKING, Any, Concatenate, Literal, NamedTuple, ParamSpec, cast, overload
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Any, Literal, NamedTuple, cast, overload
 
 from typing_extensions import deprecated
 
@@ -24,9 +24,8 @@ from tsbot import (
 )
 
 if TYPE_CHECKING:
+    from tsbot.commands import CommandHandler, RawCommandHandler
     from tsbot.events import event_types
-
-_P = ParamSpec("_P")
 
 
 _DEFAULT_PORTS = {"ssh": 10022, "raw": 10011}
@@ -344,17 +343,34 @@ class TSBot:
 
         self._event_manager.remove_event_handler(event_handler)
 
+    @overload
+    def command(
+        self,
+        *command: str,
+        help_text: str = "",
+        raw: Literal[True],
+        hidden: bool = False,
+        checks: Sequence[CommandHandler] = (),
+    ) -> Callable[[RawCommandHandler], RawCommandHandler]: ...
+
+    @overload
+    def command(
+        self,
+        *command: str,
+        help_text: str = "",
+        raw: Literal[False] = False,
+        hidden: bool = False,
+        checks: Sequence[CommandHandler] = (),
+    ) -> Callable[[CommandHandler], CommandHandler]: ...
+
     def command(
         self,
         *command: str,
         help_text: str = "",
         raw: bool = False,
         hidden: bool = False,
-        checks: list[Callable[..., Coroutine[None, None, None]]] | None = None,
-    ) -> Callable[
-        [Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]]],
-        Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]],
-    ]:
+        checks: Sequence[CommandHandler] = (),
+    ) -> Any:
         """
         Decorator to register command handlers.
 
@@ -365,25 +381,52 @@ class TSBot:
         :param checks: List of async functions to be called before the command is executed.
         """
 
-        def command_decorator(
-            func: Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]],
-        ) -> Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]]:
+        def command_decorator(func: Any) -> Any:
             self.register_command(
-                command, func, help_text=help_text, raw=raw, hidden=hidden, checks=checks
+                command=command,
+                handler=func,
+                help_text=help_text,
+                raw=raw,  # type: ignore
+                hidden=hidden,
+                checks=checks,
             )
             return func
 
         return command_decorator
 
+    @overload
     def register_command(
         self,
         command: str | tuple[str, ...],
-        handler: Callable[Concatenate[TSBot, context.TSCtx, _P], Coroutine[None, None, None]],
+        handler: RawCommandHandler,
+        *,
+        help_text: str = "",
+        raw: Literal[True],
+        hidden: bool = False,
+        checks: Sequence[CommandHandler] = (),
+    ) -> commands.TSCommand: ...
+
+    @overload
+    def register_command(
+        self,
+        command: str | tuple[str, ...],
+        handler: CommandHandler,
+        *,
+        help_text: str = "",
+        raw: Literal[False] = False,
+        hidden: bool = False,
+        checks: Sequence[CommandHandler] = (),
+    ) -> commands.TSCommand: ...
+
+    def register_command(
+        self,
+        command: str | tuple[str, ...],
+        handler: Any,
         *,
         help_text: str = "",
         raw: bool = False,
         hidden: bool = False,
-        checks: list[Callable[..., Coroutine[None, None, None]]] | None = None,
+        checks: Sequence[CommandHandler] = (),
     ) -> commands.TSCommand:
         """
         Register command handler to be ran on specific command.
@@ -399,7 +442,14 @@ class TSBot:
         if isinstance(command, str):
             command = (command,)
 
-        command_handler = commands.TSCommand(command, handler, help_text, raw, hidden, checks or [])
+        command_handler = commands.TSCommand(
+            commands=command,
+            handler=handler,
+            help_text=help_text,
+            raw=raw,
+            hidden=hidden,
+            checks=tuple(checks),
+        )
         self._command_manager.register_command(command_handler)
         return command_handler
 
@@ -557,9 +607,16 @@ class TSBot:
 
         for plugin_to_be_loaded in plugins:
             for _, member in inspect.getmembers(plugin_to_be_loaded):
-                if command_kwargs := getattr(member, plugin.COMMAND_ATTR, None):
+                if command_kwargs := cast(
+                    plugin.CommandKwargs | None, getattr(member, plugin.COMMAND_ATTR, None)
+                ):
                     self.register_command(
-                        handler=member, **cast(plugin.CommandKwargs, command_kwargs)
+                        command=command_kwargs["command"],
+                        handler=member,
+                        help_text=command_kwargs["help_text"],
+                        raw=command_kwargs["raw"],  # type: ignore
+                        hidden=command_kwargs["hidden"],
+                        checks=command_kwargs["checks"],
                     )
 
                 elif event_kwargs := getattr(member, "__ts_event__", None):
