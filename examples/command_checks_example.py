@@ -12,17 +12,16 @@ bot = TSBot(
 )
 
 
-def allow_only_uids(*uid: str):
+ALLOWED_UIDS = ("v8t+Jw6+qNDl1KHuDfS7zVjKSws=",)
+
+
+async def check_uid(bot: TSBot, ctx: TSCtx, *args: str, **kwargs: str) -> None:
     """Checks for UIDs. If uid not in given list, raise TSPermissionError"""
-
-    async def check_uid(bot: TSBot, ctx: TSCtx, *args: str, **kwargs: str) -> None:
-        if ctx.get("invokeruid") not in uid:
-            raise TSPermissionError("User not allowed to run this command")
-
-    return check_uid
+    if ctx.get("invokeruid") not in ALLOWED_UIDS:
+        raise TSPermissionError("User not allowed to run this command")
 
 
-@bot.command("eval", raw=True, checks=[allow_only_uids("v8t+Jw6+qNDl1KHuDfS7zVjKSws=")])
+@bot.command("eval", raw=True, checks=[check_uid])
 async def eval_(bot: TSBot, ctx: TSCtx, eval_str: str) -> None:
     try:
         response = eval(eval_str)
