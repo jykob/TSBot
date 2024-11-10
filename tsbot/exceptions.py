@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 
-class TSException(Exception):
+class TSException(Exception):  # noqa: N818
     """Exception related to TSBot."""
 
 
