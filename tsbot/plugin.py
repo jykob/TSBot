@@ -51,7 +51,7 @@ class CommandKwargs(TypedDict):
     help_text: str
     raw: bool
     hidden: bool
-    checks: list[Callable[..., Coroutine[None, None, None]]]
+    checks: Sequence[CommandHandler]
 
 
 class EventKwargs(TypedDict):
@@ -67,21 +67,36 @@ class TSPlugin:
     """Base class for plugins"""
 
 
+@overload
+def command(
+    *command: str,
+    help_text: str = "",
+    raw: Literal[True],
+    hidden: bool = False,
+    checks: Sequence[CommandHandler] = (),
+) -> Callable[[PluginRawCommandHandler[TP]], PluginRawCommandHandler[TP]]: ...
+
+
+@overload
+def command(
+    *command: str,
+    help_text: str = "",
+    raw: Literal[False] = False,
+    hidden: bool = False,
+    checks: Sequence[CommandHandler] = (),
+) -> Callable[[PluginCommandHandler[TP]], PluginCommandHandler[TP]]: ...
+
+
 def command(
     *command: str,
     help_text: str = "",
     raw: bool = False,
     hidden: bool = False,
-    checks: list[Callable[..., Coroutine[None, None, None]]] | None = None,
-) -> Callable[
-    [Callable[Concatenate[_TP, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]]],
-    Callable[Concatenate[_TP, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]],
-]:
+    checks: Sequence[CommandHandler] = (),
+) -> Any:
     """Decorator to register plugin commands"""
 
-    def command_decorator(
-        func: Callable[Concatenate[_TP, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]],
-    ) -> Callable[Concatenate[_TP, bot.TSBot, context.TSCtx, _P], Coroutine[None, None, None]]:
+    def command_decorator(func: Any) -> Any:
         setattr(
             func,
             COMMAND_ATTR,
@@ -90,7 +105,7 @@ def command(
                 help_text=help_text,
                 raw=raw,
                 hidden=hidden,
-                checks=checks or [],
+                checks=checks,
             ),
         )
         return func
