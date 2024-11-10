@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from collections.abc import Callable, Coroutine
+from collections.abc import Callable, Coroutine, Sequence
 from typing import (
     TYPE_CHECKING,
     Any,
-    Concatenate,
     Literal,
-    ParamSpec,
     Protocol,
     TypedDict,
     TypeVar,
@@ -19,15 +17,33 @@ from tsbot import utils
 
 if TYPE_CHECKING:
     from tsbot import bot, context
+    from tsbot.commands import CommandHandler
     from tsbot.events import event_types
 
-_TP = TypeVar("_TP", bound="TSPlugin", contravariant=True)
-_TC = TypeVar("_TC", contravariant=True)
-_P = ParamSpec("_P")
+TP = TypeVar("TP", bound="TSPlugin", contravariant=True)
+TC = TypeVar("TC", contravariant=True)
 
 
-class PluginEventHandler(Protocol[_TP, _TC]):
-    def __call__(self, inst: _TP, bot: bot.TSBot, ctx: _TC, /) -> Coroutine[None, None, None]: ...
+class PluginEventHandler(Protocol[TP, TC]):
+    def __call__(self, inst: TP, bot: bot.TSBot, ctx: TC, /) -> Coroutine[None, None, None]: ...
+
+
+class PluginRawCommandHandler(Protocol[TP]):
+    def __call__(
+        self, inst: TP, bot: bot.TSBot, ctx: context.TSCtx, arg: str, /
+    ) -> Coroutine[None, None, None]: ...
+
+
+class PluginCommandHandler(Protocol[TP]):
+    def __call__(
+        self,
+        inst: TP,
+        bot: bot.TSBot,
+        ctx: context.TSCtx,
+        /,
+        *args: Any,
+        **kwargs: Any,
+    ) -> Coroutine[None, None, None]: ...
 
 
 class CommandKwargs(TypedDict):
