@@ -25,6 +25,7 @@ jobs:
 
       - name: Test with pytest
         run: python -m pytest tests
+        timeout-minutes: 1
 
   typecheck:
     runs-on: "ubuntu-latest"

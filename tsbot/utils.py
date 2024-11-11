@@ -15,7 +15,7 @@ def toggle(obj: object, attr: str, enter: Any, exit: Any) -> Generator[None, Non
         setattr(obj, attr, exit)
 
 
-def check_for_deprecated_event(event_type: str):
+def check_for_deprecated_event(event_type: str) -> None:
     if event_type == "ready":
         warnings.warn(
             "'ready' event is deprecated. Use 'connect' instead",

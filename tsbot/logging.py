@@ -25,7 +25,7 @@ class TSBotLogger(_LoggerAdapter):
         super().__init__(logger, extra)
 
     @classmethod
-    def set_debug(cls, value: bool):
+    def set_debug(cls, value: bool) -> None:
         cls._debug = value
 
     def process(
@@ -37,9 +37,9 @@ class TSBotLogger(_LoggerAdapter):
         return super().process(msg, kwargs)
 
 
-def get_logger(name: str):
+def get_logger(name: str) -> TSBotLogger:
     return TSBotLogger(_logger, {"from_module": name.removeprefix(f"{__package__}.")})
 
 
-def set_debug(value: bool):
+def set_debug(value: bool) -> None:
     TSBotLogger.set_debug(value)

@@ -78,10 +78,10 @@ class Reader:
         self._read_buffer = _ReadBuffer()
         self._reader_task: asyncio.Task[None] | None = None
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         self.start()
 
-    def __exit__(self, *exc: Any):
+    def __exit__(self, *exc: Any) -> None:
         self.close()
 
     def start(self) -> None:
