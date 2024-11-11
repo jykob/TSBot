@@ -16,19 +16,21 @@ logger = logging.get_logger(__name__)
 
 class TaskList:
     def __init__(self) -> None:
-        self._tasks: set[asyncio.Task[None]] = set()
+        self.tasks: set[asyncio.Task[None]] = set()
         self._empty = asyncio.Event()
+        self._empty.set()
 
     def __iter__(self) -> Generator[asyncio.Task[None], None, None]:
-        yield from self._tasks
+        yield from self.tasks
 
     def add(self, task: asyncio.Task[None]) -> None:
         self._empty.clear()
-        self._tasks.add(task)
+        self.tasks.add(task)
 
     def remove(self, task: asyncio.Task[None]) -> None:
-        self._tasks.remove(task)
-        self._empty.set()
+        self.tasks.remove(task)
+        if not self.tasks:
+            self._empty.set()
 
     async def join(self) -> None:
         await self._empty.wait()
@@ -37,17 +39,21 @@ class TaskList:
 class TaskManager:
     def __init__(self) -> None:
         self._started = False
-        self._tasks = TaskList()
+        self._task_list = TaskList()
         self._starting_tasks: list[tasks.TSTask] = []
+
+    @property
+    def empty(self) -> bool:
+        return not bool(self._task_list.tasks)
 
     def _start_task(self, bot: bot.TSBot, task: tasks.TSTask) -> None:
         task.task = asyncio.create_task(task.handler(bot), name=task.name)
-        self._tasks.add(task.task)
+        self._task_list.add(task.task)
         task.task.add_done_callback(self._task_callback)
         logger.debug("Started a task handler %r", getattr(task.handler, "__name__", task.handler))
 
     def _task_callback(self, task: asyncio.Task[None]) -> None:
-        self._tasks.remove(task)
+        self._task_list.remove(task)
 
         with contextlib.suppress(asyncio.CancelledError):
             if e := task.exception():
@@ -71,7 +77,7 @@ class TaskManager:
         self._started = False
         self._starting_tasks.clear()
 
-        for task in self._tasks:
+        for task in self._task_list:
             task.cancel()
 
-        await self._tasks.join()
+        await self._task_list.join()
