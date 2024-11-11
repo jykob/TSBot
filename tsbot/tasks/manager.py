@@ -18,7 +18,6 @@ class TaskList:
     def __init__(self) -> None:
         self.tasks: set[asyncio.Task[None]] = set()
         self._empty = asyncio.Event()
-        self._empty.set()
 
     def __iter__(self) -> Generator[asyncio.Task[None], None, None]:
         yield from self.tasks
@@ -80,4 +79,5 @@ class TaskManager:
         for task in self._task_list:
             task.cancel()
 
-        await self._task_list.join()
+        if not self.empty:
+            await self._task_list.join()
