@@ -2,28 +2,50 @@ import asyncio
 from contextlib import suppress
 
 from tsbot import TSBot, TSTask, plugin, query
-from tsbot.exceptions import TSException, TSResponseError
+from tsbot.exceptions import TSResponseError
+
+AFK_CHANNEL_ID = "2"
+MAX_IDLE_TIME = 30 * 60  # 30 minutes
+
+
+def is_not_active(client: dict[str, str]) -> bool:
+    return int(client["client_idle_time"]) > MAX_IDLE_TIME * 1000
+
+
+def not_in_afk_channel(client: dict[str, str]) -> bool:
+    return client["cid"] != AFK_CHANNEL_ID
+
+
+def is_not_query(client: dict[str, str]) -> bool:
+    return client["client_type"] != "1"
 
 
 class AFKPlugin(plugin.TSPlugin):
-    CHECK_PERIOD = 60 * 5  # 5 minutes
+    CHECK_PERIOD = 5 * 60  # 5 minutes
+    CLIENT_LIST_QUERY = query("clientlist").option("times")
+    MOVE_QUERY = query("clientmove").params(cid=AFK_CHANNEL_ID)
 
     def __init__(self) -> None:
-        self.afk_channel_id = "0"
-        self.client_query = query("clientlist").option("away")
         self._task: TSTask | None = None
 
+    def should_be_moved(self, client: dict[str, str]) -> bool:
+        return all(check(client) for check in (is_not_active, not_in_afk_channel, is_not_query))
+
+    async def check_afk_clients(self, bot: TSBot):
+        clients = await bot.send(self.CLIENT_LIST_QUERY)
+
+        clients_to_be_moved = set(c["clid"] for c in clients if self.should_be_moved(c))
+        if not clients_to_be_moved:
+            return
+
+        move_query = self.MOVE_QUERY.param_block({"clid": id} for id in clients_to_be_moved)
+
+        with suppress(TSResponseError):
+            await bot.send(move_query)
+
     @plugin.on("connect")
-    async def get_afk_channel(self, bot: TSBot, ctx: None):
-        channel_list = await bot.send(query("channellist"))
-
-        for channel in channel_list:
-            if "AFK" in channel["channel_name"]:
-                self.afk_channel_id = channel["cid"]
-                break
-        else:
-            raise TSException("No AFK channel found")
-
+    async def start_task(self, bot: TSBot, ctx: None):
+        """Start the checking task on connect"""
         self._task = bot.register_every_task(self.CHECK_PERIOD, self.check_afk_clients)
 
     @plugin.on("disconnect")
@@ -31,26 +53,6 @@ class AFKPlugin(plugin.TSPlugin):
         """Cleanup task on disconnect"""
         if self._task:
             self._task = bot.remove_task(self._task)
-
-    async def check_afk_clients(self, bot: TSBot):
-        clients = await bot.send(self.client_query)
-        clients_to_be_moved = tuple(
-            c["clid"]
-            for c in clients
-            if c["client_away"] != "0" and c["cid"] != self.afk_channel_id
-        )
-
-        if not clients_to_be_moved:
-            return
-
-        move_query = (
-            query("clientmove")
-            .params(cid=self.afk_channel_id)
-            .param_block({"clid": id} for id in clients_to_be_moved)
-        )
-
-        with suppress(TSResponseError):
-            await bot.send(move_query)
 
 
 bot = TSBot(
