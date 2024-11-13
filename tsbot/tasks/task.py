@@ -21,7 +21,7 @@ class TaskHandler(Protocol[Unpack[_Ts]]):
 @dataclass(slots=True)
 class TSTask:
     handler: TaskHandler[Unpack[tuple[Any, ...]]]
-    args: tuple[Any, ...]
+    args: tuple[Any, ...] = ()
     name: str | None = None
     task: asyncio.Task[None] | None = None
 
