@@ -28,16 +28,17 @@ These handlers are only fired once when the given event happens.
 ```python
 from tsbot import query
 
-@bot.on("connect")
-async def move_on_start(bot: TSBot, ctx: None):
+lobby_id: str = "0"
+
+@bot.once("connect")
+async def find_lobby_id(bot: TSBot, ctx: None):
     # The bot is ready and connected to the server.
-    # Move the bot to a different channel.
-    bot_info = await bot.send_raw("whoami")
+    # Find the channel id of the 'Lobby' channel.
+    global lobby_id
 
     for channel in await bot.send_raw("channellist"):
         if "Lobby" in channel["channel_name"]:
-            move_query = query("clientmove").params(clid=bot_info.first["client_id"], cid=channel["cid"])
-            await bot.send(move_query)
+            lobby_id = channel["cid"]
             break
 ```
 
