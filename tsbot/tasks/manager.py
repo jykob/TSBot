@@ -49,7 +49,7 @@ class TaskManager:
         return not self._task_list
 
     def _start_task(self, bot: bot.TSBot, task: tasks.TSTask) -> None:
-        task.task = asyncio.create_task(task.handler(bot), name=task.name)
+        task.task = asyncio.create_task(task.handler(bot, *task.args), name=task.name)
         self._task_list.add(task.task)
         task.task.add_done_callback(self._task_callback)
         logger.debug("Started a task handler %r", getattr(task.handler, "__name__", task.handler))
