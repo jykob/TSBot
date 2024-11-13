@@ -6,7 +6,7 @@ import inspect
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any, Literal, NamedTuple, cast, overload
 
-from typing_extensions import deprecated
+from typing_extensions import TypeVarTuple, Unpack, deprecated
 
 from tsbot import (
     commands,
@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from tsbot.commands import CommandHandler, RawCommandHandler
     from tsbot.events import event_types
 
+_Ts = TypeVarTuple("_Ts")
 
 _DEFAULT_PORTS = {"ssh": 10022, "raw": 10011}
 
@@ -472,29 +473,10 @@ class TSBot:
         """
         return self._command_manager.get_command(command)
 
-    def register_every_task(
-        self,
-        seconds: float,
-        handler: tasks.TaskHandler,
-        *,
-        name: str | None = None,
-    ) -> tasks.TSTask:
-        """
-        Register task handler to be ran every given second.
-
-        :param seconds: How often the task is executed.
-        :param handler: Async function to be called when the task is executed.
-        :param name: Name of the task.
-        :return: Instance of :class:`TSTask<tsbot.tasks.TSTask>` created.
-        """
-        task = tasks.TSTask(handler=tasks.every(handler, seconds), name=name)
-        self._task_manager.register_task(self, task)
-        return task
-
     def register_task(
         self,
-        handler: tasks.TaskHandler,
-        *,
+        handler: tasks.TaskHandler[Unpack[_Ts]],
+        *args: Unpack[_Ts],
         name: str | None = None,
     ) -> tasks.TSTask:
         """
@@ -505,7 +487,26 @@ class TSBot:
         :return: Instance of :class:`TSTask<tsbot.tasks.TSTask>` created.
         """
 
-        task = tasks.TSTask(handler=handler, name=name)
+        task = tasks.TSTask(handler=handler, args=args, name=name)
+        self._task_manager.register_task(self, task)
+        return task
+
+    def register_every_task(
+        self,
+        seconds: float,
+        handler: tasks.TaskHandler[Unpack[_Ts]],
+        *args: Unpack[_Ts],
+        name: str | None = None,
+    ) -> tasks.TSTask:
+        """
+        Register task handler to be ran every given second.
+
+        :param seconds: How often the task is executed.
+        :param handler: Async function to be called when the task is executed.
+        :param name: Name of the task.
+        :return: Instance of :class:`TSTask<tsbot.tasks.TSTask>` created.
+        """
+        task = tasks.TSTask(handler=tasks.every(handler, seconds), args=args, name=name)
         self._task_manager.register_task(self, task)
         return task
 

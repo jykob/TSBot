@@ -22,6 +22,9 @@ class TaskList:
     def __iter__(self) -> Generator[asyncio.Task[None], None, None]:
         yield from self.tasks
 
+    def __bool__(self) -> bool:
+        return bool(self.tasks)
+
     def add(self, task: asyncio.Task[None]) -> None:
         self._empty.clear()
         self.tasks.add(task)
@@ -43,10 +46,10 @@ class TaskManager:
 
     @property
     def empty(self) -> bool:
-        return not bool(self._task_list.tasks)
+        return not self._task_list
 
     def _start_task(self, bot: bot.TSBot, task: tasks.TSTask) -> None:
-        task.task = asyncio.create_task(task.handler(bot), name=task.name)
+        task.task = asyncio.create_task(task.handler(bot, *task.args), name=task.name)
         self._task_list.add(task.task)
         task.task.add_done_callback(self._task_callback)
         logger.debug("Started a task handler %r", getattr(task.handler, "__name__", task.handler))

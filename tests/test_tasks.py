@@ -25,11 +25,11 @@ def running_task_manager(task_manager: tasks.TaskManager, mock_bot: bot.TSBot):
 
 @pytest.fixture
 def tstask():
-    async def task(bot: bot.TSBot):
+    async def task(bot: bot.TSBot) -> None:
         while True:
             await asyncio.sleep(0)
 
-    return tasks.TSTask(task)
+    return tasks.TSTask(task)  # type: ignore
 
 
 @pytest.mark.asyncio
