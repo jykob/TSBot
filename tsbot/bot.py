@@ -381,7 +381,9 @@ class TSBot:
         :param checks: List of async functions to be called before the command is executed.
         """
 
-        def command_decorator(func: Any) -> Any:
+        def command_decorator(
+            func: CommandHandler | RawCommandHandler,
+        ) -> CommandHandler | RawCommandHandler:
             self.register_command(
                 command=command,
                 handler=func,
@@ -421,7 +423,7 @@ class TSBot:
     def register_command(
         self,
         command: str | tuple[str, ...],
-        handler: Any,
+        handler: CommandHandler | RawCommandHandler,
         *,
         help_text: str = "",
         raw: bool = False,
