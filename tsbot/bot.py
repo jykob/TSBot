@@ -470,6 +470,24 @@ class TSBot:
         """
         return self._command_manager.get_command(command)
 
+    def register_task(
+        self,
+        handler: tasks.TaskHandler,
+        *,
+        name: str | None = None,
+    ) -> tasks.TSTask:
+        """
+        Register task handler as a background task.
+
+        :param handler: Async function to be called when the task is executed.
+        :param name: Name of the task.
+        :return: Instance of :class:`TSTask<tsbot.tasks.TSTask>` created.
+        """
+
+        task = tasks.TSTask(handler=handler, name=name)
+        self._task_manager.register_task(self, task)
+        return task
+
     def register_every_task(
         self,
         seconds: float,
@@ -486,24 +504,6 @@ class TSBot:
         :return: Instance of :class:`TSTask<tsbot.tasks.TSTask>` created.
         """
         task = tasks.TSTask(handler=tasks.every(handler, seconds), name=name)
-        self._task_manager.register_task(self, task)
-        return task
-
-    def register_task(
-        self,
-        handler: tasks.TaskHandler,
-        *,
-        name: str | None = None,
-    ) -> tasks.TSTask:
-        """
-        Register task handler as a background task.
-
-        :param handler: Async function to be called when the task is executed.
-        :param name: Name of the task.
-        :return: Instance of :class:`TSTask<tsbot.tasks.TSTask>` created.
-        """
-
-        task = tasks.TSTask(handler=handler, name=name)
         self._task_manager.register_task(self, task)
         return task
 
