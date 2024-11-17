@@ -21,7 +21,7 @@ PluginRawCommandHandler = Callable[
     [_TP, "bot.TSBot", "context.TSCtx", str], Coroutine[None, None, None]
 ]
 PluginCommandHandler = Callable[
-    Concatenate[_TP, "bot.TSBot", "context.TSCtx", ...], Coroutine[None, None, None]
+    Concatenate[_TP, bot.TSBot, context.TSCtx, ...], Coroutine[None, None, None]
 ]
 
 
