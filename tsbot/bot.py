@@ -487,7 +487,11 @@ class TSBot:
         :return: Instance of :class:`TSTask<tsbot.tasks.TSTask>` created.
         """
 
-        task = tasks.TSTask(handler=handler, args=args, name=name)
+        task = tasks.TSTask(
+            handler=handler,  # type: ignore
+            args=args,
+            name=name,
+        )
         self._task_manager.register_task(self, task)
         return task
 
@@ -506,7 +510,11 @@ class TSBot:
         :param name: Name of the task.
         :return: Instance of :class:`TSTask<tsbot.tasks.TSTask>` created.
         """
-        task = tasks.TSTask(handler=tasks.every(handler, seconds), args=args, name=name)
+        task = tasks.TSTask(
+            handler=tasks.every(handler, seconds),  # type: ignore
+            args=args,
+            name=name,
+        )
         self._task_manager.register_task(self, task)
         return task
 
