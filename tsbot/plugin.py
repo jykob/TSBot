@@ -1,9 +1,17 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Coroutine, Sequence
-from typing import TYPE_CHECKING, Any, Literal, TypedDict, TypeVar, overload
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Literal,
+    Protocol,
+    TypedDict,
+    TypeVar,
+    overload,
+)
 
-from typing_extensions import Concatenate, deprecated  # noqa: UP035
+from typing_extensions import deprecated
 
 from tsbot import utils
 
@@ -16,13 +24,26 @@ _TP = TypeVar("_TP", bound="TSPlugin", contravariant=True)
 _TC = TypeVar("_TC", contravariant=True)
 
 
-PluginEventHandler = Callable[[_TP, "bot.TSBot", _TC], Coroutine[None, None, None]]
-PluginRawCommandHandler = Callable[
-    [_TP, "bot.TSBot", "context.TSCtx", str], Coroutine[None, None, None]
-]
-PluginCommandHandler = Callable[
-    Concatenate[_TP, bot.TSBot, context.TSCtx, ...], Coroutine[None, None, None]
-]
+class PluginEventHandler(Protocol[_TP, _TC]):
+    def __call__(self, inst: _TP, bot: bot.TSBot, ctx: _TC, /) -> Coroutine[None, None, None]: ...
+
+
+class PluginRawCommandHandler(Protocol[_TP]):
+    def __call__(
+        self, inst: _TP, bot: bot.TSBot, ctx: context.TSCtx, arg: str, /
+    ) -> Coroutine[None, None, None]: ...
+
+
+class PluginCommandHandler(Protocol[_TP]):
+    def __call__(
+        self,
+        inst: _TP,
+        bot: bot.TSBot,
+        ctx: context.TSCtx,
+        /,
+        *args: Any,
+        **kwargs: Any,
+    ) -> Coroutine[None, None, None]: ...
 
 
 class CommandKwargs(TypedDict):

@@ -2,11 +2,9 @@ from __future__ import annotations
 
 import asyncio
 import inspect
-from collections.abc import Callable, Coroutine
+from collections.abc import Coroutine
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
-
-from typing_extensions import Concatenate  # noqa: UP035
+from typing import TYPE_CHECKING, Any, Protocol
 
 from tsbot import exceptions, parsers
 
@@ -14,10 +12,16 @@ if TYPE_CHECKING:
     from tsbot import bot, context
 
 
-RawCommandHandler = Callable[["bot.TSBot", "context.TSCtx", str], Coroutine[None, None, None]]
-CommandHandler = Callable[
-    Concatenate["bot.TSBot", "context.TSCtx", ...], Coroutine[None, None, None]
-]
+class RawCommandHandler(Protocol):
+    def __call__(
+        self, bot: bot.TSBot, ctx: context.TSCtx, arg: str, /
+    ) -> Coroutine[None, None, None]: ...
+
+
+class CommandHandler(Protocol):
+    def __call__(
+        self, bot: bot.TSBot, ctx: context.TSCtx, /, *args: Any, **kwargs: Any
+    ) -> Coroutine[None, None, None]: ...
 
 
 @dataclass(slots=True)
