@@ -25,9 +25,10 @@ class KeepAlive(plugin.TSPlugin):
         self._task = bot.register_task(self._keep_alive_task, name="KeepAlive-Task")
 
     @plugin.on("disconnect")
-    async def kill_keep_alive(self, bot: bot.TSBot, ctx: None) -> None:
+    async def cancel_keep_alive(self, bot: bot.TSBot, ctx: None) -> None:
         if self._task:
-            self._task = bot.remove_task(self._task)
+            bot.remove_task(self._task)
+            self._task = None
 
     @plugin.on("send")
     async def on_command_sent(self, bot: bot.TSBot, ctx: context.TSCtx) -> None:
