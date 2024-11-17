@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import asyncio
 import functools
-from collections.abc import Coroutine
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any
 
 from typing_extensions import TypeVarTuple, Unpack
 
@@ -14,8 +14,7 @@ if TYPE_CHECKING:
 _Ts = TypeVarTuple("_Ts")
 
 
-class TaskHandler(Protocol[Unpack[_Ts]]):
-    def __call__(self, bot: bot.TSBot, *args: Unpack[_Ts]) -> Coroutine[None, None, None]: ...
+TaskHandler = Callable[["bot.TSBot", Unpack[_Ts]], Coroutine[None, None, None]]
 
 
 @dataclass(slots=True)

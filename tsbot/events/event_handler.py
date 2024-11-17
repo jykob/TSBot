@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from collections.abc import Coroutine
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 if TYPE_CHECKING:
     from tsbot import bot, events
@@ -10,8 +10,7 @@ if TYPE_CHECKING:
 _TC = TypeVar("_TC", contravariant=True)
 
 
-class EventHandler(Protocol[_TC]):
-    def __call__(self, bot: bot.TSBot, ctx: _TC, /) -> Coroutine[None, None, None]: ...
+EventHandler = Callable[["bot.TSBot", _TC], Coroutine[None, None, None]]
 
 
 @dataclass(slots=True)
