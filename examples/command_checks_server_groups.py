@@ -5,6 +5,12 @@ import asyncio
 from tsbot import TSBot, TSCtx, query
 from tsbot.exceptions import TSPermissionError
 
+ALLOWED_SERVER_GROUPS = ("Server Admin",)
+
+GET_DATABASE_ID_QUERY = query("clientgetdbidfromuid")
+SERVER_GROUPS_BY_ID_QUERY = query("servergroupsbyclientid")
+
+
 bot = TSBot(
     username="USERNAME",
     password="PASSWORD",
@@ -12,17 +18,11 @@ bot = TSBot(
 )
 
 
-ALLOWED_SERVER_GROUPS = ("Server Admin",)
-
-
 async def check_server_groups(bot: TSBot, ctx: TSCtx, *args: str, **kwargs: str):
     """Check if client has allowed server group. If not, raise permission error"""
 
-    client_query = query("clientgetdbidfromuid").params(cluid=ctx["invokeruid"])
-    client = (await bot.send(client_query)).first
-
-    server_group_query = query("servergroupsbyclientid").params(cldbid=client["cldbid"])
-    groups = (await bot.send(server_group_query)).data
+    ids = await bot.send(GET_DATABASE_ID_QUERY.params(cluid=ctx["invokeruid"]))
+    groups = await bot.send(SERVER_GROUPS_BY_ID_QUERY.params(cldbid=ids.first["cldbid"]))
 
     # Switch 'g == sg["name"]' to 'g in sg["name"]' if you don't want to match strictly
     if not any(g == sg["name"] for g in ALLOWED_SERVER_GROUPS for sg in groups):
