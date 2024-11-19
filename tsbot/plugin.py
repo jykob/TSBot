@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable, Coroutine, Sequence
 from typing import TYPE_CHECKING, Any, Literal, TypedDict, TypeVar, overload
 
-from typing_extensions import Concatenate, deprecated  # noqa: UP035
+from typing_extensions import deprecated
 
 from tsbot import utils
 
@@ -20,9 +20,12 @@ PluginEventHandler = Callable[[_TP, "bot.TSBot", _TC], Coroutine[None, None, Non
 PluginRawCommandHandler = Callable[
     [_TP, "bot.TSBot", "context.TSCtx", str], Coroutine[None, None, None]
 ]
-PluginCommandHandler = Callable[
-    Concatenate[_TP, "bot.TSBot", "context.TSCtx", ...], Coroutine[None, None, None]
-]
+PluginCommandHandler = Callable[..., Coroutine[None, None, None]]
+
+# TODO: Use after 'typing_extensions' releases support for Python 3.10 'Concatenate[...]'
+# PluginCommandHandler = Callable[
+#     Concatenate[_TP, "bot.TSBot", "context.TSCtx", ...], Coroutine[None, None, None]
+# ]
 
 
 class CommandKwargs(TypedDict):
