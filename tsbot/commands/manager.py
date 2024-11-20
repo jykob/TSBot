@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from tsbot import context, enums, exceptions, logging
+from tsbot import context, enums, exceptions, logging, parsers
 
 if TYPE_CHECKING:
     from tsbot import bot, commands
@@ -72,7 +72,7 @@ class CommandManager:
         # Remove invoker from the beginning
         msg = msg.removeprefix(self.invoker)
 
-        command, _, args = msg.partition(" ")
+        command, args = parsers.split_ensure_splits(msg, maxsplit=1)
         command_handler = self._commands.get(command)
 
         if not command_handler:

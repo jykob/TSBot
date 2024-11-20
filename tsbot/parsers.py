@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import itertools
-from typing import Final
+from typing import Literal, overload
 
 from tsbot import encoders
 
-KWARG_INDICATOR: Final = "-"
-QUOTES: Final = ('"', "'")
+KWARG_INDICATOR = "-"
+QUOTES = ('"', "'")
 
 
 def parse_data(input_str: str) -> tuple[dict[str, str], ...]:
@@ -57,7 +57,7 @@ def _parse_quoted_arg(unparsed: str) -> tuple[str, str]:
 
 def _parse_arg(unparsed: str) -> tuple[str, str]:
     """Parse an argument out of unparsed message, return it and unparsed part."""
-    arg, unparsed = (*unparsed.split(maxsplit=1), *itertools.repeat("", times=2))[:2]
+    arg, unparsed = split_ensure_splits(unparsed, maxsplit=1)
 
     return arg, unparsed
 
@@ -97,3 +97,29 @@ def parse_args_kwargs(msg: str) -> tuple[tuple[str, ...], dict[str, str]]:
             args.append(value)
 
     return tuple(args), kwargs
+
+
+@overload
+def split_ensure_splits(  # type: ignore[pyright incompatible overload return type]
+    string: str, sep: str | None = None, maxsplit: Literal[1] = 1, fill: str = ""
+) -> tuple[str, str]: ...
+
+
+@overload
+def split_ensure_splits(
+    string: str, sep: str | None = None, maxsplit: int = -1, fill: str = ""
+) -> tuple[str, ...]: ...
+
+
+def split_ensure_splits(
+    string: str,
+    sep: str | None = None,
+    maxsplit: int = -1,
+    fill: str = "",
+) -> tuple[str, ...]:
+    """Splits a string at least maxsplit times, filling the rest with fill value"""
+
+    return (
+        *(result := string.split(sep, maxsplit)),
+        *itertools.repeat(fill, maxsplit - len(result) + 1),
+    )

@@ -262,3 +262,16 @@ def test_parse_args_kwargs(
     input_str: str, expected_args: tuple[str], expected_kwargs: dict[str, str]
 ):
     assert parsers.parse_args_kwargs(input_str) == (expected_args, expected_kwargs)
+
+
+@pytest.mark.parametrize(
+    ("input_str", "maxsplit", "expected"),
+    (
+        pytest.param("asd asd asd", -1, ("asd", "asd", "asd"), id="test_split_no_limit"),
+        pytest.param("asd asd asd", 1, ("asd", "asd asd"), id="test_split_one"),
+        pytest.param("asd asd asd", 2, ("asd", "asd", "asd"), id="test_split_two"),
+        pytest.param("asd asd asd", 3, ("asd", "asd", "asd", ""), id="test_split_fills"),
+    ),
+)
+def test_split_ensure_splits(input_str: str, maxsplit: int, expected: tuple[str, ...]):
+    assert parsers.split_ensure_splits(input_str, maxsplit=maxsplit) == expected
