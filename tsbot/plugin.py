@@ -66,7 +66,7 @@ def command(
     raw: Literal[False] = False,
     hidden: bool = False,
     checks: Sequence[CommandHandler] = (),
-) -> Callable[[PluginCommandHandler[_TP]], PluginCommandHandler[_TP]]: ...
+) -> Callable[[PluginCommandHandler], PluginCommandHandler]: ...
 
 
 def command(
