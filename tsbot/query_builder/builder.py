@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import itertools
 from collections.abc import Iterable, Mapping
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Final, Protocol
 
 from typing_extensions import Self
 
@@ -50,12 +50,12 @@ class TSQuery:
         :param parameters: Parameters attached to the query.
         :param parameter_blocks: Parameter blocks attached to the query.
         """
-        self._command = command
+        self._command: Final = command
         self._cached_query: str | None = None
 
-        self._options = options or tuple()
-        self._parameters = parameters or {}
-        self._parameter_blocks = parameter_blocks or tuple()
+        self._options: Final = options or ()
+        self._parameters: Final = parameters or {}
+        self._parameter_blocks: Final = parameter_blocks or ()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}({self._command!r})"
@@ -69,7 +69,7 @@ class TSQuery:
         """
 
         return type(self)(
-            self._command,  # type: ignore
+            self._command,
             self._options + args,
             self._parameters,
             self._parameter_blocks,
@@ -84,7 +84,7 @@ class TSQuery:
         """
 
         return type(self)(
-            self._command,  # type:ignore
+            self._command,
             self._options,
             self._parameters | kwargs,
             self._parameter_blocks,
@@ -108,7 +108,7 @@ class TSQuery:
         )
 
         return type(self)(
-            self._command,  # type:ignore
+            self._command,
             self._options,
             self._parameters,
             self._parameter_blocks + param_blocks,
