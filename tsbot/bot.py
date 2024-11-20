@@ -28,8 +28,8 @@ if TYPE_CHECKING:
     from tsbot.events import EventHandler, event_types
 
 _Ts = TypeVarTuple("_Ts")
-_TEH = TypeVar("_TEH", bound=EventHandler[Any])
-_TCH = TypeVar("_TCH", bound=CommandHandler | RawCommandHandler)
+_TEH = TypeVar("_TEH", bound="EventHandler[Any]")
+_TCH = TypeVar("_TCH", bound="CommandHandler | RawCommandHandler")
 
 _DEFAULT_PORTS = {"ssh": 10022, "raw": 10011}
 
