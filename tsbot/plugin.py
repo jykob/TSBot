@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 _TP = TypeVar("_TP", bound="TSPlugin", contravariant=True)
 _TC = TypeVar("_TC", contravariant=True)
-
+_TH = TypeVar("_TH")
 
 PluginEventHandler = Callable[[_TP, "bot.TSBot", _TC], Coroutine[None, None, None]]
 PluginRawCommandHandler = Callable[
@@ -75,10 +75,10 @@ def command(
     raw: bool = False,
     hidden: bool = False,
     checks: Sequence[CommandHandler] = (),
-) -> Any:
+) -> Callable[[_TH], _TH]:
     """Decorator to register plugin commands"""
 
-    def command_decorator(func: Any) -> Any:
+    def command_decorator(func: _TH) -> _TH:
         setattr(
             func,
             COMMAND_ATTR,
@@ -128,12 +128,12 @@ def on(
 
 def on(
     event_type: str,
-) -> Callable[[PluginEventHandler[_TP, Any]], PluginEventHandler[_TP, Any]]:
+) -> Callable[[_TH], _TH]:
     """Decorator to register plugin events"""
 
     utils.check_for_deprecated_event(event_type)
 
-    def event_decorator(func: PluginEventHandler[_TP, Any]) -> PluginEventHandler[_TP, Any]:
+    def event_decorator(func: _TH) -> _TH:
         setattr(func, EVENT_ATTR, EventKwargs(event_type=event_type))
         return func
 
@@ -173,12 +173,12 @@ def once(
 
 def once(
     event_type: str,
-) -> Callable[[PluginEventHandler[_TP, Any]], PluginEventHandler[_TP, Any]]:
+) -> Callable[[_TH], _TH]:
     """Decorator to register plugin events to be ran only once"""
 
     utils.check_for_deprecated_event(event_type)
 
-    def once_decorator(func: PluginEventHandler[_TP, Any]) -> PluginEventHandler[_TP, Any]:
+    def once_decorator(func: _TH) -> _TH:
         setattr(func, ONCE_ATTR, EventKwargs(event_type=event_type))
         return func
 

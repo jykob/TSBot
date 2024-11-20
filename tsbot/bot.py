@@ -4,7 +4,7 @@ import asyncio
 import contextlib
 import inspect
 from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING, Any, Literal, NamedTuple, cast, overload
+from typing import TYPE_CHECKING, Any, Literal, NamedTuple, TypeVar, cast, overload
 
 from typing_extensions import TypeVarTuple, Unpack, deprecated
 
@@ -25,9 +25,11 @@ from tsbot import (
 
 if TYPE_CHECKING:
     from tsbot.commands import CommandHandler, RawCommandHandler
-    from tsbot.events import event_types
+    from tsbot.events import EventHandler, event_types
 
 _Ts = TypeVarTuple("_Ts")
+_TEH = TypeVar("_TEH", bound=EventHandler[Any])
+_TCH = TypeVar("_TCH", bound=CommandHandler | RawCommandHandler)
 
 _DEFAULT_PORTS = {"ssh": 10022, "raw": 10011}
 
@@ -157,29 +159,27 @@ class TSBot:
     @deprecated("'ready' event is deprecated. Use 'connect' instead")
     def on(
         self, event_type: Literal["ready"]
-    ) -> Callable[[events.EventHandler[None]], events.EventHandler[None]]: ...
+    ) -> Callable[[EventHandler[None]], EventHandler[None]]: ...
 
     @overload
     def on(
         self, event_type: event_types.BUILTIN_EVENTS
-    ) -> Callable[[events.EventHandler[context.TSCtx]], events.EventHandler[context.TSCtx]]: ...
+    ) -> Callable[[EventHandler[context.TSCtx]], EventHandler[context.TSCtx]]: ...
 
     @overload
     def on(
         self, event_type: event_types.BUILTIN_NO_CTX_EVENTS
-    ) -> Callable[[events.EventHandler[None]], events.EventHandler[None]]: ...
+    ) -> Callable[[EventHandler[None]], EventHandler[None]]: ...
 
     @overload
     def on(
         self, event_type: event_types.TS_EVENTS
-    ) -> Callable[[events.EventHandler[context.TSCtx]], events.EventHandler[context.TSCtx]]: ...
+    ) -> Callable[[EventHandler[context.TSCtx]], EventHandler[context.TSCtx]]: ...
 
     @overload
-    def on(
-        self, event_type: str
-    ) -> Callable[[events.EventHandler[Any]], events.EventHandler[Any]]: ...
+    def on(self, event_type: str) -> Callable[[EventHandler[Any]], EventHandler[Any]]: ...
 
-    def on(self, event_type: str) -> Callable[[events.EventHandler[Any]], events.EventHandler[Any]]:
+    def on(self, event_type: str) -> Callable[[_TEH], _TEH]:
         """
         Decorator to register event handlers.
 
@@ -188,9 +188,7 @@ class TSBot:
 
         utils.check_for_deprecated_event(event_type)
 
-        def event_decorator(
-            func: events.EventHandler[Any],
-        ) -> events.EventHandler[Any]:
+        def event_decorator(func: _TEH) -> _TEH:
             self.register_event_handler(event_type, func)
             return func
 
@@ -199,35 +197,31 @@ class TSBot:
     @overload
     @deprecated("'ready' event is deprecated. Use 'connect' instead")
     def register_event_handler(
-        self, event_type: Literal["ready"], handler: events.EventHandler[None]
+        self, event_type: Literal["ready"], handler: EventHandler[None]
     ) -> events.TSEventHandler: ...
 
     @overload
     def register_event_handler(
-        self,
-        event_type: event_types.BUILTIN_EVENTS,
-        handler: events.EventHandler[context.TSCtx],
+        self, event_type: event_types.BUILTIN_EVENTS, handler: EventHandler[context.TSCtx]
     ) -> events.TSEventHandler: ...
 
     @overload
     def register_event_handler(
-        self,
-        event_type: event_types.BUILTIN_NO_CTX_EVENTS,
-        handler: events.EventHandler[None],
+        self, event_type: event_types.BUILTIN_NO_CTX_EVENTS, handler: EventHandler[None]
     ) -> events.TSEventHandler: ...
 
     @overload
     def register_event_handler(
-        self, event_type: event_types.TS_EVENTS, handler: events.EventHandler[context.TSCtx]
+        self, event_type: event_types.TS_EVENTS, handler: EventHandler[context.TSCtx]
     ) -> events.TSEventHandler: ...
 
     @overload
     def register_event_handler(
-        self, event_type: str, handler: events.EventHandler[Any]
+        self, event_type: str, handler: EventHandler[Any]
     ) -> events.TSEventHandler: ...
 
     def register_event_handler(
-        self, event_type: str, handler: events.EventHandler[Any]
+        self, event_type: str, handler: EventHandler[Any]
     ) -> events.TSEventHandler:
         """
         Register an event handler to be ran on an event.
@@ -247,31 +241,27 @@ class TSBot:
     @deprecated("'ready' event is deprecated. Use 'connect' instead")
     def once(
         self, event_type: Literal["ready"]
-    ) -> Callable[[events.EventHandler[None]], events.EventHandler[None]]: ...
+    ) -> Callable[[EventHandler[None]], EventHandler[None]]: ...
 
     @overload
     def once(
         self, event_type: event_types.BUILTIN_EVENTS
-    ) -> Callable[[events.EventHandler[context.TSCtx]], events.EventHandler[context.TSCtx]]: ...
+    ) -> Callable[[EventHandler[context.TSCtx]], EventHandler[context.TSCtx]]: ...
 
     @overload
     def once(
         self, event_type: event_types.BUILTIN_NO_CTX_EVENTS
-    ) -> Callable[[events.EventHandler[None]], events.EventHandler[None]]: ...
+    ) -> Callable[[EventHandler[None]], EventHandler[None]]: ...
 
     @overload
     def once(
         self, event_type: event_types.TS_EVENTS
-    ) -> Callable[[events.EventHandler[context.TSCtx]], events.EventHandler[context.TSCtx]]: ...
+    ) -> Callable[[EventHandler[context.TSCtx]], EventHandler[context.TSCtx]]: ...
 
     @overload
-    def once(
-        self, event_type: str
-    ) -> Callable[[events.EventHandler[Any]], events.EventHandler[Any]]: ...
+    def once(self, event_type: str) -> Callable[[EventHandler[Any]], EventHandler[Any]]: ...
 
-    def once(
-        self, event_type: str
-    ) -> Callable[[events.EventHandler[Any]], events.EventHandler[Any]]:
+    def once(self, event_type: str) -> Callable[[_TEH], _TEH]:
         """
         Decorator to register once handler.
 
@@ -280,9 +270,7 @@ class TSBot:
 
         utils.check_for_deprecated_event(event_type)
 
-        def once_decorator(
-            func: events.EventHandler[Any],
-        ) -> events.EventHandler[Any]:
+        def once_decorator(func: _TEH) -> _TEH:
             self.register_once_handler(event_type, func)
             return func
 
@@ -291,35 +279,31 @@ class TSBot:
     @overload
     @deprecated("'ready' event is deprecated. Use 'connect' instead")
     def register_once_handler(
-        self, event_type: Literal["ready"], handler: events.EventHandler[None]
+        self, event_type: Literal["ready"], handler: EventHandler[None]
     ) -> events.TSEventOnceHandler: ...
 
     @overload
     def register_once_handler(
-        self,
-        event_type: event_types.BUILTIN_EVENTS,
-        handler: events.EventHandler[context.TSCtx],
+        self, event_type: event_types.BUILTIN_EVENTS, handler: EventHandler[context.TSCtx]
     ) -> events.TSEventOnceHandler: ...
 
     @overload
     def register_once_handler(
-        self,
-        event_type: event_types.BUILTIN_NO_CTX_EVENTS,
-        handler: events.EventHandler[None],
+        self, event_type: event_types.BUILTIN_NO_CTX_EVENTS, handler: EventHandler[None]
     ) -> events.TSEventOnceHandler: ...
 
     @overload
     def register_once_handler(
-        self, event_type: event_types.TS_EVENTS, handler: events.EventHandler[context.TSCtx]
+        self, event_type: event_types.TS_EVENTS, handler: EventHandler[context.TSCtx]
     ) -> events.TSEventOnceHandler: ...
 
     @overload
     def register_once_handler(
-        self, event_type: str, handler: events.EventHandler[Any]
+        self, event_type: str, handler: EventHandler[Any]
     ) -> events.TSEventOnceHandler: ...
 
     def register_once_handler(
-        self, event_type: str, handler: events.EventHandler[Any]
+        self, event_type: str, handler: EventHandler[Any]
     ) -> events.TSEventOnceHandler:
         """
         Register an event handler to be ran once on an event.
@@ -371,7 +355,7 @@ class TSBot:
         raw: bool = False,
         hidden: bool = False,
         checks: Sequence[CommandHandler] = (),
-    ) -> Any:
+    ) -> Callable[[_TCH], _TCH]:
         """
         Decorator to register command handlers.
 
@@ -382,9 +366,7 @@ class TSBot:
         :param checks: List of async functions to be called before the command is executed.
         """
 
-        def command_decorator(
-            func: CommandHandler | RawCommandHandler,
-        ) -> CommandHandler | RawCommandHandler:
+        def command_decorator(func: _TCH) -> _TCH:
             self.register_command(
                 command=command,
                 handler=func,
