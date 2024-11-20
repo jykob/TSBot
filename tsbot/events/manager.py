@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import asyncio
 from collections import defaultdict
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from tsbot import logging, utils
+from tsbot import logging
 
 if TYPE_CHECKING:
     from tsbot import bot, events
@@ -16,10 +16,16 @@ class EventManager:
     def __init__(self) -> None:
         self._event_handlers: defaultdict[str, list[events.TSEventHandler]] = defaultdict(list)
         self._event_queue: asyncio.Queue[events.TSEvent] = asyncio.Queue()
-        self._closed = False
+        self._running = False
+
+    def __enter__(self) -> None:
+        self._running = True
+
+    def __exit__(self, *exc: Any) -> None:
+        self._running = False
 
     def add_event(self, event: events.TSEvent) -> None:
-        if self._closed:
+        if self._running:
             logger.warning("Event %r emitted during closing and is ignored", event.event)
         else:
             self._event_queue.put_nowait(event)
@@ -45,7 +51,7 @@ class EventManager:
     async def handle_events_task(self, bot: bot.TSBot) -> None:
         """Task to run events put into the event queue."""
 
-        with utils.toggle(self, "_closed", enter=False, exit=True):
+        with self:
             while True:
                 self.handle_event(bot, await self._event_queue.get())
 
