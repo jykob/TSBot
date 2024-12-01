@@ -578,7 +578,6 @@ class TSBot:
         self._task_manager.start(self)
 
         self.register_task(self._event_manager.handle_events_task, name="HandleEvents-Task")
-        self.emit(event_name="run")
 
         with contextlib.closing(self), self._connection as connection_wait:
             tasks = list(map(asyncio.create_task, (self._wait_closed(), connection_wait)))

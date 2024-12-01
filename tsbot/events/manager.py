@@ -4,10 +4,10 @@ import asyncio
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any
 
-from tsbot import logging
+from tsbot import events, logging
 
 if TYPE_CHECKING:
-    from tsbot import bot, events
+    from tsbot import bot
 
 logger = logging.get_logger(__name__)
 
@@ -52,6 +52,7 @@ class EventManager:
         """Task to run events put into the event queue."""
 
         with self:
+            self.add_event(events.TSEvent(event="run", ctx=None))
             while True:
                 self.handle_event(bot, await self._event_queue.get())
 
