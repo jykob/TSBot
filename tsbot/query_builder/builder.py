@@ -30,11 +30,11 @@ class TSQuery:
     """
 
     __slots__ = (
-        "_command",
         "_cached_query",
+        "_command",
         "_options",
-        "_parameters",
         "_parameter_blocks",
+        "_parameters",
     )
 
     def __init__(
