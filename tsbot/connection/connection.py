@@ -5,7 +5,7 @@ import itertools
 from collections.abc import Coroutine
 from typing import TYPE_CHECKING, Any
 
-from tsbot import exceptions, logging, query_builder
+from tsbot import exceptions, logging, query_builder, utils
 from tsbot.connection import reader, writer
 
 if TYPE_CHECKING:
@@ -170,7 +170,8 @@ class TSConnection:
         return await self.send_raw(query.compile())
 
     async def send_raw(self, raw_query: str) -> response.TSResponse:
-        response = await self._send(raw_query)
+        async with self._sending_lock:
+            response = await self._send(raw_query)
 
         if response.error_id == 2568:
             raise exceptions.TSResponsePermissionError(
@@ -187,10 +188,10 @@ class TSConnection:
 
         return response
 
+    @utils.time_coroutine(logger, logging.DEBUG, "Query took %.5f seconds to execute")
     async def _send(self, raw_query: str) -> response.TSResponse:
         if self._closed:
             raise BrokenPipeError("Connection to the TeamSpeak server is closed")
 
-        async with self._sending_lock:
-            await self._writer.write(raw_query)
-            return await self._reader.read_response()
+        await self._writer.write(raw_query)
+        return await self._reader.read_response()
