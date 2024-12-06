@@ -42,6 +42,7 @@ class SSHConnection(abc.Connection):
             raise ConnectionAbortedError("Invalid TeamSpeak server")
         await self.readline()
 
+    @override
     async def authenticate(self) -> None:
         """Teamspeak SSH query clients are already authenticated on connect"""
 
