@@ -5,11 +5,11 @@ import itertools
 from collections.abc import Coroutine
 from typing import TYPE_CHECKING, Any
 
-from tsbot import exceptions, logging, query_builder, utils
+from tsbot import exceptions, logging, query_builder, response, utils
 from tsbot.connection import reader, writer
 
 if TYPE_CHECKING:
-    from tsbot import bot, connection, events, ratelimiter, response
+    from tsbot import bot, connection, events, ratelimiter
 
 
 logger = logging.get_logger(__name__)
@@ -194,4 +194,5 @@ class TSConnection:
             raise BrokenPipeError("Connection to the TeamSpeak server is closed")
 
         await self._writer.write(raw_query)
-        return await self._reader.read_response()
+        return response.TSResponse.from_server_response(await self._reader.read_response())
+
