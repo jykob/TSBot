@@ -530,12 +530,20 @@ class TSBot:
         return await self._connection.send_raw(raw_query)
 
     async def send_batched(self, queries: Iterable[query_builder.TSQuery]) -> None:
-        # TODO: Docstring
+        """
+        Sends multiple queries to the server, ignoring the response.
+
+        :param queries: Iterable of :class:`TSQuery<tsbot.query_builder.TSQuery>` instances to be send to the server.
+        """
 
         await self._connection.send_batched(queries)
 
     async def send_batched_raw(self, raw_queries: Iterable[str]) -> None:
-        # TODO: Docstring
+        """
+        Sends multiple raw commands to the server, ignoring the response.
+
+        :param queries: Iterable of raw query commands to be send to the server.
+        """
 
         await self._connection.send_batched_raw(raw_queries)
 
