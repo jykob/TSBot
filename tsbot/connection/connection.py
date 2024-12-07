@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import itertools
-from collections.abc import Collection, Coroutine
+from collections.abc import Coroutine, Iterable
 from typing import TYPE_CHECKING, Any
 
 from tsbot import exceptions, logging, query_builder, response, utils
@@ -196,15 +196,15 @@ class TSConnection:
         await self._writer.write(raw_query)
         return response.TSResponse.from_server_response(await self._reader.read_response())
 
-    async def send_batched(self, queries: Collection[query_builder.TSQuery]) -> None:
+    async def send_batched(self, queries: Iterable[query_builder.TSQuery]) -> None:
         await self.send_batched_raw(tuple(query.compile() for query in queries))
 
-    async def send_batched_raw(self, queries: Collection[str]) -> None:
+    async def send_batched_raw(self, queries: Iterable[str]) -> None:
         async with self._sending_lock:
             await self._send_batched(queries)
 
     @utils.time_coroutine(logger, logging.DEBUG, "Batch query took %.5f seconds to execute")
-    async def _send_batched(self, queries: Collection[str]) -> None:
+    async def _send_batched(self, queries: Iterable[str]) -> None:
         if self._closed:
             raise BrokenPipeError("Connection to the TeamSpeak server is closed")
 
