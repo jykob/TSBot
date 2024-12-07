@@ -197,7 +197,7 @@ class TSConnection:
         return response.TSResponse.from_server_response(await self._reader.read_response())
 
     async def send_batched(self, queries: Iterable[query_builder.TSQuery]) -> None:
-        await self.send_batched_raw(tuple(query.compile() for query in queries))
+        await self.send_batched_raw(query.compile() for query in queries)
 
     async def send_batched_raw(self, queries: Iterable[str]) -> None:
         async with self._sending_lock:
