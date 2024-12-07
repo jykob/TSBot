@@ -4,10 +4,13 @@ import asyncio
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-from tsbot import context, events
+from tsbot import context, events, logging
 
 if TYPE_CHECKING:
     from tsbot import connection, ratelimiter
+
+
+logger = logging.get_logger(__name__)
 
 
 class Writer:
@@ -31,5 +34,6 @@ class Writer:
         if self._ratelimiter:
             await self._ratelimiter.wait()
 
+        logger.debug("Sending data: %r", raw_query)
         await self._connection.write(raw_query)
         self._on_send(events.TSEvent("send", context.TSCtx({"query": raw_query})))

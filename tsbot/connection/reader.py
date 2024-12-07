@@ -98,7 +98,7 @@ class Reader:
     async def _task(self) -> None:
         async def read_gen() -> AsyncGenerator[str, None]:
             while await self._ready_to_read.wait() and (data := await self._connection.readline()):
-                logger.debug("Got data: %r", data)
+                logger.debug("Received data: %r", data)
                 yield data.rstrip()
 
         async with contextlib.aclosing(read_gen()) as g:
