@@ -208,6 +208,12 @@ class TSConnection:
         if self._closed:
             raise BrokenPipeError("Connection to the TeamSpeak server is closed")
 
-        await self._connection.write(self._connection.LINE_ENDING.join(queries))
-        for _ in range(len(queries)):
-            await self._reader.read_response()
+        count = 0
+
+        try:
+            for count, raw_query in enumerate(queries):
+                await self._writer.write(raw_query)
+
+        finally:
+            for _ in range(count):
+                await self._reader.read_response()
