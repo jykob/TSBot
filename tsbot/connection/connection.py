@@ -208,16 +208,17 @@ class TSConnection:
         if self._closed:
             raise BrokenPipeError("Connection to the TeamSpeak server is closed")
 
-        count = 0
+        queries_sent = 0
 
         try:
-            for count, raw_query in enumerate(queries):
+            for raw_query in queries:
                 # This is still slow, because `.write()` flushes on each call.
                 # If the connection is ratelimited, this behavior is wanted.
                 # If not ratelimited, should flush only after the last query.
                 # TODO: Optimize non-ratelimited case
                 await self._writer.write(raw_query)
+                queries_sent += 1
 
         finally:
-            for _ in range(count):
+            for _ in range(queries_sent):
                 await self._reader.read_response()
