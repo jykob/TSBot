@@ -6,7 +6,7 @@ import contextlib
 from collections.abc import AsyncGenerator, Callable
 from typing import TYPE_CHECKING, Any
 
-from tsbot import events, logging, response
+from tsbot import events, logging
 
 if TYPE_CHECKING:
     from tsbot import connection
@@ -120,7 +120,5 @@ class Reader:
         async with contextlib.aclosing(self._pop_till_error_line()) as g:
             return tuple([line async for line in g])
 
-    async def read_response(self) -> response.TSResponse:
-        return response.TSResponse.from_server_response(
-            await asyncio.wait_for(self._get_response(), timeout=self._read_timeout)
-        )
+    async def read_response(self) -> tuple[str, ...]:
+        return await asyncio.wait_for(self._get_response(), timeout=self._read_timeout)

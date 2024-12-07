@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import asyncio
 import itertools
-from collections.abc import Coroutine
+from collections.abc import Coroutine, Iterable
 from typing import TYPE_CHECKING, Any
 
-from tsbot import exceptions, logging, query_builder, utils
+from tsbot import exceptions, logging, query_builder, response, utils
 from tsbot.connection import reader, writer
 
 if TYPE_CHECKING:
-    from tsbot import bot, connection, events, ratelimiter, response
+    from tsbot import bot, connection, events, ratelimiter
 
 
 logger = logging.get_logger(__name__)
@@ -194,4 +194,31 @@ class TSConnection:
             raise BrokenPipeError("Connection to the TeamSpeak server is closed")
 
         await self._writer.write(raw_query)
-        return await self._reader.read_response()
+        return response.TSResponse.from_server_response(await self._reader.read_response())
+
+    async def send_batched(self, queries: Iterable[query_builder.TSQuery]) -> None:
+        await self.send_batched_raw(query.compile() for query in queries)
+
+    async def send_batched_raw(self, queries: Iterable[str]) -> None:
+        async with self._sending_lock:
+            await self._send_batched(queries)
+
+    @utils.time_coroutine(logger, logging.DEBUG, "Batch query took %.5f seconds to execute")
+    async def _send_batched(self, queries: Iterable[str]) -> None:
+        if self._closed:
+            raise BrokenPipeError("Connection to the TeamSpeak server is closed")
+
+        queries_sent = 0
+
+        try:
+            for raw_query in queries:
+                # This is still slow, because `.write()` flushes on each call.
+                # If the connection is ratelimited, this behavior is wanted.
+                # If not ratelimited, should flush only after the last query.
+                # TODO: Optimize non-ratelimited case
+                await self._writer.write(raw_query)
+                queries_sent += 1
+
+        finally:
+            for _ in range(queries_sent):
+                await self._reader.read_response()

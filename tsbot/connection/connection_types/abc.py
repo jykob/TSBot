@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 
 
 class Connection(ABC):
+    LINE_ENDING: str = "\n\r"
+
     @abstractmethod
     async def connect(self) -> None:
         """
