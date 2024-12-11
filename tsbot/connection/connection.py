@@ -149,9 +149,7 @@ class TSConnection:
             logger.debug("Authenticating connection")
             await self._connection.authenticate()
 
-            self._connected_event.set()
-
-            with self._reader:
+            with utils.set_event(self._connected_event), self._reader:
                 await select_server()
                 await register_notifications()
 
@@ -165,7 +163,6 @@ class TSConnection:
                 with contextlib.suppress(ConnectionError):
                     await self._connection.wait_closed()
 
-            self._connected_event.clear()
             self._bot.emit("disconnect")
 
     async def send(self, query: query_builder.TSQuery) -> response.TSResponse:
