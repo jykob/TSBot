@@ -75,6 +75,8 @@ class Reader:
         self._event_emitter = event_emitter
         self._read_timeout = read_timeout
 
+        self._skipped_responses = 0
+
         self._read_buffer = _ReadBuffer()
         self._reader_task: asyncio.Task[None] | None = None
 
@@ -121,4 +123,17 @@ class Reader:
             return tuple([line async for line in g])
 
     async def read_response(self) -> tuple[str, ...]:
-        return await asyncio.wait_for(self._get_response(), timeout=self._read_timeout)
+        while self._skipped_responses > 0:
+            await self._get_response()
+            self._skipped_responses -= 1
+
+        try:
+            response = await asyncio.wait_for(self._get_response(), timeout=self._read_timeout)
+        except asyncio.TimeoutError:
+            self.skip_response()
+            raise
+
+        return response
+
+    def skip_response(self, count: int = 1) -> None:
+        self._skipped_responses += count
