@@ -9,7 +9,7 @@ from tsbot import context, parsers
 
 class TSEvent(NamedTuple):
     event: str
-    ctx: Any
+    ctx: Any = None
 
     @classmethod
     def from_server_notification(cls, raw_data: str) -> Self:

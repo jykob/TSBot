@@ -52,7 +52,7 @@ class EventManager:
         """Task to run events put into the event queue."""
 
         with self:
-            self.add_event(events.TSEvent(event="run", ctx=None))
+            self.add_event(events.TSEvent("run"))
             while True:
                 self.handle_event(bot, await self._event_queue.get())
 

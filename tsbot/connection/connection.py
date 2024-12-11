@@ -157,17 +157,17 @@ class TSConnection:
                 await register_notifications()
 
                 if not self._is_first_connection:
-                    self._event_emitter(events.TSEvent("reconnect", None))
+                    self._event_emitter(events.TSEvent("reconnect"))
                 self._is_first_connection = False
 
-                self._event_emitter(events.TSEvent("connect", None))
+                self._event_emitter(events.TSEvent("connect"))
                 # TODO: deprecated, remove when appropriate
-                self._event_emitter(events.TSEvent("ready", None))
+                self._event_emitter(events.TSEvent("ready"))
 
                 with contextlib.suppress(ConnectionError):
                     await self._connection.wait_closed()
 
-            self._event_emitter(events.TSEvent("disconnect", None))
+            self._event_emitter(events.TSEvent("disconnect"))
 
     async def send(self, query: query_builder.TSQuery) -> response.TSResponse:
         return await self.send_raw(query.compile())
