@@ -611,12 +611,12 @@ class TSBot:
                         checks=command_kwargs["checks"],
                     )
 
-                elif event_kwargs := getattr(member, "__ts_event__", None):
+                elif event_kwargs := getattr(member, plugin.EVENT_ATTR, None):
                     self.register_event_handler(
                         handler=member, **cast(plugin.EventKwargs, event_kwargs)
                     )
 
-                elif once_kwargs := getattr(member, "__ts_once__", None):
+                elif once_kwargs := getattr(member, plugin.ONCE_ATTR, None):
                     self.register_once_handler(
                         handler=member, **cast(plugin.EventKwargs, once_kwargs)
                     )
