@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import itertools
 from collections.abc import Coroutine
 from typing import TYPE_CHECKING, Any
@@ -161,7 +162,8 @@ class TSConnection:
                 self._bot.emit("connect")
                 self._bot.emit("ready")  # TODO: deprecated, remove when appropriate
 
-                await self._connection.wait_closed()
+                with contextlib.suppress(ConnectionError):
+                    await self._connection.wait_closed()
 
             self._connected_event.clear()
             self._bot.emit("disconnect")
