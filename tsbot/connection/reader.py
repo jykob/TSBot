@@ -86,6 +86,9 @@ class Reader:
     def __exit__(self, *exc: Any) -> None:
         self.close()
 
+    def skip_response(self, count: int = 1) -> None:
+        self._skipped_responses += count
+
     def start(self) -> None:
         self._reader_task = asyncio.create_task(self._task(), name="Reader-Task")
 
@@ -134,6 +137,3 @@ class Reader:
             raise
 
         return response
-
-    def skip_response(self, count: int = 1) -> None:
-        self._skipped_responses += count
