@@ -6,7 +6,7 @@ import contextlib
 from collections.abc import AsyncGenerator, Callable
 from typing import TYPE_CHECKING, Any
 
-from tsbot import events, logging, response
+from tsbot import logging, response
 
 if TYPE_CHECKING:
     from tsbot import connection
@@ -66,13 +66,13 @@ class Reader:
     def __init__(
         self,
         connection: connection.abc.Connection,
-        event_emitter: Callable[[events.TSEvent], None],
+        on_notify: Callable[[str], None],
         read_timeout: float,
         ready_to_read: asyncio.Event,
     ) -> None:
         self._connection = connection
         self._ready_to_read = ready_to_read
-        self._event_emitter = event_emitter
+        self._on_notify = on_notify
         self._read_timeout = read_timeout
 
         self._read_buffer = _ReadBuffer()
@@ -104,7 +104,7 @@ class Reader:
         async with contextlib.aclosing(read_gen()) as g:
             async for data in g:
                 if data.startswith("notify"):
-                    self._event_emitter(events.TSEvent.from_server_notification(data))
+                    self._on_notify(data)
                 else:
                     self._read_buffer.put(data)
 

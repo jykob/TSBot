@@ -91,7 +91,7 @@ class TSBot:
         )
 
         self._connection = connection.TSConnection(
-            bot=self,
+            event_emitter=self.emit_event,
             connection=connection_type,
             server_id=server_id,
             nickname=nickname,

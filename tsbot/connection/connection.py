@@ -3,14 +3,14 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import itertools
-from collections.abc import Coroutine
+from collections.abc import Callable, Coroutine
 from typing import TYPE_CHECKING, Any
 
-from tsbot import exceptions, logging, query_builder, utils
+from tsbot import context, events, exceptions, logging, query_builder, utils
 from tsbot.connection import reader, writer
 
 if TYPE_CHECKING:
-    from tsbot import bot, connection, events, ratelimiter, response
+    from tsbot import connection, ratelimiter, response
 
 
 logger = logging.get_logger(__name__)
@@ -19,7 +19,7 @@ logger = logging.get_logger(__name__)
 class TSConnection:
     def __init__(
         self,
-        bot: bot.TSBot,
+        event_emitter: Callable[[events.TSEvent], None],
         connection: connection.abc.Connection,
         *,
         server_id: int = 0,
@@ -29,7 +29,7 @@ class TSConnection:
         query_timeout: float = 5,
         ratelimiter: ratelimiter.RateLimiter | None = None,
     ) -> None:
-        self._bot = bot
+        self._event_emitter = event_emitter
         self._connection = connection
 
         self._server_id = server_id
@@ -46,7 +46,7 @@ class TSConnection:
 
         self._reader = reader.Reader(
             self._connection,
-            event_emitter=self._handle_event,
+            on_notify=self._on_notify,
             ready_to_read=self._connected_event,
             read_timeout=query_timeout,
         )
@@ -54,7 +54,7 @@ class TSConnection:
         self._writer = writer.Writer(
             self._connection,
             ratelimiter=ratelimiter,
-            on_send=self._handle_event,
+            on_send=self._on_send,
             ready_to_write=self._connected_event,
         )
 
@@ -70,6 +70,12 @@ class TSConnection:
 
     def __exit__(self, *exc: Any) -> None:
         self.close()
+
+    def _on_notify(self, notify_data: str) -> None:
+        self._event_emitter(events.TSEvent.from_server_notification(notify_data))
+
+    def _on_send(self, raw_query: str) -> None:
+        self._event_emitter(events.TSEvent("send", context.TSCtx({"query": raw_query})))
 
     def connect(self) -> None:
         self._connection_task = asyncio.create_task(
@@ -88,9 +94,6 @@ class TSConnection:
             raise ConnectionError("Trying to wait on uninitialized connection")
 
         await self._connection_task
-
-    def _handle_event(self, event: events.TSEvent) -> None:
-        self._bot.emit_event(event)
 
     async def _connection_handler(self) -> None:
         """
@@ -154,16 +157,17 @@ class TSConnection:
                 await register_notifications()
 
                 if not self._is_first_connection:
-                    self._bot.emit("reconnect")
+                    self._event_emitter(events.TSEvent("reconnect", None))
                 self._is_first_connection = False
 
-                self._bot.emit("connect")
-                self._bot.emit("ready")  # TODO: deprecated, remove when appropriate
+                self._event_emitter(events.TSEvent("connect", None))
+                # TODO: deprecated, remove when appropriate
+                self._event_emitter(events.TSEvent("ready", None))
 
                 with contextlib.suppress(ConnectionError):
                     await self._connection.wait_closed()
 
-            self._bot.emit("disconnect")
+            self._event_emitter(events.TSEvent("disconnect", None))
 
     async def send(self, query: query_builder.TSQuery) -> response.TSResponse:
         return await self.send_raw(query.compile())
