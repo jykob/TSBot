@@ -212,13 +212,8 @@ class TSConnection:
 
         try:
             for raw_query in queries:
-                # This is still slow, because `.write()` flushes on each call.
-                # If the connection is ratelimited, this behavior is wanted.
-                # If not ratelimited, should flush only after the last query.
-                # TODO: Optimize non-ratelimited case
                 await self._writer.write(raw_query)
                 queries_sent += 1
 
         finally:
-            for _ in range(queries_sent):
-                await self._reader.read_response()
+            self._reader.skip_response(queries_sent)
