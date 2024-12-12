@@ -542,7 +542,7 @@ class TSBot:
     async def _wait_closed(self) -> None:
         await self._closing.wait()
 
-        self.emit(event_name="close")
+        self.emit_event(events.TSEvent("close"))
         await self._task_manager.close()
         await self._event_manager.run_till_empty(self)
 
