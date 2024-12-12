@@ -6,7 +6,7 @@ import inspect
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any, Literal, NamedTuple, TypeVar, cast, overload
 
-from typing_extensions import TypeVarTuple, Unpack, deprecated
+from typing_extensions import TypeVarTuple, Unpack
 
 from tsbot import (
     commands,
@@ -20,7 +20,6 @@ from tsbot import (
     ratelimiter,
     response,
     tasks,
-    utils,
 )
 
 if TYPE_CHECKING:
@@ -156,12 +155,6 @@ class TSBot:
         self._event_manager.add_event(event)
 
     @overload
-    @deprecated("'ready' event is deprecated. Use 'connect' instead")
-    def on(
-        self, event_type: Literal["ready"]
-    ) -> Callable[[EventHandler[None]], EventHandler[None]]: ...
-
-    @overload
     def on(
         self, event_type: event_types.BUILTIN_EVENTS
     ) -> Callable[[EventHandler[context.TSCtx]], EventHandler[context.TSCtx]]: ...
@@ -186,19 +179,11 @@ class TSBot:
         :param event_type: Name of the event.
         """
 
-        utils.check_for_deprecated_event(event_type)
-
         def event_decorator(func: _TEH) -> _TEH:
             self.register_event_handler(event_type, func)
             return func
 
         return event_decorator
-
-    @overload
-    @deprecated("'ready' event is deprecated. Use 'connect' instead")
-    def register_event_handler(
-        self, event_type: Literal["ready"], handler: EventHandler[None]
-    ) -> events.TSEventHandler: ...
 
     @overload
     def register_event_handler(
@@ -231,17 +216,9 @@ class TSBot:
         :return: The instance of :class:`TSEventHandler<tsbot.events.TSEventHandler>` created.
         """
 
-        utils.check_for_deprecated_event(event_type)
-
         event_handler = events.TSEventHandler(event_type, handler)
         self._event_manager.register_event_handler(event_handler)
         return event_handler
-
-    @overload
-    @deprecated("'ready' event is deprecated. Use 'connect' instead")
-    def once(
-        self, event_type: Literal["ready"]
-    ) -> Callable[[EventHandler[None]], EventHandler[None]]: ...
 
     @overload
     def once(
@@ -268,19 +245,11 @@ class TSBot:
         :param event_type: Name of the event.
         """
 
-        utils.check_for_deprecated_event(event_type)
-
         def once_decorator(func: _TEH) -> _TEH:
             self.register_once_handler(event_type, func)
             return func
 
         return once_decorator
-
-    @overload
-    @deprecated("'ready' event is deprecated. Use 'connect' instead")
-    def register_once_handler(
-        self, event_type: Literal["ready"], handler: EventHandler[None]
-    ) -> events.TSEventOnceHandler: ...
 
     @overload
     def register_once_handler(
@@ -312,8 +281,6 @@ class TSBot:
         :param handler: Async function to handle the event.
         :return: The instance of :class:`TSEventOnceHandler<tsbot.events.TSEventOnceHandler>` created.
         """
-
-        utils.check_for_deprecated_event(event_type)
 
         event_handler = events.TSEventOnceHandler(event_type, handler, self.remove_event_handler)
         self._event_manager.register_event_handler(event_handler)
