@@ -161,8 +161,6 @@ class TSConnection:
                 self._is_first_connection = False
 
                 self._event_emitter(events.TSEvent("connect"))
-                # TODO: deprecated, remove when appropriate
-                self._event_emitter(events.TSEvent("ready"))
 
                 with contextlib.suppress(ConnectionError):
                     await self._connection.wait_closed()
