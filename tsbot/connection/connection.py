@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import itertools
-from collections.abc import Callable, Coroutine
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 from tsbot import context, events, exceptions, logging, query_builder, response, utils
@@ -64,9 +64,8 @@ class TSConnection:
     def connected(self) -> bool:
         return self._connected_event.is_set()
 
-    def __enter__(self) -> Coroutine[None, None, None]:
+    def __enter__(self) -> None:
         self.connect()
-        return self.wait_closed()
 
     def __exit__(self, *exc: Any) -> None:
         self.close()
@@ -79,7 +78,7 @@ class TSConnection:
 
     def connect(self) -> None:
         self._connection_task = asyncio.create_task(
-            self._connection_handler(), name="Connection-Task"
+            self._connection_handler(), name="ConnectionHandler-Task"
         )
 
     def close(self) -> None:

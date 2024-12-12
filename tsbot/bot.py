@@ -581,8 +581,11 @@ class TSBot:
         await self._event_manager.await_running()
         self.emit_event(events.TSEvent("run"))
 
-        with contextlib.closing(self), self._connection as connection_wait:
-            tasks = list(map(asyncio.create_task, (self._wait_closed(), connection_wait)))
+        with contextlib.closing(self), self._connection:
+            tasks = [
+                asyncio.create_task(self._wait_closed(), name="Bot-Task"),
+                asyncio.create_task(self._connection.wait_closed(), name="Connection-Task"),
+            ]
             done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
 
         for task in pending:
