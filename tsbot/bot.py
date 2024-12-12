@@ -315,7 +315,7 @@ class TSBot:
 
         utils.check_for_deprecated_event(event_type)
 
-        event_handler = events.TSEventOnceHandler(event_type, handler, self._event_manager)
+        event_handler = events.TSEventOnceHandler(event_type, handler, self.remove_event_handler)
         self._event_manager.register_event_handler(event_handler)
         return event_handler
 
