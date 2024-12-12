@@ -25,8 +25,7 @@ class AFKPlugin(plugin.TSPlugin):
     CLIENT_LIST_QUERY = query("clientlist").option("times")
     MOVE_QUERY = query("clientmove").params(cid=AFK_CHANNEL_ID)
 
-    def __init__(self) -> None:
-        self._task: TSTask | None = None
+    _task: TSTask
 
     def should_be_moved(self, client: dict[str, str]) -> bool:
         return all(check(client) for check in (is_not_active, not_in_afk_channel, is_not_query))
@@ -51,8 +50,7 @@ class AFKPlugin(plugin.TSPlugin):
     @plugin.on("disconnect")
     async def cancel_task(self, bot: TSBot, ctx: None):
         """Cleanup task on disconnect"""
-        if self._task:
-            self._task = bot.remove_task(self._task)
+        self._task.cancel()
 
 
 bot = TSBot(
