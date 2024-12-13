@@ -194,24 +194,25 @@ class TSConnection:
             raise BrokenPipeError("Connection to the TeamSpeak server is closed")
 
         await self._writer.write(raw_query)
-        return response.TSResponse.from_server_response(await self._reader.read_response())
+        response_data = await self._reader.read_response()
+        return response.TSResponse.from_server_response(response_data)
 
     async def send_batched(self, queries: Iterable[query_builder.TSQuery]) -> None:
         await self.send_batched_raw(query.compile() for query in queries)
 
-    async def send_batched_raw(self, queries: Iterable[str]) -> None:
+    async def send_batched_raw(self, raw_queries: Iterable[str]) -> None:
         async with self._sending_lock:
-            await self._send_batched(queries)
+            await self._send_batched(raw_queries)
 
     @utils.time_coroutine(logger, logging.DEBUG, "Batch query took %.5f seconds to execute")
-    async def _send_batched(self, queries: Iterable[str]) -> None:
+    async def _send_batched(self, raw_queries: Iterable[str]) -> None:
         if self._closed:
             raise BrokenPipeError("Connection to the TeamSpeak server is closed")
 
         queries_sent = 0
 
         try:
-            for raw_query in queries:
+            for raw_query in raw_queries:
                 await self._writer.write(raw_query)
                 queries_sent += 1
 
