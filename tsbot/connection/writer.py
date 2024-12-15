@@ -4,7 +4,7 @@ import asyncio
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-from tsbot import context, events, logging
+from tsbot import logging
 
 if TYPE_CHECKING:
     from tsbot import connection, ratelimiter
@@ -19,7 +19,7 @@ class Writer:
         connection: connection.abc.Connection,
         ratelimiter: ratelimiter.RateLimiter | None,
         ready_to_write: asyncio.Event,
-        on_send: Callable[[events.TSEvent], None],
+        on_send: Callable[[str], None],
     ) -> None:
         self._connection = connection
 
@@ -36,4 +36,4 @@ class Writer:
 
         logger.debug("Sending data: %r", raw_query)
         await self._connection.write(raw_query)
-        self._on_send(events.TSEvent("send", context.TSCtx({"query": raw_query})))
+        self._on_send(raw_query)

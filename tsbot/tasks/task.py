@@ -24,6 +24,10 @@ class TSTask:
     name: str | None = None
     task: asyncio.Task[None] | None = None
 
+    def cancel(self) -> None:
+        if self.task:
+            self.task.cancel()
+
 
 def every(every_handler: TaskHandler[Unpack[_Ts]], seconds: float) -> TaskHandler[Unpack[_Ts]]:
     @functools.wraps(every_handler)

@@ -6,7 +6,7 @@ import inspect
 from collections.abc import Callable, Iterable, Sequence
 from typing import TYPE_CHECKING, Any, Literal, NamedTuple, TypeVar, cast, overload
 
-from typing_extensions import TypeVarTuple, Unpack, deprecated
+from typing_extensions import TypeVarTuple, Unpack
 
 from tsbot import (
     commands,
@@ -20,7 +20,6 @@ from tsbot import (
     ratelimiter,
     response,
     tasks,
-    utils,
 )
 
 if TYPE_CHECKING:
@@ -91,7 +90,7 @@ class TSBot:
         )
 
         self._connection = connection.TSConnection(
-            bot=self,
+            event_emitter=self.emit_event,
             connection=connection_type,
             server_id=server_id,
             nickname=nickname,
@@ -156,12 +155,6 @@ class TSBot:
         self._event_manager.add_event(event)
 
     @overload
-    @deprecated("'ready' event is deprecated. Use 'connect' instead")
-    def on(
-        self, event_type: Literal["ready"]
-    ) -> Callable[[EventHandler[None]], EventHandler[None]]: ...
-
-    @overload
     def on(
         self, event_type: event_types.BUILTIN_EVENTS
     ) -> Callable[[EventHandler[context.TSCtx]], EventHandler[context.TSCtx]]: ...
@@ -186,19 +179,11 @@ class TSBot:
         :param event_type: Name of the event.
         """
 
-        utils.check_for_deprecated_event(event_type)
-
         def event_decorator(func: _TEH) -> _TEH:
             self.register_event_handler(event_type, func)
             return func
 
         return event_decorator
-
-    @overload
-    @deprecated("'ready' event is deprecated. Use 'connect' instead")
-    def register_event_handler(
-        self, event_type: Literal["ready"], handler: EventHandler[None]
-    ) -> events.TSEventHandler: ...
 
     @overload
     def register_event_handler(
@@ -231,17 +216,9 @@ class TSBot:
         :return: The instance of :class:`TSEventHandler<tsbot.events.TSEventHandler>` created.
         """
 
-        utils.check_for_deprecated_event(event_type)
-
         event_handler = events.TSEventHandler(event_type, handler)
         self._event_manager.register_event_handler(event_handler)
         return event_handler
-
-    @overload
-    @deprecated("'ready' event is deprecated. Use 'connect' instead")
-    def once(
-        self, event_type: Literal["ready"]
-    ) -> Callable[[EventHandler[None]], EventHandler[None]]: ...
 
     @overload
     def once(
@@ -268,19 +245,11 @@ class TSBot:
         :param event_type: Name of the event.
         """
 
-        utils.check_for_deprecated_event(event_type)
-
         def once_decorator(func: _TEH) -> _TEH:
             self.register_once_handler(event_type, func)
             return func
 
         return once_decorator
-
-    @overload
-    @deprecated("'ready' event is deprecated. Use 'connect' instead")
-    def register_once_handler(
-        self, event_type: Literal["ready"], handler: EventHandler[None]
-    ) -> events.TSEventOnceHandler: ...
 
     @overload
     def register_once_handler(
@@ -313,9 +282,7 @@ class TSBot:
         :return: The instance of :class:`TSEventOnceHandler<tsbot.events.TSEventOnceHandler>` created.
         """
 
-        utils.check_for_deprecated_event(event_type)
-
-        event_handler = events.TSEventOnceHandler(event_type, handler, self._event_manager)
+        event_handler = events.TSEventOnceHandler(event_type, handler, self.remove_event_handler)
         self._event_manager.register_event_handler(event_handler)
         return event_handler
 
@@ -560,7 +527,7 @@ class TSBot:
     async def _wait_closed(self) -> None:
         await self._closing.wait()
 
-        self.emit(event_name="close")
+        self.emit_event(events.TSEvent("close"))
         await self._task_manager.close()
         await self._event_manager.run_till_empty(self)
 
@@ -596,9 +563,14 @@ class TSBot:
         self._task_manager.start(self)
 
         self.register_task(self._event_manager.handle_events_task, name="HandleEvents-Task")
+        await self._event_manager.await_running()
+        self.emit_event(events.TSEvent("run"))
 
-        with contextlib.closing(self), self._connection as connection_wait:
-            tasks = list(map(asyncio.create_task, (self._wait_closed(), connection_wait)))
+        with contextlib.closing(self), self._connection:
+            tasks = [
+                asyncio.create_task(self._wait_closed(), name="Bot-Task"),
+                asyncio.create_task(self._connection.wait_closed(), name="Connection-Task"),
+            ]
             done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
 
         for task in pending:
@@ -629,12 +601,12 @@ class TSBot:
                         checks=command_kwargs["checks"],
                     )
 
-                elif event_kwargs := getattr(member, "__ts_event__", None):
+                elif event_kwargs := getattr(member, plugin.EVENT_ATTR, None):
                     self.register_event_handler(
                         handler=member, **cast(plugin.EventKwargs, event_kwargs)
                     )
 
-                elif once_kwargs := getattr(member, "__ts_once__", None):
+                elif once_kwargs := getattr(member, plugin.ONCE_ATTR, None):
                     self.register_once_handler(
                         handler=member, **cast(plugin.EventKwargs, once_kwargs)
                     )
