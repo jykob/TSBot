@@ -3,8 +3,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import itertools
-
-from collections.abc import Callable, Coroutine, Iterable
+from collections.abc import Callable, Iterable
 from typing import TYPE_CHECKING, Any
 
 from tsbot import context, events, exceptions, logging, query_builder, response, utils
