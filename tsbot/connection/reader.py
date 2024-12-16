@@ -130,9 +130,9 @@ class Reader:
         return await self._response_buffer.pop()
 
     async def read_response(self) -> tuple[str, ...]:
-        while self._skipped_responses > 0:
-            await self._get_response()
-            self._skipped_responses -= 1
+        if self._skipped_responses > 0:
+            await self._response_buffer.discard(self._skipped_responses)
+            self._skipped_responses = 0
 
         try:
             response = await asyncio.wait_for(self._get_response(), timeout=self._read_timeout)
@@ -141,4 +141,3 @@ class Reader:
             raise
 
         return response
-
