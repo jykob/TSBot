@@ -53,6 +53,7 @@ you can use the [bot.send_batched()](tsbot.bot.TSBot.send_batched) method.
 Some query commands allow you to target multiple actions at once.
 For example `clientmove` allows you to move multiple clients at once.
 You should always prefer this over sending multiple move queries.
+Refer to the *TeamSpeak 3 ServerQuery Manual* if a command supports this behavior.
 
 ```python
 from tsbot import query
@@ -66,7 +67,7 @@ clientmove_query = (
 await bot.send(clientmove_query)
 ```
 
-If a query command doesn't support this, you can send multiple queries to achieve the same result.
+If a query command doesn't support multiple actions, you can send multiple queries to achieve the same result.
 For example `clientpoke` only allows you to target one client at a time.
 ````
 
