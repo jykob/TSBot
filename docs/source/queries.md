@@ -7,8 +7,7 @@ myst:
 
 # Queries
 
-TSBot implements a query builder to ease the use of building commands.  
-In this chapter you will learn how to use the query system.
+TSBot implements a query builder to ease the use of building commands.
 
 ---
 
@@ -30,19 +29,72 @@ This creates {{TSQuery}} object which you can manipulate to build out your comma
 ## Sending queries
 
 Sending queries to the server is as simple as awaiting calls to [bot.send()](tsbot.bot.TSBot.send) method.  
-The [bot.send()](tsbot.bot.TSBot.send) method takes {{TSQuery}} objects as its first argument.
+The [bot.send()](tsbot.bot.TSBot.send) method takes {{TSQuery}} objects as its only argument.
 
 ```python
 from tsbot import query
 
 clientlist_query = query("clientlist").option("uid")
-bot.send(clientlist_query)
+await bot.send(clientlist_query)
 ```
 
-To send raw commands to the server, use [bot.send_raw()](tsbot.bot.TSBot.send_raw) method.
+To send raw queries to the server, use [bot.send_raw()](tsbot.bot.TSBot.send_raw) method.
 
 ```python
-bot.send_raw("clientlist -uid")
+await bot.send_raw("clientlist -uid")
+```
+
+## Sending multiple queries
+
+If you have multiple queries and those queries only cause side effects on the server without returning any data,
+you can use the [bot.send_batched()](tsbot.bot.TSBot.send_batched) method.
+
+````{note}
+Some query commands allow you to target multiple actions at once.
+For example `clientmove` allows you to move multiple clients at once.
+You should always prefer this over sending multiple move queries.
+
+```python
+from tsbot import query
+
+clientmove_query = (
+    query("clientmove")
+    .params(cid=1)
+    .param_block({"clid": client_id} for client_id in (3, 4, 5))
+)
+
+await bot.send(clientmove_query)
+```
+
+If a query command doesn't support this, you can send multiple queries to achieve the same result.
+For example `clientpoke` only allows you to target one client at a time.
+````
+
+The [bot.send_batched()](tsbot.bot.TSBot.send_batched) method takes an iterable of {{TSQuery}} objects as its only argument.
+
+```python
+from tsbot import query
+
+clientpoke_query = query("clientpoke").params(msg="Wake up!")
+await bot.send_batched(
+    (
+        clientpoke_query.params(clid=1),
+        clientpoke_query.params(clid=2),
+        clientpoke_query.params(clid=3),
+    )
+)
+```
+
+Alternatively, you can send multiple raw queries using the [bot.send_batched_raw()](tsbot.bot.TSBot.send_batched_raw) method.
+
+```python
+await bot.send_batched_raw(
+    (
+        r"clientpoke clid=1 msg=Wake\sup!",
+        r"clientpoke clid=2 msg=Wake\sup!",
+        r"clientpoke clid=3 msg=Wake\sup!",
+    )
+)
 ```
 
 ---
@@ -56,7 +108,7 @@ This allows you to [method cascade](https://en.wikipedia.org/wiki/Method_cascadi
 
 ### Adding options
 
-You can add options to your commands by using [option()](<tsbot.query_builder.TSQuery.option()>) method.  
+You can add options to your commands by using [option()](<tsbot.query_builder.TSQuery.option()>) method.
 The method [option()](<tsbot.query_builder.TSQuery.option()>) accepts as **_many arguments_** as you provide it or you can add them **_one by one_**.
 
 ```python
