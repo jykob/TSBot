@@ -112,7 +112,7 @@ class Reader:
                 logger.debug("Received data: %r", data)
                 yield data.rstrip()
 
-        read_buffer: collections.deque[str] = collections.deque()
+        read_buffer: list[str] = []
 
         async with contextlib.aclosing(read_gen()) as g:
             async for data in g:
