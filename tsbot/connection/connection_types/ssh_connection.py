@@ -42,6 +42,7 @@ class SSHConnection(abc.Connection):
             raise ConnectionAbortedError("Invalid TeamSpeak server")
         await self.readline()
 
+    @override
     async def authenticate(self) -> None:
         """Teamspeak SSH query clients are already authenticated on connect"""
 
@@ -66,7 +67,7 @@ class SSHConnection(abc.Connection):
         if not self._writer or self._writer.is_closing():
             raise BrokenPipeError("Trying to write on a closed connection")
 
-        self._writer.write(f"{data}\n\r")
+        self._writer.write(f"{data}{self.LINE_ENDING}")
         await self._writer.drain()
 
     @override
@@ -75,6 +76,6 @@ class SSHConnection(abc.Connection):
             raise ConnectionResetError("Reading on a closed connection")
 
         try:
-            return await self._reader.readuntil("\n\r")
+            return await self._reader.readuntil(self.LINE_ENDING)
         except Exception:
             return None

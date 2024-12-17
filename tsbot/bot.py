@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import inspect
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from typing import TYPE_CHECKING, Any, Literal, NamedTuple, TypeVar, cast, overload
 
 from typing_extensions import TypeVarTuple, Unpack
@@ -495,6 +495,24 @@ class TSBot:
         :return: Response from the server.
         """
         return await self._connection.send_raw(raw_query)
+
+    async def send_batched(self, queries: Iterable[query_builder.TSQuery]) -> None:
+        """
+        Sends multiple queries to the server, ignoring the response.
+
+        :param queries: Iterable of :class:`TSQuery<tsbot.query_builder.TSQuery>` instances to be send to the server.
+        """
+
+        await self._connection.send_batched(queries)
+
+    async def send_batched_raw(self, raw_queries: Iterable[str]) -> None:
+        """
+        Sends multiple raw commands to the server, ignoring the response.
+
+        :param queries: Iterable of raw query commands to be send to the server.
+        """
+
+        await self._connection.send_batched_raw(raw_queries)
 
     def close(self) -> None:
         """
