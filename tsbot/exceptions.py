@@ -27,7 +27,7 @@ class TSResponsePermissionError(TSResponseError):
         self.perm_id = perm_id
 
     def __str__(self) -> str:
-        return f"Error {self.error_id}: {self.msg}, Failed on permission {self.perm_id}"
+        return f"Error {self.error_id}: {self.msg}, failed on permid {self.perm_id}"
 
 
 class TSCommandError(TSException):
