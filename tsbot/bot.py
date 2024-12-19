@@ -541,7 +541,7 @@ class TSBot:
 
     async def _update_bot_info(self) -> None:
         """Update useful information about the bot instance"""
-        info = (await self.send_raw("whoami")).first
+        info = await self.send_raw("whoami")
 
         self._bot_info = BotInfo(
             uid=info["client_unique_identifier"],
