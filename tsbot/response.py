@@ -21,6 +21,10 @@ class TSResponse:
     def __iter__(self) -> Generator[dict[str, str], None, None]:
         yield from self.data
 
+    def __getitem__(self, key: str) -> str:
+        """Get the value of a key from the first datapoint"""
+        return self.first[key]
+
     @property
     def first(self) -> dict[str, str]:
         """First datapoint from the response"""
