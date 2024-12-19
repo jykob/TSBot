@@ -13,7 +13,7 @@ async def print_name_on_enter(bot: TSBot, ctx: TSCtx):
     info_query = query("clientinfo").params(clid=ctx["clid"])
     resp = await bot.send(info_query)
 
-    print(f"{resp.first['client_nickname']} has entered the server")
+    print(f"{resp['client_nickname']} has entered the server")
 
 
 bot = TSBot(
