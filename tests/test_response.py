@@ -43,24 +43,33 @@ def test_from_server_response(input_list: list[str], expected_values: dict[str, 
     assert resp.error_id == expected_values["error_id"]
 
 
-def test_first_property():
-    resp = response.TSResponse(
-        ({"version": "3.13.3", "build": "1608128225", "platform": "Windows"},), 0, "ok"
-    )
-    assert resp.first == {"version": "3.13.3", "build": "1608128225", "platform": "Windows"}
+@pytest.mark.parametrize(
+    ("resp",),
+    (
+        pytest.param(
+            response.TSResponse(
+                ({"version": "3.13.3", "build": "1608128225", "platform": "Windows"},), 0, "ok"
+            ),
+            id="test_one_datapoint",
+        ),
+        pytest.param(
+            response.TSResponse(({"ip": "0.0.0.0"}, {"ip": "::"}), 0, "ok"),
+            id="test_two_datapoint",
+        ),
+    ),
+)
+def test_first_property(resp: response.TSResponse):
+    assert resp.first == resp.data[0]
 
-    resp = response.TSResponse(({"ip": "0.0.0.0"}, {"ip": "::"}), 0, "ok")
-    assert resp.first == {"ip": "0.0.0.0"}
 
-
-def test_first_property_empty():
+def test_first_property_empty_raises():
     resp = response.TSResponse(tuple(), 0, "ok")
 
     with pytest.raises(IndexError):
         resp.first
 
 
-def test_iter_response():
+def test_response_iter():
     resp = response.TSResponse(
         data=(
             {"clid": "378", "cid": "23", "client_database_id": "21", "client_type": "0"},
@@ -74,5 +83,23 @@ def test_iter_response():
         msg="ok",
     )
 
-    for client in resp:
-        assert isinstance(client, dict)
+    for index, client in enumerate(resp):
+        assert client is resp.data[index]
+
+
+def test_response_getitem():
+    resp = response.TSResponse(
+        data=(
+            {"clid": "378", "cid": "23", "client_database_id": "21", "client_type": "0"},
+            {"clid": "377", "cid": "31", "client_database_id": "549", "client_type": "0"},
+            {"clid": "375", "cid": "31", "client_database_id": "46", "client_type": "0"},
+            {"clid": "371", "cid": "31", "client_database_id": "385", "client_type": "0"},
+            {"clid": "333", "cid": "45", "client_database_id": "27", "client_type": "0"},
+            {"clid": "3", "cid": "31", "client_database_id": "160", "client_type": "0"},
+        ),
+        error_id=0,
+        msg="ok",
+    )
+
+    for key in resp.data[0]:
+        assert resp[key] is resp.data[0][key]
