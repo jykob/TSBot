@@ -40,7 +40,7 @@ class RawConnection(abc.Connection):
 
         data = await self.readline()
         if data is None:
-            raise ConnectionAbortedError
+            raise ConnectionAbortedError("Failed to read login response")
 
         resp = parsers.parse_line(data.rstrip().removeprefix("error "))
         if resp["id"] != "0":
