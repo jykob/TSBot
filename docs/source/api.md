@@ -7,6 +7,8 @@
 
 ---
 
+## Context
+
 ```{eval-rst}
 .. class:: TSCtx(ctx)
 
@@ -18,13 +20,20 @@
 
 ---
 
+## Query Builder
+
 ```{eval-rst}
-.. automodule:: tsbot.query_builder
+.. autoclass:: tsbot.query_builder.query
+```
+
+```{eval-rst}
+.. autoclass:: tsbot.query_builder.TSQuery
     :members:
-    :exclude-members: Stringable
 ```
 
 ---
+
+## Responses
 
 ```{eval-rst}
 .. autoclass:: tsbot.response.TSResponse
@@ -36,7 +45,25 @@
 ## Plugins
 
 ```{eval-rst}
-.. automodule:: tsbot.plugin
+.. autoclass:: tsbot.plugin.TSPlugin
+```
+
+```{eval-rst}
+.. autodecorator:: tsbot.plugin.command
+```
+
+```{eval-rst}
+.. autodecorator:: tsbot.plugin.on
+```
+
+```{eval-rst}
+.. autodecorator:: tsbot.plugin.once
+```
+
+## Tasks
+
+```{eval-rst}
+.. autoclass:: tsbot.tasks.TSTask
     :members:
 ```
 
