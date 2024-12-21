@@ -10,7 +10,6 @@ if TYPE_CHECKING:
 
 _TP = TypeVar("_TP", bound="TSPlugin", contravariant=True)
 _TC = TypeVar("_TC", contravariant=True)
-_TH = TypeVar("_TH")
 
 PluginEventHandler = Callable[[_TP, "bot.TSBot", _TC], Coroutine[None, None, None]]
 PluginRawCommandHandler = Callable[
