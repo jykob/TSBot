@@ -67,11 +67,11 @@ async def upload(
 
     resp = await bot.send(init_query)
 
-    if resp.first.get("status") == "2050":
+    if resp.get("status") == "2050":
         raise TSException("File already exists")
 
-    ftkey = resp.first["ftkey"]
-    address = (resp.first.get("ip", "127.0.0.1"), int(resp.first["port"]))
+    ftkey = resp["ftkey"]
+    address = (resp.get("ip", "127.0.0.1"), int(resp["port"]))
 
     return await asyncio.to_thread(_upload, file, ftkey, address)
 
@@ -114,11 +114,11 @@ async def download(
 
     resp = await bot.send(init_query)
 
-    if resp.first.get("status") == "2051":
+    if resp.get("status") == "2051":
         raise TSException("File not found")
 
-    ftkey = resp.first["ftkey"]
-    address = (resp.first.get("ip", "127.0.0.1"), int(resp.first["port"]))
+    ftkey = resp["ftkey"]
+    address = (resp.get("ip", "127.0.0.1"), int(resp["port"]))
 
     return await asyncio.to_thread(_download, file, ftkey, address)
 

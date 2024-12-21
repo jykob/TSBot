@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Generator, Sequence
 from dataclasses import dataclass
+from typing import overload
 
 from typing_extensions import Self
 
@@ -21,6 +22,10 @@ class TSResponse:
     def __iter__(self) -> Generator[dict[str, str], None, None]:
         yield from self.data
 
+    def __getitem__(self, key: str) -> str:
+        """Get the value of a key from the first datapoint"""
+        return self.first[key]
+
     @property
     def first(self) -> dict[str, str]:
         """First datapoint from the response"""
@@ -30,6 +35,16 @@ class TSResponse:
     def last(self) -> dict[str, str]:
         """Last datapoint from the response"""
         return self.data[-1]
+
+    @overload
+    def get(self, key: str, /) -> str | None: ...
+
+    @overload
+    def get(self, key: str, default: str, /) -> str: ...
+
+    def get(self, key: str, default: str | None = None) -> str | None:
+        """Get the value of a key from the first datapoint"""
+        return self.first.get(key, default)
 
     @classmethod
     def from_server_response(cls, raw_data: Sequence[str]) -> Self:
