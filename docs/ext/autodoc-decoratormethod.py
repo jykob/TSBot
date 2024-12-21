@@ -22,7 +22,7 @@ class DecoratorMethodDocumenter(MethodDocumenter):
     def can_document_member(cls, member: Any, membername: str, isattr: bool, parent: Any) -> bool:
         return (
             super().can_document_member(member, membername, isattr, parent)
-            and bool(docstring := inspect.getdoc(member))
+            and (docstring := inspect.getdoc(member)) is not None
             and docstring.startswith(("decorator", "Decorator"))
         )
 
