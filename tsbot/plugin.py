@@ -70,10 +70,18 @@ def command(
     raw: bool = False,
     hidden: bool = False,
     checks: Sequence[CommandHandler] = (),
-) -> Callable[[_TH], _TH]:
-    """Decorator to register plugin commands"""
+) -> Callable[[PluginCommandHandler], PluginCommandHandler]:
+    """
+    Decorator to register plugin commands
 
-    def command_decorator(func: _TH) -> _TH:
+    :param command: Name(s) of the command.
+    :param help_text: Text to be displayed when using **!help**.
+    :param raw: Skip message parsing and pass the rest of the message as the sole argument.
+    :param hidden: Hide this command from **!help**.
+    :param checks: List of async functions to be called before the command is executed.
+    """
+
+    def command_decorator(func: PluginCommandHandler) -> PluginCommandHandler:
         setattr(
             func,
             COMMAND_ATTR,
@@ -116,10 +124,14 @@ def on(
 
 def on(
     event_type: str,
-) -> Callable[[_TH], _TH]:
-    """Decorator to register plugin events"""
+) -> Callable[[PluginEventHandler[_TP, Any]], PluginEventHandler[_TP, Any]]:
+    """
+    Decorator to register plugin events
 
-    def event_decorator(func: _TH) -> _TH:
+    :param event_type: Name of the event.
+    """
+
+    def event_decorator(func: PluginEventHandler[_TP, Any]) -> PluginEventHandler[_TP, Any]:
         setattr(func, EVENT_ATTR, EventKwargs(event_type=event_type))
         return func
 
@@ -152,10 +164,14 @@ def once(
 
 def once(
     event_type: str,
-) -> Callable[[_TH], _TH]:
-    """Decorator to register plugin events to be ran only once"""
+) -> Callable[[PluginEventHandler[_TP, Any]], PluginEventHandler[_TP, Any]]:
+    """
+    Decorator to register plugin events to be ran only once
 
-    def once_decorator(func: _TH) -> _TH:
+    :param event_type: Name of the event.
+    """
+
+    def once_decorator(func: PluginEventHandler[_TP, Any]) -> PluginEventHandler[_TP, Any]:
         setattr(func, ONCE_ATTR, EventKwargs(event_type=event_type))
         return func
 
