@@ -38,7 +38,6 @@
 ```{eval-rst}
 .. autoclass:: tsbot.response.TSResponse
     :members:
-    :undoc-members:
     :exclude-members: from_server_response
 ```
 
