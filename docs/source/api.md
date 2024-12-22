@@ -38,6 +38,7 @@
 ```{eval-rst}
 .. autoclass:: tsbot.response.TSResponse
     :members:
+    :special-members: __getitem__
     :exclude-members: from_server_response
 ```
 
