@@ -42,6 +42,8 @@
     :exclude-members: from_server_response
 ```
 
+---
+
 ## Plugins
 
 ```{eval-rst}
@@ -60,12 +62,16 @@
 .. autodecorator:: tsbot.plugin.once
 ```
 
+---
+
 ## Tasks
 
 ```{eval-rst}
 .. autoclass:: tsbot.tasks.TSTask
     :members:
 ```
+
+---
 
 ## Exceptions
 
