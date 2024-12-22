@@ -22,7 +22,7 @@ async def check_server_groups(bot: TSBot, ctx: TSCtx, *args: str, **kwargs: str)
     """Check if client has allowed server group. If not, raise permission error"""
 
     ids = await bot.send(GET_DATABASE_ID_QUERY.params(cluid=ctx["invokeruid"]))
-    groups = await bot.send(SERVER_GROUPS_BY_ID_QUERY.params(cldbid=ids.first["cldbid"]))
+    groups = await bot.send(SERVER_GROUPS_BY_ID_QUERY.params(cldbid=ids["cldbid"]))
 
     # Switch 'g == sg["name"]' to 'g in sg["name"]' if you don't want to match strictly
     if not any(g == sg["name"] for g in ALLOWED_SERVER_GROUPS for sg in groups):

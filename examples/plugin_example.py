@@ -19,7 +19,7 @@ class TestPlugin(plugin.TSPlugin):
         info_query = query("clientinfo").params(clid=ctx["clid"])
         resp = await bot.send(info_query)
 
-        print(self.move_message.format(username=resp.first["client_nickname"]))
+        print(self.move_message.format(username=resp["client_nickname"]))
 
 
 bot = TSBot(

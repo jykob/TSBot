@@ -6,8 +6,6 @@ from typing import TYPE_CHECKING, Any, TypeVar
 
 from typing_extensions import override
 
-from tsbot import utils
-
 if TYPE_CHECKING:
     from tsbot import bot, events
 
@@ -29,9 +27,14 @@ class TSEventHandler:
 @dataclass(slots=True)
 class TSEventOnceHandler(TSEventHandler):
     remove_event_handler_func: Callable[[TSEventHandler], None]
+    _has_run: bool = False
 
     @override
-    @utils.async_run_once
     async def run(self, bot: bot.TSBot, event: events.TSEvent) -> None:
+        if self._has_run:
+            return
+
+        self._has_run = True
         self.remove_event_handler_func(self)
+
         await self.handler(bot, event.ctx)
