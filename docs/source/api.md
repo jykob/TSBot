@@ -10,7 +10,7 @@
 ## Context
 
 ```{eval-rst}
-.. class:: TSCtx(ctx)
+.. class:: tsbot.context.TSCtx(ctx)
 
    Thin wrapper around Pythons dictionary.
 
