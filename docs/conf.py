@@ -18,7 +18,6 @@ sys.path.append(os.path.abspath("./ext"))
 
 # -- Project information -----------------------------------------------------
 
-
 import datetime
 
 project = "TSBot"
@@ -48,10 +47,15 @@ source_suffix = {
 
 # -- AutoDoc Options --------------------
 autodoc_typehints = "signature"
+autodoc_typehints_format = "short"
 autodoc_member_order = "bysource"
 autodoc_preserve_defaults = True
 autoclass_content = "both"
 
+
+# -- AutoDoc Typehints Options --------------------
+always_use_bars_union = True
+typehints_defaults = "comma"
 
 # -- MyST Options -----------------------
 myst_heading_anchors = 3

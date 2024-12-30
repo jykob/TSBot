@@ -67,6 +67,7 @@ required-imports = ["from __future__ import annotations"]
 "examples/**/*" = ["ASYNC230", "ANN201"]
 "tests/**/*" = ["ANN2", "ASYNC110"]
 "docs/**/*" = ["ANN2"]
+"docs/conf.py" = ["I002"]
 "__init__.py" = ["I002"]
 
 
