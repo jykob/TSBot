@@ -33,10 +33,9 @@ author = "jykob"
 extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.autodoc",
-    "sphinx_autodoc_typehints",
     "sphinx_rtd_theme",
     "myst_parser",
-    "autodoc-decoratormethod",
+    "autodoc_decorators",
 ]
 
 source_suffix = {
@@ -46,17 +45,12 @@ source_suffix = {
 }
 
 # -- AutoDoc Options --------------------
-autodoc_typehints = "signature"
+autodoc_typehints = "description"
 autodoc_typehints_format = "short"
 autodoc_member_order = "bysource"
 autodoc_preserve_defaults = True
 autoclass_content = "both"
 
-
-# -- AutoDoc Typehints Options --------------------
-always_use_bars_union = True
-typehints_defaults = "comma"
-typehints_use_rtype = False
 
 # -- MyST Options -----------------------
 myst_heading_anchors = 3

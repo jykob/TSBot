@@ -30,17 +30,6 @@ class DecoratorFactoryMethodDocumenter(MethodDocumenter):
             and member.__qualname__ in _DECORATOR_FACTORIES
         )
 
-    def format_signature(self, **kwargs: Any) -> str:
-        """
-        Remove the self argument from the signature.
-
-        `sphinx_autodoc_typehints` only removes the first argument (self) from the signature
-        if the `objtype == "method"`.
-        """
-
-        signature = super().format_signature(**kwargs)
-        return signature.replace("self, ", "")
-
 
 def setup(app: Sphinx):
     app.add_autodocumenter(DecoratorFactoryMethodDocumenter)
