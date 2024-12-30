@@ -24,9 +24,7 @@
 
 ```{eval-rst}
 .. autoclass:: tsbot.query_builder.query
-```
 
-```{eval-rst}
 .. autoclass:: tsbot.query_builder.TSQuery
     :members:
 ```
@@ -48,17 +46,11 @@
 
 ```{eval-rst}
 .. autoclass:: tsbot.plugin.TSPlugin
-```
 
-```{eval-rst}
 .. autodecorator:: tsbot.plugin.command
-```
 
-```{eval-rst}
 .. autodecorator:: tsbot.plugin.on
-```
 
-```{eval-rst}
 .. autodecorator:: tsbot.plugin.once
 ```
 
