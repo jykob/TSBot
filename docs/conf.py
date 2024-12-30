@@ -56,6 +56,7 @@ autoclass_content = "both"
 # -- AutoDoc Typehints Options --------------------
 always_use_bars_union = True
 typehints_defaults = "comma"
+typehints_use_rtype = False
 
 # -- MyST Options -----------------------
 myst_heading_anchors = 3
