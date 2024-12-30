@@ -507,7 +507,7 @@ class TSBot:
         """
         Sends multiple raw commands to the server, ignoring the response.
 
-        :param queries: Iterable of raw query commands to be send to the server.
+        :param raw_queries: Iterable of raw query commands to be send to the server.
         """
 
         await self._connection.send_batched_raw(raw_queries)
