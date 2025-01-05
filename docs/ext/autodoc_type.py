@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import typing
-from typing import Any, TypeIs, cast
+from typing import Any, cast
 
 import sphinx
 from sphinx.application import Sphinx
@@ -11,12 +11,8 @@ from sphinx.util.typing import stringify_annotation
 TypeParams = typing.TypeVarTuple | typing.TypeVar | typing.ParamSpec
 
 
-def is_type_param(obj: Any) -> TypeIs[TypeParams]:
-    return isinstance(obj, TypeParams)
-
-
 def get_obj_type_args(obj: object) -> tuple[TypeParams, ...]:
-    if is_type_param(obj):
+    if isinstance(obj, TypeParams):
         return (obj,)
 
     results: list[TypeParams] = []
