@@ -21,7 +21,7 @@ class DecoratorFactoryMethodDocumenter(MethodDocumenter):
     objtype = "decoratorfactorymethod"
     directivetype = "decoratormethod"
 
-    priority = 10  # must be more than MethodDocumenter
+    priority = MethodDocumenter.priority + 10
 
     @classmethod
     def can_document_member(cls, member: Any, membername: str, isattr: bool, parent: Any) -> bool:
@@ -32,6 +32,7 @@ class DecoratorFactoryMethodDocumenter(MethodDocumenter):
 
 
 def setup(app: Sphinx):
+    app.setup_extension("sphinx.ext.autodoc")
     app.add_autodocumenter(DecoratorFactoryMethodDocumenter)
 
     return {"version": sphinx.__display_version__, "parallel_read_safe": True}
