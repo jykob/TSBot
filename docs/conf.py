@@ -18,7 +18,6 @@ sys.path.append(os.path.abspath("./ext"))
 
 # -- Project information -----------------------------------------------------
 
-
 import datetime
 
 project = "TSBot"
@@ -34,10 +33,10 @@ author = "jykob"
 extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.autodoc",
-    "sphinx_autodoc_typehints",
     "sphinx_rtd_theme",
     "myst_parser",
-    "autodoc-decoratormethod",
+    "autodoc_decorators",
+    "autodoc_type",
 ]
 
 source_suffix = {
@@ -47,7 +46,8 @@ source_suffix = {
 }
 
 # -- AutoDoc Options --------------------
-autodoc_typehints = "signature"
+autodoc_typehints = "description"
+autodoc_typehints_format = "short"
 autodoc_member_order = "bysource"
 autodoc_preserve_defaults = True
 autoclass_content = "both"
@@ -55,6 +55,8 @@ autoclass_content = "both"
 
 # -- MyST Options -----------------------
 myst_heading_anchors = 3
+myst_links_external_new_tab = True
+
 myst_enable_extensions = [
     "substitution",
 ]
@@ -84,4 +86,3 @@ html_theme = "sphinx_rtd_theme"
 html_static_path = ["./static"]
 
 html_css_files = ["custom.css"]
-html_js_files = ["custom.js"]

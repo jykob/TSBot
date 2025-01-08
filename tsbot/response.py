@@ -15,25 +15,25 @@ class TSResponse:
     Class to represent the response to a query from a Teamspeak server.
     """
 
-    data: tuple[dict[str, str], ...]
-    error_id: int
-    msg: str
+    data: tuple[dict[str, str], ...]  #: The response data.
+    error_id: int  #: Id of the error if any.
+    msg: str  #: Message of the error if any.
 
     def __iter__(self) -> Generator[dict[str, str], None, None]:
         yield from self.data
 
     def __getitem__(self, key: str) -> str:
-        """Get the value of a key from the first datapoint"""
+        """Get the value of a key from the first response dict"""
         return self.first[key]
 
     @property
     def first(self) -> dict[str, str]:
-        """First datapoint from the response"""
+        """The first dict from the response data"""
         return self.data[0]
 
     @property
     def last(self) -> dict[str, str]:
-        """Last datapoint from the response"""
+        """The last dict from the response data"""
         return self.data[-1]
 
     @overload
@@ -43,7 +43,7 @@ class TSResponse:
     def get(self, key: str, default: str, /) -> str: ...
 
     def get(self, key: str, default: str | None = None) -> str | None:
-        """Get the value of a key from the first datapoint"""
+        """Get the value of a key from the first response dict"""
         return self.first.get(key, default)
 
     @classmethod

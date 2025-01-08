@@ -4,7 +4,7 @@ import asyncio
 import contextlib
 import inspect
 from collections.abc import Callable, Iterable, Sequence
-from typing import TYPE_CHECKING, Any, Literal, NamedTuple, TypeVar, cast, overload
+from typing import TYPE_CHECKING, Any, Literal, NamedTuple, cast, overload
 
 from typing_extensions import TypeVarTuple, Unpack
 
@@ -27,8 +27,6 @@ if TYPE_CHECKING:
     from tsbot.events import EventHandler, event_types
 
 _Ts = TypeVarTuple("_Ts")
-_TEH = TypeVar("_TEH", bound="EventHandler[Any]")
-_TCH = TypeVar("_TCH", bound="CommandHandler | RawCommandHandler")
 
 _DEFAULT_PORTS = {"ssh": 10022, "raw": 10011}
 
@@ -172,14 +170,14 @@ class TSBot:
     @overload
     def on(self, event_type: str) -> Callable[[EventHandler[Any]], EventHandler[Any]]: ...
 
-    def on(self, event_type: str) -> Callable[[_TEH], _TEH]:
+    def on(self, event_type: str) -> Callable[[EventHandler[Any]], EventHandler[Any]]:
         """
         Decorator to register event handlers.
 
         :param event_type: Name of the event.
         """
 
-        def event_decorator(func: _TEH) -> _TEH:
+        def event_decorator(func: EventHandler[Any]) -> EventHandler[Any]:
             self.register_event_handler(event_type, func)
             return func
 
@@ -238,14 +236,14 @@ class TSBot:
     @overload
     def once(self, event_type: str) -> Callable[[EventHandler[Any]], EventHandler[Any]]: ...
 
-    def once(self, event_type: str) -> Callable[[_TEH], _TEH]:
+    def once(self, event_type: str) -> Callable[[EventHandler[Any]], EventHandler[Any]]:
         """
         Decorator to register once handler.
 
         :param event_type: Name of the event.
         """
 
-        def once_decorator(func: _TEH) -> _TEH:
+        def once_decorator(func: EventHandler[Any]) -> EventHandler[Any]:
             self.register_once_handler(event_type, func)
             return func
 
@@ -322,7 +320,7 @@ class TSBot:
         raw: bool = False,
         hidden: bool = False,
         checks: Sequence[CommandHandler] = (),
-    ) -> Callable[[_TCH], _TCH]:
+    ) -> Callable[[CommandHandler], CommandHandler]:
         """
         Decorator to register command handlers.
 
@@ -333,7 +331,7 @@ class TSBot:
         :param checks: List of async functions to be called before the command is executed.
         """
 
-        def command_decorator(func: _TCH) -> _TCH:
+        def command_decorator(func: CommandHandler) -> CommandHandler:
             self.register_command(
                 command=command,
                 handler=func,
@@ -509,7 +507,7 @@ class TSBot:
         """
         Sends multiple raw commands to the server, ignoring the response.
 
-        :param queries: Iterable of raw query commands to be send to the server.
+        :param raw_queries: Iterable of raw query commands to be send to the server.
         """
 
         await self._connection.send_batched_raw(raw_queries)
