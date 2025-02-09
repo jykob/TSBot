@@ -136,7 +136,7 @@ class TSBot:
 
     def emit(self, event_name: str, ctx: Any | None = None) -> None:
         """
-        Creates :class:`TSevent<tsbot.events.TSEvent>` instance and emits it.
+        Creates :class:`tsbot.events.TSEvent` instance and emits it.
 
         :param event_name: Name of the event being emitted.
         :param ctx: Additional context for the event.
@@ -211,7 +211,7 @@ class TSBot:
 
         :param event_type: Name of the event.
         :param handler: Async function to handle the event.
-        :return: The instance of :class:`TSEventHandler<tsbot.events.TSEventHandler>` created.
+        :return: The instance of :class:`tsbot.events.TSEventHandler` created.
         """
 
         event_handler = events.TSEventHandler(event_type, handler)
@@ -277,7 +277,7 @@ class TSBot:
 
         :param event_type: Name of the event.
         :param handler: Async function to handle the event.
-        :return: The instance of :class:`TSEventOnceHandler<tsbot.events.TSEventOnceHandler>` created.
+        :return: The instance of :class:`tsbot.events.TSEventOnceHandler` created.
         """
 
         event_handler = events.TSEventOnceHandler(event_type, handler, self.remove_event_handler)
@@ -288,7 +288,7 @@ class TSBot:
         """
         Remove event handler from the event system.
 
-        :param event_handler: Instance of the :class:`TSEventHandler<tsbot.events.TSEventHandler>` to be removed.
+        :param event_handler: Instance of the :class:`tsbot.events.TSEventHandler` to be removed.
         """
 
         self._event_manager.remove_event_handler(event_handler)
@@ -387,7 +387,7 @@ class TSBot:
         :param raw: Skip message parsing and pass the rest of the message as the sole argument.
         :param hidden: Hide this command from **!help**.
         :param checks: List of async functions to be called before the command is executed.
-        :return: The instance of :class:`TSCommand<tsbot.commands.TSCommand>` created.
+        :return: The instance of :class:`tsbot.commands.TSCommand` created.
         """
         if isinstance(command, str):
             command = (command,)
@@ -407,16 +407,16 @@ class TSBot:
         """
         Remove command handler from the command system.
 
-        :param command: Instance of the :class:`TSCommand<tsbot.commands.TSCommand>` to be removed.
+        :param command: Instance of the :class:`tsbot.commands.TSCommand` to be removed.
         """
         self._command_manager.remove_command(command)
 
     def get_command_handler(self, command: str) -> commands.TSCommand | None:
         """
-        Get :class:`TSCommand<tsbot.commands.TSCommand>` instance associated with a given `str`
+        Get :class:`tsbot.commands.TSCommand` instance associated with a given `str`
 
-        :param command: Command that invokes :class:`TSCommand<tsbot.commands.TSCommand>`
-        :return: :class:`TSCommand<tsbot.commands.TSCommand>` associated with `command`
+        :param command: Command that invokes :class:`tsbot.commands.TSCommand`
+        :return: :class:`tsbot.commands.TSCommand` associated with `command`
         """
         return self._command_manager.get_command(command)
 
@@ -431,7 +431,7 @@ class TSBot:
 
         :param handler: Async function to be called when the task is executed.
         :param name: Name of the task.
-        :return: Instance of :class:`TSTask<tsbot.tasks.TSTask>` created.
+        :return: Instance of :class:`tsbot.tasks.TSTask` created.
         """
 
         task = tasks.TSTask(
@@ -455,7 +455,7 @@ class TSBot:
         :param seconds: How often the task is executed.
         :param handler: Async function to be called when the task is executed.
         :param name: Name of the task.
-        :return: Instance of :class:`TSTask<tsbot.tasks.TSTask>` created.
+        :return: Instance of :class:`tsbot.tasks.TSTask` created.
         """
         task = tasks.TSTask(
             handler=tasks.every(handler, seconds),  # type: ignore
@@ -469,7 +469,7 @@ class TSBot:
         """
         Remove a background task from tasks.
 
-        :param task: Instance of the :class:`TSTask<tsbot.tasks.TSTask>` to be removed.
+        :param task: Instance of the :class:`tsbot.tasks.TSTask` to be removed.
         """
         self._task_manager.remove_task(task)
 
@@ -477,7 +477,7 @@ class TSBot:
         """
         Sends queries to the server, assuring only one of them gets sent at a time.
 
-        :param query: Instance of :class:`TSQuery<tsbot.query_builder.TSQuery>` to be send to the server.
+        :param query: Instance of :class:`tsbot.query_builder.TSQuery` to be send to the server.
         :return: Response from the server.
         """
         return await self._connection.send(query)
@@ -487,7 +487,7 @@ class TSBot:
         Sends raw commands to the server.
 
         Its recommended to use built-in query builder and
-        :func:`send()<tsbot.TSBot.send()>` method instead.
+        :func:`tsbot.TSBot.send()` method instead.
 
         :param raw_query: Raw query command to be send to the server.
         :return: Response from the server.
@@ -498,7 +498,7 @@ class TSBot:
         """
         Sends multiple queries to the server, ignoring the response.
 
-        :param queries: Iterable of :class:`TSQuery<tsbot.query_builder.TSQuery>` instances to be send to the server.
+        :param queries: Iterable of :class:`tsbot.query_builder.TSQuery` instances to be send to the server.
         """
 
         await self._connection.send_batched(queries)
@@ -580,9 +580,9 @@ class TSBot:
 
     def load_plugin(self, *plugins: plugin.TSPlugin) -> None:
         """
-        Loads :class:`TSPlugin<tsbot.plugins.TSPlugin>` instances into the bot.
+        Loads :class:`tsbot.plugins.TSPlugin` instances into the bot.
 
-        :param plugins: Instances of :class:`TSPlugin<tsbot.plugins.TSPlugin>`
+        :param plugins: Instances of :class:`tsbot.plugins.TSPlugin`
         """
 
         for plugin_to_be_loaded in plugins:
