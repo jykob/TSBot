@@ -60,17 +60,17 @@ class TSBot:
         :param username: Login name of the query account.
         :param password: Generated password for the query account.
         :param address: Address of the TeamSpeak server.
-        :param port: Port of the SSH connection.
-        :param protocol: Type of connection to be used.
+        :param port: Port for the connection.
+        :param protocol: Type of the connection.
         :param server_id: Id of the virtual server.
         :param nickname: Display name for the bot client.
         :param invoker: Command indicator.
-        :param connection_retries: The amount of attempts on each connection.
-        :param connection_retry_timeout: The period between each connection attempt.
+        :param connection_retries: The amount of connection attempts on each connection.
+        :param connection_retry_timeout: The period between each connection attempt in seconds.
         :param ratelimited: If the connection should be ratelimited.
         :param ratelimit_calls: Calls per period.
         :param ratelimit_period: Period interval.
-        :param query_timeout: Timeout for query commands.
+        :param query_timeout: Timeout for each query command in seconds.
         """
 
         if nickname is not None and not nickname:
