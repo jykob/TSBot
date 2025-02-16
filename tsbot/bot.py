@@ -354,6 +354,11 @@ class TSBot:
         """
         Decorator to register command handlers.
 
+        This decorator factory method registers async functions as a command handler.
+        When invoked in a text channel, the decorated async function
+        is called with the bot instance, the `textmessage` event context
+        and parsed arguments from the message.
+
         :param command: Name(s) of the command.
         :param help_text: Text to be displayed when using **!help**.
         :param raw: Skip message parsing and pass the rest of the message as the sole argument.
@@ -409,7 +414,12 @@ class TSBot:
         checks: Sequence[CommandHandler] = (),
     ) -> commands.TSCommand:
         """
-        Register command handler to be ran on specific command.
+        Register a command.
+
+        This method registers async functions as a command handler.
+        When invoked in a text channel, the decorated async function
+        is called with the bot instance, the `textmessage` event context
+        and parsed arguments from the message.
 
         :param command: Name(s) of the command.
         :param handler: Async function to be called when invoked.
@@ -417,7 +427,7 @@ class TSBot:
         :param raw: Skip message parsing and pass the rest of the message as the sole argument.
         :param hidden: Hide this command from **!help**.
         :param checks: List of async functions to be called before the command is executed.
-        :return: The instance of :class:`tsbot.commands.TSCommand` created.
+        :return: The instance of :class:`~tsbot.commands.TSCommand` created.
         """
         if isinstance(command, str):
             command = (command,)
@@ -435,18 +445,23 @@ class TSBot:
 
     def remove_command(self, command: commands.TSCommand) -> None:
         """
-        Remove command handler from the command system.
+        Remove a command handler.
 
-        :param command: Instance of the :class:`tsbot.commands.TSCommand` to be removed.
+        This method removes a command handler from the command system.
+        The `command` argument is an instance of :class:`~tsbot.commands.TSCommand`
+        returned by the :meth:`~tsbot.bot.TSBot.register_command()` and
+        :meth:`~tsbot.bot.TSBot.get_command_handler()` methods.
+
+        :param command: Instance of the :class:`~tsbot.commands.TSCommand` to be removed.
         """
         self._command_manager.remove_command(command)
 
     def get_command_handler(self, command: str) -> commands.TSCommand | None:
         """
-        Get :class:`tsbot.commands.TSCommand` instance associated with a given `str`
+        Get :class:`~tsbot.commands.TSCommand` instance associated with a given `command`
 
-        :param command: Command that invokes :class:`tsbot.commands.TSCommand`
-        :return: :class:`tsbot.commands.TSCommand` associated with `command`
+        :param command: Command that invokes :class:`~tsbot.commands.TSCommand`
+        :return: :class:`~tsbot.commands.TSCommand` associated with `command`
         """
         return self._command_manager.get_command(command)
 
