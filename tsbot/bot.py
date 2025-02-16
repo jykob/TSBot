@@ -136,7 +136,10 @@ class TSBot:
 
     def emit(self, event_name: str, ctx: Any | None = None) -> None:
         """
-        Creates :class:`tsbot.events.TSEvent` instance and emits it.
+        Creates :class:`~tsbot.events.TSEvent` instance and emits it.
+
+        This event is passed to the event system and all the handlers
+        registered for the event are called with the given context.
 
         :param event_name: Name of the event being emitted.
         :param ctx: Additional context for the event.
@@ -147,6 +150,10 @@ class TSBot:
     def emit_event(self, event: events.TSEvent) -> None:
         """
         Emits an event to be handled.
+
+        Given event is passed to the event system and all the handlers
+        registered for the event are called with the given context
+        defined in the event.
 
         :param event: Event to be emitted.
         """
@@ -173,6 +180,10 @@ class TSBot:
     def on(self, event_type: str) -> Callable[[EventHandler[Any]], EventHandler[Any]]:
         """
         Decorator to register event handlers.
+
+        This method decorator factory registers async functions as an event handler.
+        When an event is emitted with the `event_type` name, the decorated async function
+        is called with the bot instance and the event context.
 
         :param event_type: Name of the event.
         """
@@ -207,11 +218,15 @@ class TSBot:
         self, event_type: str, handler: EventHandler[Any]
     ) -> events.TSEventHandler:
         """
-        Register an event handler to be ran on an event.
+        Register an event handler.
+
+        This method registers async functions as an event handler.
+        When an event is emitted with the `event_type` name, the decorated async function
+        is called with the bot instance and the event context.
 
         :param event_type: Name of the event.
         :param handler: Async function to handle the event.
-        :return: The instance of :class:`tsbot.events.TSEventHandler` created.
+        :return: The instance of :class:`~tsbot.events.TSEventHandler` created.
         """
 
         event_handler = events.TSEventHandler(event_type, handler)
@@ -238,7 +253,13 @@ class TSBot:
 
     def once(self, event_type: str) -> Callable[[EventHandler[Any]], EventHandler[Any]]:
         """
-        Decorator to register once handler.
+        Decorator to register once event handlers.
+
+        This method decorator factory registers async functions as an event handler.
+        When an event is emitted with the `event_type` name, the decorated async function
+        is called with the bot instance and the event context.
+
+        The registered event handler will be removed after it is ran once.
 
         :param event_type: Name of the event.
         """
@@ -273,11 +294,15 @@ class TSBot:
         self, event_type: str, handler: EventHandler[Any]
     ) -> events.TSEventOnceHandler:
         """
-        Register an event handler to be ran once on an event.
+        Register an event handler to be ran once on an event, and remove it afterwards.
+
+        This method registers async functions as an event handler.
+        When an event is emitted with the `event_type` name, the decorated async function
+        is called with the bot instance and the event context.
 
         :param event_type: Name of the event.
         :param handler: Async function to handle the event.
-        :return: The instance of :class:`tsbot.events.TSEventOnceHandler` created.
+        :return: The instance of :class:`~tsbot.events.TSEventOnceHandler` created.
         """
 
         event_handler = events.TSEventOnceHandler(event_type, handler, self.remove_event_handler)
@@ -286,9 +311,14 @@ class TSBot:
 
     def remove_event_handler(self, event_handler: events.TSEventHandler) -> None:
         """
-        Remove event handler from the event system.
+        Remove an event handler.
 
-        :param event_handler: Instance of the :class:`tsbot.events.TSEventHandler` to be removed.
+        This method removes an event handler from the event system.
+        The `event_handler` argument is an instance of :class:`~tsbot.events.TSEventHandler`
+        returned by the :meth:`~tsbot.bot.TSBot.register_event_handler()` and
+        :meth:`~tsbot.bot.TSBot.register_once_handler()` methods.
+
+        :param event_handler: Instance of the :class:`~tsbot.events.TSEventHandler` to be removed.
         """
 
         self._event_manager.remove_event_handler(event_handler)
