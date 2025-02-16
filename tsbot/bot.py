@@ -181,7 +181,7 @@ class TSBot:
         """
         Decorator to register event handlers.
 
-        This method decorator factory registers async functions as an event handler.
+        This decorator factory method registers async functions as an event handler.
         When an event is emitted with the `event_type` name, the decorated async function
         is called with the bot instance and the event context.
 
@@ -255,7 +255,7 @@ class TSBot:
         """
         Decorator to register once event handlers.
 
-        This method decorator factory registers async functions as an event handler.
+        This decorator factory method registers async functions as an event handler.
         When an event is emitted with the `event_type` name, the decorated async function
         is called with the bot instance and the event context.
 
