@@ -461,7 +461,7 @@ class TSBot:
         Get :class:`~tsbot.commands.TSCommand` instance associated with a given `command`
 
         :param command: Command that invokes :class:`~tsbot.commands.TSCommand`
-        :return: :class:`~tsbot.commands.TSCommand` associated with `command`
+        :return: :class:`~tsbot.commands.TSCommand` associated with `command` if found.
         """
         return self._command_manager.get_command(command)
 
