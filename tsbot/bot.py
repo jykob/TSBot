@@ -182,6 +182,7 @@ class TSBot:
         Decorator to register event handlers.
 
         This decorator factory method registers async functions as an event handler.
+
         When an event is emitted with the `event_type` name, the decorated async function
         is called with the bot instance and the event context.
 
@@ -221,6 +222,7 @@ class TSBot:
         Register an event handler.
 
         This method registers async functions as an event handler.
+
         When an event is emitted with the `event_type` name, the decorated async function
         is called with the bot instance and the event context.
 
@@ -256,6 +258,7 @@ class TSBot:
         Decorator to register once event handlers.
 
         This decorator factory method registers async functions as an event handler.
+
         When an event is emitted with the `event_type` name, the decorated async function
         is called with the bot instance and the event context.
 
@@ -314,6 +317,7 @@ class TSBot:
         Remove an event handler.
 
         This method removes an event handler from the event system.
+
         The `event_handler` argument is an instance of :class:`~tsbot.events.TSEventHandler`
         returned by the :meth:`~tsbot.bot.TSBot.register_event_handler()` and
         :meth:`~tsbot.bot.TSBot.register_once_handler()` methods.
@@ -355,6 +359,7 @@ class TSBot:
         Decorator to register command handlers.
 
         This decorator factory method registers async functions as a command handler.
+
         When invoked in a text channel, the decorated async function
         is called with the bot instance, the `textmessage` event context
         and parsed arguments from the message.
@@ -417,6 +422,7 @@ class TSBot:
         Register a command.
 
         This method registers async functions as a command handler.
+
         When invoked in a text channel, the decorated async function
         is called with the bot instance, the `textmessage` event context
         and parsed arguments from the message.
@@ -448,6 +454,7 @@ class TSBot:
         Remove a command handler.
 
         This method removes a command handler from the command system.
+
         The `command` argument is an instance of :class:`~tsbot.commands.TSCommand`
         returned by the :meth:`~tsbot.bot.TSBot.register_command()` and
         :meth:`~tsbot.bot.TSBot.get_command_handler()` methods.
