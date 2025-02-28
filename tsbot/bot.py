@@ -479,11 +479,22 @@ class TSBot:
         name: str | None = None,
     ) -> tasks.TSTask:
         """
-        Register task handler as a background task.
+        Register a background task.
 
-        :param handler: Async function to be called when the task is executed.
+        This method registers an async functions as a background task.
+
+        Tasks are started as soon as the bots :meth:`~tsbot.bot.TSBot.run()` method is called.
+        If the bot is already running, the task is started immediately.
+
+        The handler is called with the bot instance and optional arguments,
+        and wrapped with :func:`asyncio.create_task()`.
+
+        Once the handler returns or raises an exception, the task is removed from the task system.
+
+        :param handler: Async function to be called when the task is started.
+        :param args: Optional arguments to be passed to the handler.
         :param name: Name of the task.
-        :return: Instance of :class:`tsbot.tasks.TSTask` created.
+        :return: Instance of :class:`~tsbot.tasks.TSTask` created.
         """
 
         task = tasks.TSTask(
@@ -502,12 +513,24 @@ class TSBot:
         name: str | None = None,
     ) -> tasks.TSTask:
         """
-        Register task handler to be ran every given second.
+        Register a background task.
+
+        This method works similar to :meth:`~tsbot.bot.TSBot.register_task()`,
+        but the handler is called every `seconds` seconds.
+
+        Tasks are started as soon as the bots :meth:`~tsbot.bot.TSBot.run()` method is called.
+        If the bot is already running, the task is started immediately.
+
+        The handler is called with the bot instance and optional arguments,
+
+        If the handler raises an exception or the task is cancelled,
+        the task is removed from the task system.
 
         :param seconds: How often the task is executed.
         :param handler: Async function to be called when the task is executed.
+        :param args: Optional arguments to be passed to the handler.
         :param name: Name of the task.
-        :return: Instance of :class:`tsbot.tasks.TSTask` created.
+        :return: Instance of :class:`~tsbot.tasks.TSTask` created.
         """
         task = tasks.TSTask(
             handler=tasks.every(handler, seconds),  # type: ignore
@@ -519,9 +542,12 @@ class TSBot:
 
     def remove_task(self, task: tasks.TSTask) -> None:
         """
-        Remove a background task from tasks.
+        Remove a background task.
 
-        :param task: Instance of the :class:`tsbot.tasks.TSTask` to be removed.
+        This method removes a background task from the task system.
+        If the task is still running, it is cancelled.
+
+        :param task: Instance of the :class:`~tsbot.tasks.TSTask` to be removed.
         """
         self._task_manager.remove_task(task)
 
