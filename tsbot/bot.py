@@ -553,37 +553,50 @@ class TSBot:
 
     async def send(self, query: query_builder.TSQuery) -> response.TSResponse:
         """
-        Sends queries to the server, assuring only one of them gets sent at a time.
+        Send a query to the server.
 
-        :param query: Instance of :class:`tsbot.query_builder.TSQuery` to be send to the server.
-        :return: Response from the server.
+        This method sends a query to the server and returns the response.
+
+        If the server responds with an error, a :class:`~tsbot.exceptions.TSResponseError` is raised.
+
+        :param query: Instance of :class:`~tsbot.query_builder.TSQuery` to be send to the server.
+        :return: Response from the server as a :class:`~tsbot.response.TSResponse` instance.
         """
         return await self._connection.send(query)
 
     async def send_raw(self, raw_query: str) -> response.TSResponse:
         """
-        Sends raw commands to the server.
+        Send raw commands to the server.
 
-        Its recommended to use built-in query builder and
-        :func:`tsbot.TSBot.send()` method instead.
+        this method sends a raw query to the server and returns the response.
+
+        If the server responds with an error, a :class:`~tsbot.exceptions.TSResponseError` is raised.
 
         :param raw_query: Raw query command to be send to the server.
-        :return: Response from the server.
+        :return: Response from the server as a :class:`~tsbot.response.TSResponse` instance.
         """
         return await self._connection.send_raw(raw_query)
 
     async def send_batched(self, queries: Iterable[query_builder.TSQuery]) -> None:
         """
-        Sends multiple queries to the server, ignoring the response.
+        Send multiple queries to the server.
 
-        :param queries: Iterable of :class:`tsbot.query_builder.TSQuery` instances to be send to the server.
+        This method sends multiple queries to the server without waiting for the response.
+
+        If the server responds with an error, it is ignored.
+
+        :param queries: Iterable of :class:`~tsbot.query_builder.TSQuery` instances to be send to the server.
         """
 
         await self._connection.send_batched(queries)
 
     async def send_batched_raw(self, raw_queries: Iterable[str]) -> None:
         """
-        Sends multiple raw commands to the server, ignoring the response.
+        Send multiple raw queries to the server.
+
+        This method sends multiple raw queries to the server without waiting for the response.
+
+        If the server responds with an error, it is ignored.
 
         :param raw_queries: Iterable of raw query commands to be send to the server.
         """
