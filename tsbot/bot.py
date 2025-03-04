@@ -713,14 +713,13 @@ class TSBot:
         Sends a message to the same text channel where the `ctx` was created.
 
         This method can be used to respond to command invocations.
-
-        ```python
-        @bot.command("hello")
-        async def greet(bot: TSBot, ctx: TSCtx):
-            await bot.respond(ctx, f"Hello, {ctx['invokername']}!")
-        ```
-
         The context has to be from a `textmessage` event (eg. command invocation).
+
+        .. code-block:: python
+
+            @bot.command("hello")
+            async def greet(bot: TSBot, ctx: TSCtx):
+                await bot.respond(ctx, f"Hello, {ctx['invokername']}!")
 
         :param ctx: Context of the `textmessage` event.
         :param message: Message to be sent.
@@ -741,14 +740,13 @@ class TSBot:
         The message will be sent to the client with a direct message.
 
         This method can be used to respond to command invocations.
-
-        ```python
-        @bot.command("hello")
-        async def greet(bot: TSBot, ctx: TSCtx):
-            await bot.respond_to_client(ctx, f"Hello, {ctx['invokername']}!")
-        ```
-
         The context has to be from a `textmessage` event (eg. command invocation).
+
+        .. code-block:: python
+
+            @bot.command("hello")
+            async def greet(bot: TSBot, ctx: TSCtx):
+                await bot.respond_to_client(ctx, f"Hello, {ctx['invokername']}!")
 
         :param ctx: Context of the `textmessage` event.
         :param message: Message to be sent.
