@@ -605,10 +605,14 @@ class TSBot:
 
     def close(self) -> None:
         """
-        Method to close the bot.
+        Close the bot.
 
-        Emits `close` event to notify that the client is closing,
-        cancels background tasks and send quit command.
+        This method closes the bot gracefully.
+
+        - The bot will emit `close` event to notify that it is closing.
+        - The bot will cancel all the background tasks and wait until they are finished.
+        - The bot will handle all the events still in the queue.
+        - If the connection is still open, the bot will send a quit command.
         """
 
         self._closing.set()
@@ -642,10 +646,12 @@ class TSBot:
         """
         Run the bot.
 
-        Connects to the server, registers the server to send events
-        to the bot and schedules background tasks.
+        This method starts the bot.
+        - Connects the bot to the server.
+        - Schedules background tasks.
+        - Registers the server to send events to the bot.
 
-        Awaits until the bot disconnects.
+        Awaits until the bot is closed or the connection is lost.
         """
 
         self._closing.clear()
@@ -671,9 +677,9 @@ class TSBot:
 
     def load_plugin(self, *plugins: plugin.TSPlugin) -> None:
         """
-        Loads :class:`tsbot.plugins.TSPlugin` instances into the bot.
+        Loads :class:`~tsbot.plugins.TSPlugin` instances into the bot.
 
-        :param plugins: Instances of :class:`tsbot.plugins.TSPlugin`
+        :param plugins: Instances of :class:`~tsbot.plugins.TSPlugin` to be loaded.
         """
 
         for plugin_to_be_loaded in plugins:
@@ -704,9 +710,19 @@ class TSBot:
 
     async def respond(self, ctx: context.TSCtx, message: str) -> None:
         """
-        Responds in the same text channel where 'ctx' was created.
+        Sends a message to the same text channel where the `ctx` was created.
 
-        :param ctx: Context where it was called.
+        This method can be used to respond to command invocations.
+
+        ```python
+        @bot.command("hello")
+        async def greet(bot: TSBot, ctx: TSCtx):
+            await bot.respond(ctx, f"Hello, {ctx['invokername']}!")
+        ```
+
+        The context has to be from a `textmessage` event (eg. command invocation).
+
+        :param ctx: Context of the `textmessage` event.
         :param message: Message to be sent.
         """
         target_mode = enums.TextMessageTargetMode(ctx["targetmode"])
@@ -721,9 +737,20 @@ class TSBot:
 
     async def respond_to_client(self, ctx: context.TSCtx, message: str) -> None:
         """
-        Responds to a client with a direct message.
+        Sends a message to the client that invoked the message.
+        The message will be sent to the client with a direct message.
 
-        :param ctx: Context where it was called.
+        This method can be used to respond to command invocations.
+
+        ```python
+        @bot.command("hello")
+        async def greet(bot: TSBot, ctx: TSCtx):
+            await bot.respond_to_client(ctx, f"Hello, {ctx['invokername']}!")
+        ```
+
+        The context has to be from a `textmessage` event (eg. command invocation).
+
+        :param ctx: Context of the `textmessage` event.
         :param message: Message to be sent.
         """
 
