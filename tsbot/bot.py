@@ -60,17 +60,17 @@ class TSBot:
         :param username: Login name of the query account.
         :param password: Generated password for the query account.
         :param address: Address of the TeamSpeak server.
-        :param port: Port of the SSH connection.
-        :param protocol: Type of connection to be used.
+        :param port: Port for the connection.
+        :param protocol: Type of the connection.
         :param server_id: Id of the virtual server.
         :param nickname: Display name for the bot client.
         :param invoker: Command indicator.
-        :param connection_retries: The amount of attempts on each connection.
-        :param connection_retry_timeout: The period between each connection attempt.
+        :param connection_retries: The amount of connection attempts on each connection.
+        :param connection_retry_timeout: The period between each connection attempt in seconds.
         :param ratelimited: If the connection should be ratelimited.
         :param ratelimit_calls: Calls per period.
         :param ratelimit_period: Period interval.
-        :param query_timeout: Timeout for query commands.
+        :param query_timeout: Timeout for each query command in seconds.
         """
 
         if nickname is not None and not nickname:
@@ -136,7 +136,10 @@ class TSBot:
 
     def emit(self, event_name: str, ctx: Any | None = None) -> None:
         """
-        Creates :class:`TSevent<tsbot.events.TSEvent>` instance and emits it.
+        Creates :class:`~tsbot.events.TSEvent` instance and emits it.
+
+        This event is passed to the event system and all the handlers
+        registered for the event are called with the given context.
 
         :param event_name: Name of the event being emitted.
         :param ctx: Additional context for the event.
@@ -147,6 +150,10 @@ class TSBot:
     def emit_event(self, event: events.TSEvent) -> None:
         """
         Emits an event to be handled.
+
+        Given event is passed to the event system and all the handlers
+        registered for the event are called with the given context
+        defined in the event.
 
         :param event: Event to be emitted.
         """
@@ -173,6 +180,11 @@ class TSBot:
     def on(self, event_type: str) -> Callable[[EventHandler[Any]], EventHandler[Any]]:
         """
         Decorator to register event handlers.
+
+        This decorator factory method registers async functions as an event handler.
+
+        When an event is emitted with the `event_type` name, the decorated async function
+        is called with the bot instance and the event context.
 
         :param event_type: Name of the event.
         """
@@ -207,11 +219,16 @@ class TSBot:
         self, event_type: str, handler: EventHandler[Any]
     ) -> events.TSEventHandler:
         """
-        Register an event handler to be ran on an event.
+        Register an event handler.
+
+        This method registers async functions as an event handler.
+
+        When an event is emitted with the `event_type` name, the decorated async function
+        is called with the bot instance and the event context.
 
         :param event_type: Name of the event.
         :param handler: Async function to handle the event.
-        :return: The instance of :class:`TSEventHandler<tsbot.events.TSEventHandler>` created.
+        :return: The instance of :class:`~tsbot.events.TSEventHandler` created.
         """
 
         event_handler = events.TSEventHandler(event_type, handler)
@@ -238,7 +255,14 @@ class TSBot:
 
     def once(self, event_type: str) -> Callable[[EventHandler[Any]], EventHandler[Any]]:
         """
-        Decorator to register once handler.
+        Decorator to register once event handlers.
+
+        This decorator factory method registers async functions as an event handler.
+
+        When an event is emitted with the `event_type` name, the decorated async function
+        is called with the bot instance and the event context.
+
+        The registered event handler will be removed after it is ran once.
 
         :param event_type: Name of the event.
         """
@@ -273,11 +297,15 @@ class TSBot:
         self, event_type: str, handler: EventHandler[Any]
     ) -> events.TSEventOnceHandler:
         """
-        Register an event handler to be ran once on an event.
+        Register an event handler to be ran once on an event, and remove it afterwards.
+
+        This method registers async functions as an event handler.
+        When an event is emitted with the `event_type` name, the decorated async function
+        is called with the bot instance and the event context.
 
         :param event_type: Name of the event.
         :param handler: Async function to handle the event.
-        :return: The instance of :class:`TSEventOnceHandler<tsbot.events.TSEventOnceHandler>` created.
+        :return: The instance of :class:`~tsbot.events.TSEventOnceHandler` created.
         """
 
         event_handler = events.TSEventOnceHandler(event_type, handler, self.remove_event_handler)
@@ -286,9 +314,15 @@ class TSBot:
 
     def remove_event_handler(self, event_handler: events.TSEventHandler) -> None:
         """
-        Remove event handler from the event system.
+        Remove an event handler.
 
-        :param event_handler: Instance of the :class:`TSEventHandler<tsbot.events.TSEventHandler>` to be removed.
+        This method removes an event handler from the event system.
+
+        The `event_handler` argument is an instance of :class:`~tsbot.events.TSEventHandler`
+        returned by the :meth:`~tsbot.bot.TSBot.register_event_handler()` and
+        :meth:`~tsbot.bot.TSBot.register_once_handler()` methods.
+
+        :param event_handler: Instance of the :class:`~tsbot.events.TSEventHandler` to be removed.
         """
 
         self._event_manager.remove_event_handler(event_handler)
@@ -323,6 +357,12 @@ class TSBot:
     ) -> Callable[[CommandHandler], CommandHandler]:
         """
         Decorator to register command handlers.
+
+        This decorator factory method registers async functions as a command handler.
+
+        When invoked in a text channel, the decorated async function
+        is called with the bot instance, the `textmessage` event context
+        and parsed arguments from the message.
 
         :param command: Name(s) of the command.
         :param help_text: Text to be displayed when using **!help**.
@@ -379,7 +419,13 @@ class TSBot:
         checks: Sequence[CommandHandler] = (),
     ) -> commands.TSCommand:
         """
-        Register command handler to be ran on specific command.
+        Register a command.
+
+        This method registers async functions as a command handler.
+
+        When invoked in a text channel, the decorated async function
+        is called with the bot instance, the `textmessage` event context
+        and parsed arguments from the message.
 
         :param command: Name(s) of the command.
         :param handler: Async function to be called when invoked.
@@ -387,7 +433,7 @@ class TSBot:
         :param raw: Skip message parsing and pass the rest of the message as the sole argument.
         :param hidden: Hide this command from **!help**.
         :param checks: List of async functions to be called before the command is executed.
-        :return: The instance of :class:`TSCommand<tsbot.commands.TSCommand>` created.
+        :return: The instance of :class:`~tsbot.commands.TSCommand` created.
         """
         if isinstance(command, str):
             command = (command,)
@@ -405,18 +451,24 @@ class TSBot:
 
     def remove_command(self, command: commands.TSCommand) -> None:
         """
-        Remove command handler from the command system.
+        Remove a command handler.
 
-        :param command: Instance of the :class:`TSCommand<tsbot.commands.TSCommand>` to be removed.
+        This method removes a command handler from the command system.
+
+        The `command` argument is an instance of :class:`~tsbot.commands.TSCommand`
+        returned by the :meth:`~tsbot.bot.TSBot.register_command()` and
+        :meth:`~tsbot.bot.TSBot.get_command_handler()` methods.
+
+        :param command: Instance of the :class:`~tsbot.commands.TSCommand` to be removed.
         """
         self._command_manager.remove_command(command)
 
     def get_command_handler(self, command: str) -> commands.TSCommand | None:
         """
-        Get :class:`TSCommand<tsbot.commands.TSCommand>` instance associated with a given `str`
+        Get :class:`~tsbot.commands.TSCommand` instance associated with a given `command`
 
-        :param command: Command that invokes :class:`TSCommand<tsbot.commands.TSCommand>`
-        :return: :class:`TSCommand<tsbot.commands.TSCommand>` associated with `command`
+        :param command: Command that invokes :class:`~tsbot.commands.TSCommand`
+        :return: :class:`~tsbot.commands.TSCommand` associated with `command` if found.
         """
         return self._command_manager.get_command(command)
 
@@ -427,11 +479,22 @@ class TSBot:
         name: str | None = None,
     ) -> tasks.TSTask:
         """
-        Register task handler as a background task.
+        Register a background task.
 
-        :param handler: Async function to be called when the task is executed.
+        This method registers an async functions as a background task.
+
+        Tasks are started as soon as the bots :meth:`~tsbot.bot.TSBot.run()` method is called.
+        If the bot is already running, the task is started immediately.
+
+        The handler is called with the bot instance and optional arguments,
+        and wrapped with :func:`asyncio.create_task()`.
+
+        Once the handler returns or raises an exception, the task is removed from the task system.
+
+        :param handler: Async function to be called when the task is started.
+        :param args: Optional arguments to be passed to the handler.
         :param name: Name of the task.
-        :return: Instance of :class:`TSTask<tsbot.tasks.TSTask>` created.
+        :return: Instance of :class:`~tsbot.tasks.TSTask` created.
         """
 
         task = tasks.TSTask(
@@ -450,12 +513,24 @@ class TSBot:
         name: str | None = None,
     ) -> tasks.TSTask:
         """
-        Register task handler to be ran every given second.
+        Register a background task.
+
+        This method works similar to :meth:`~tsbot.bot.TSBot.register_task()`,
+        but the handler is called every `seconds` seconds.
+
+        Tasks are started as soon as the bots :meth:`~tsbot.bot.TSBot.run()` method is called.
+        If the bot is already running, the task is started immediately.
+
+        The handler is called with the bot instance and optional arguments,
+
+        If the handler raises an exception or the task is cancelled,
+        the task is removed from the task system.
 
         :param seconds: How often the task is executed.
         :param handler: Async function to be called when the task is executed.
+        :param args: Optional arguments to be passed to the handler.
         :param name: Name of the task.
-        :return: Instance of :class:`TSTask<tsbot.tasks.TSTask>` created.
+        :return: Instance of :class:`~tsbot.tasks.TSTask` created.
         """
         task = tasks.TSTask(
             handler=tasks.every(handler, seconds),  # type: ignore
@@ -467,45 +542,61 @@ class TSBot:
 
     def remove_task(self, task: tasks.TSTask) -> None:
         """
-        Remove a background task from tasks.
+        Remove a background task.
 
-        :param task: Instance of the :class:`TSTask<tsbot.tasks.TSTask>` to be removed.
+        This method removes a background task from the task system.
+        If the task is still running, it is cancelled.
+
+        :param task: Instance of the :class:`~tsbot.tasks.TSTask` to be removed.
         """
         self._task_manager.remove_task(task)
 
     async def send(self, query: query_builder.TSQuery) -> response.TSResponse:
         """
-        Sends queries to the server, assuring only one of them gets sent at a time.
+        Send a query to the server.
 
-        :param query: Instance of :class:`TSQuery<tsbot.query_builder.TSQuery>` to be send to the server.
-        :return: Response from the server.
+        This method sends a query to the server and returns the response.
+
+        If the server responds with an error, a :class:`~tsbot.exceptions.TSResponseError` is raised.
+
+        :param query: Instance of :class:`~tsbot.query_builder.TSQuery` to be send to the server.
+        :return: Response from the server as a :class:`~tsbot.response.TSResponse` instance.
         """
         return await self._connection.send(query)
 
     async def send_raw(self, raw_query: str) -> response.TSResponse:
         """
-        Sends raw commands to the server.
+        Send raw commands to the server.
 
-        Its recommended to use built-in query builder and
-        :func:`send()<tsbot.TSBot.send()>` method instead.
+        this method sends a raw query to the server and returns the response.
+
+        If the server responds with an error, a :class:`~tsbot.exceptions.TSResponseError` is raised.
 
         :param raw_query: Raw query command to be send to the server.
-        :return: Response from the server.
+        :return: Response from the server as a :class:`~tsbot.response.TSResponse` instance.
         """
         return await self._connection.send_raw(raw_query)
 
     async def send_batched(self, queries: Iterable[query_builder.TSQuery]) -> None:
         """
-        Sends multiple queries to the server, ignoring the response.
+        Send multiple queries to the server.
 
-        :param queries: Iterable of :class:`TSQuery<tsbot.query_builder.TSQuery>` instances to be send to the server.
+        This method sends multiple queries to the server without waiting for the response.
+
+        If the server responds with an error, it is ignored.
+
+        :param queries: Iterable of :class:`~tsbot.query_builder.TSQuery` instances to be send to the server.
         """
 
         await self._connection.send_batched(queries)
 
     async def send_batched_raw(self, raw_queries: Iterable[str]) -> None:
         """
-        Sends multiple raw commands to the server, ignoring the response.
+        Send multiple raw queries to the server.
+
+        This method sends multiple raw queries to the server without waiting for the response.
+
+        If the server responds with an error, it is ignored.
 
         :param raw_queries: Iterable of raw query commands to be send to the server.
         """
@@ -514,10 +605,14 @@ class TSBot:
 
     def close(self) -> None:
         """
-        Method to close the bot.
+        Close the bot.
 
-        Emits `close` event to notify that the client is closing,
-        cancels background tasks and send quit command.
+        This method closes the bot gracefully.
+
+        - The bot will emit `close` event to notify that it is closing.
+        - The bot will cancel all the background tasks and wait until they are finished.
+        - The bot will handle all the events still in the queue.
+        - If the connection is still open, the bot will send a quit command.
         """
 
         self._closing.set()
@@ -551,10 +646,12 @@ class TSBot:
         """
         Run the bot.
 
-        Connects to the server, registers the server to send events
-        to the bot and schedules background tasks.
+        This method starts the bot.
+        - Connects the bot to the server.
+        - Schedules background tasks.
+        - Registers the server to send events to the bot.
 
-        Awaits until the bot disconnects.
+        Awaits until the bot is closed or the connection is lost.
         """
 
         self._closing.clear()
@@ -580,9 +677,9 @@ class TSBot:
 
     def load_plugin(self, *plugins: plugin.TSPlugin) -> None:
         """
-        Loads :class:`TSPlugin<tsbot.plugins.TSPlugin>` instances into the bot.
+        Loads :class:`~tsbot.plugins.TSPlugin` instances into the bot.
 
-        :param plugins: Instances of :class:`TSPlugin<tsbot.plugins.TSPlugin>`
+        :param plugins: Instances of :class:`~tsbot.plugins.TSPlugin` to be loaded.
         """
 
         for plugin_to_be_loaded in plugins:
@@ -613,9 +710,18 @@ class TSBot:
 
     async def respond(self, ctx: context.TSCtx, message: str) -> None:
         """
-        Responds in the same text channel where 'ctx' was created.
+        Sends a message to the same text channel where the `ctx` was created.
 
-        :param ctx: Context where it was called.
+        This method can be used to respond to command invocations.
+        The context has to be from a `textmessage` event (eg. command invocation).
+
+        .. code-block:: python
+
+            @bot.command("hello")
+            async def greet(bot: TSBot, ctx: TSCtx):
+                await bot.respond(ctx, f"Hello, {ctx['invokername']}!")
+
+        :param ctx: Context of the `textmessage` event.
         :param message: Message to be sent.
         """
         target_mode = enums.TextMessageTargetMode(ctx["targetmode"])
@@ -630,9 +736,19 @@ class TSBot:
 
     async def respond_to_client(self, ctx: context.TSCtx, message: str) -> None:
         """
-        Responds to a client with a direct message.
+        Sends a message to the client that invoked the message.
+        The message will be sent to the client with a direct message.
 
-        :param ctx: Context where it was called.
+        This method can be used to respond to command invocations.
+        The context has to be from a `textmessage` event (eg. command invocation).
+
+        .. code-block:: python
+
+            @bot.command("hello")
+            async def greet(bot: TSBot, ctx: TSCtx):
+                await bot.respond_to_client(ctx, f"Hello, {ctx['invokername']}!")
+
+        :param ctx: Context of the `textmessage` event.
         :param message: Message to be sent.
         """
 

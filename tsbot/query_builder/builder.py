@@ -65,7 +65,7 @@ class TSQuery:
         Add options to the command eg. ``-groups``.
 
         :param args: Tuple of options to be attached.
-        :return: New :class:`TSQuery<tsbot.query_builder.TSQuery>` instance with added params
+        :return: New :class:`tsbot.query_builder.TSQuery` instance with added params
         """
 
         return type(self)(
@@ -80,7 +80,7 @@ class TSQuery:
         Add parameters to the command eg. ``cldbid=12``.
 
         :param kwargs: Keyword to be attached.
-        :return: New :class:`TSQuery<tsbot.query_builder.TSQuery>` instance with added parameters
+        :return: New :class:`tsbot.query_builder.TSQuery` instance with added parameters
         """
 
         return type(self)(
@@ -100,7 +100,7 @@ class TSQuery:
 
         :param blocks: Iterable of parameter blocks to be attached.
         :param kwargs: Parameters to be attached to single block.
-        :return: New :class:`TSQuery<tsbot.query_builder.TSQuery>` instance with added parameter blocks
+        :return: New :class:`tsbot.query_builder.TSQuery` instance with added parameter blocks
         """
 
         param_blocks: tuple[dict[str, Stringable], ...] = (

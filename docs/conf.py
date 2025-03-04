@@ -52,6 +52,15 @@ autodoc_member_order = "bysource"
 autodoc_preserve_defaults = True
 autoclass_content = "both"
 
+autodoc_type_aliases = {
+    "CommandHandler": "tsbot.commands.CommandHandler",
+    "RawCommandHandler": "tsbot.commands.RawCommandHandler",
+    "EventHandler": "tsbot.events.EventHandler",
+    "TaskHandler": "tsbot.tasks.TaskHandler",
+    "PluginCommandHandler": "tsbot.plugin.PluginCommandHandler",
+    "PluginRawCommandHandler": "tsbot.plugin.PluginRawCommandHandler",
+    "PluginEventHandler": "tsbot.plugin.PluginEventHandler",
+}
 
 # -- MyST Options -----------------------
 myst_heading_anchors = 3
