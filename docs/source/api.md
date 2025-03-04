@@ -85,7 +85,11 @@
 
 ```{eval-rst}
 .. autoclass:: tsbot.plugin.TSPlugin
+```
 
+### Handlers
+
+```{eval-rst}
 .. autotype:: tsbot.plugin.PluginCommandHandler
 
     A handler signature for plugin command handlers.
@@ -110,6 +114,11 @@
 
         async def plugin_event_handler(self, bot: TSBot, ctx: TSCtx) -> None: ...
 
+```
+
+### Decorators
+
+```{eval-rst}
 .. autodecorator:: tsbot.plugin.command
 
 .. autodecorator:: tsbot.plugin.on
