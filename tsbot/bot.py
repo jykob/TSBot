@@ -511,6 +511,7 @@ class TSBot:
         handler: tasks.TaskHandler[Unpack[_Ts]],
         *args: Unpack[_Ts],
         name: str | None = None,
+        immediate: bool = False,
     ) -> tasks.TSTask:
         """
         Register a background task.
@@ -530,10 +531,11 @@ class TSBot:
         :param handler: Async function to be called when the task is executed.
         :param args: Optional arguments to be passed to the handler.
         :param name: Name of the task.
+        :param immediate: If the task handler should be executed immediately.
         :return: Instance of :class:`~tsbot.tasks.TSTask` created.
         """
         task = tasks.TSTask(
-            handler=tasks.every(handler, seconds),  # type: ignore
+            handler=tasks.every(handler, seconds, immediate),  # type: ignore
             args=args,
             name=name,
         )

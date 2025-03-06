@@ -30,9 +30,16 @@ class TSTask:
             self.task.cancel()
 
 
-def every(every_handler: TaskHandler[Unpack[_Ts]], seconds: float) -> TaskHandler[Unpack[_Ts]]:
+def every(
+    every_handler: TaskHandler[Unpack[_Ts]],
+    seconds: float,
+    immediate: bool = False,
+) -> TaskHandler[Unpack[_Ts]]:
     @functools.wraps(every_handler)
     async def every_wrapper(bot: bot.TSBot, *args: Unpack[_Ts]) -> None:
+        if immediate:
+            await every_handler(bot, *args)
+
         while True:
             await asyncio.sleep(seconds)
             await every_handler(bot, *args)
