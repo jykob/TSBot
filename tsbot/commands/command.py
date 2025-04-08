@@ -6,6 +6,8 @@ from collections.abc import Callable, Coroutine
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from typing_extensions import Concatenate  # noqa: UP035
+
 from tsbot import exceptions, parsers
 
 if TYPE_CHECKING:
@@ -13,10 +15,9 @@ if TYPE_CHECKING:
 
 
 RawCommandHandler = Callable[["bot.TSBot", "context.TSCtx", str], Coroutine[None, None, None]]
-CommandHandler = Callable[..., Coroutine[None, None, None]]
-
-# TODO: Use after 'typing_extensions' releases support for Python 3.10 'Concatenate[...]'
-# CommandHandler = Callable[Concatenate["bot.TSBot", "context.TSCtx", ...], Coroutine[None, None, None]]
+CommandHandler = Callable[
+    Concatenate["bot.TSBot", "context.TSCtx", ...], Coroutine[None, None, None]
+]
 
 
 @dataclass(slots=True)
