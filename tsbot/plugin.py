@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections.abc import Callable, Coroutine, Sequence
 from typing import TYPE_CHECKING, Any, Literal, TypedDict, TypeVar, overload
 
+from typing_extensions import Concatenate  # noqa: UP035
+
 if TYPE_CHECKING:
     from tsbot import bot, context
     from tsbot.commands import CommandHandler
@@ -15,12 +17,9 @@ PluginEventHandler = Callable[[_TP, "bot.TSBot", _TC], Coroutine[None, None, Non
 PluginRawCommandHandler = Callable[
     [_TP, "bot.TSBot", "context.TSCtx", str], Coroutine[None, None, None]
 ]
-PluginCommandHandler = Callable[..., Coroutine[None, None, None]]
-
-# TODO: Use after 'typing_extensions' releases support for Python 3.10 'Concatenate[...]'
-# PluginCommandHandler = Callable[
-#     Concatenate[_TP, "bot.TSBot", "context.TSCtx", ...], Coroutine[None, None, None]
-# ]
+PluginCommandHandler = Callable[
+    Concatenate[_TP, "bot.TSBot", "context.TSCtx", ...], Coroutine[None, None, None]
+]
 
 
 class CommandKwargs(TypedDict):
@@ -61,7 +60,7 @@ def command(
     raw: Literal[False] = False,
     hidden: bool = False,
     checks: Sequence[CommandHandler] = (),
-) -> Callable[[PluginCommandHandler], PluginCommandHandler]: ...
+) -> Callable[[PluginCommandHandler[_TP]], PluginCommandHandler[_TP]]: ...
 
 
 def command(
@@ -70,7 +69,7 @@ def command(
     raw: bool = False,
     hidden: bool = False,
     checks: Sequence[CommandHandler] = (),
-) -> Callable[[PluginCommandHandler], PluginCommandHandler]:
+) -> Callable[[PluginCommandHandler[_TP]], PluginCommandHandler[_TP]]:
     """
     Decorator to register plugin commands
 
@@ -81,7 +80,7 @@ def command(
     :param checks: List of async functions to be called before the command is executed.
     """
 
-    def command_decorator(func: PluginCommandHandler) -> PluginCommandHandler:
+    def command_decorator(func: PluginCommandHandler[_TP]) -> PluginCommandHandler[_TP]:
         setattr(
             func,
             COMMAND_ATTR,
