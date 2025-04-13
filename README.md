@@ -5,8 +5,11 @@ Asynchronous Python framework to build **TeamSpeak 3 Server Query** bots
 ## ✅ Features
 
 - Modern Python `async` and `await` syntax
-- Secure connection through SSH
+- Fully typed interface
+- Event, command and background task systems
+- Secure connection through SSH, or raw connection for local servers
 - Ease of use query building
+- Automatic reconnection if connection is lost
 - Built-in and configurable ratelimiter if no access to `query_ip_allowlist.txt`
 
 ## ✏️ Examples
