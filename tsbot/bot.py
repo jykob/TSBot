@@ -611,10 +611,10 @@ class TSBot:
 
         This method closes the bot gracefully.
 
-        - The bot will emit `close` event to notify that it is closing.
-        - The bot will cancel all the background tasks and wait until they are finished.
-        - The bot will handle all the events still in the queue.
-        - If the connection is still open, the bot will send a quit command.
+        * The bot will emit `close` event to notify that it is closing.
+        * The bot will cancel all the background tasks and wait until they are finished.
+        * The bot will handle all the events still in the queue.
+        * If the connection is still open, the bot will send a quit command.
         """
 
         self._closing.set()
@@ -649,9 +649,10 @@ class TSBot:
         Run the bot.
 
         This method starts the bot.
-        - Connects the bot to the server.
-        - Schedules background tasks.
-        - Registers the server to send events to the bot.
+
+        * Connects the bot to the server.
+        * Schedules background tasks.
+        * Registers the server to send events to the bot.
 
         Awaits until the bot is closed or the connection is lost.
         """
