@@ -690,6 +690,10 @@ class TSBot:
         """
 
         for plugin_to_be_loaded in plugins:
+            if plugin_to_be_loaded in self.plugins.values():
+                logger.warning("Plugin %r is already loaded", type(plugin_to_be_loaded).__name__)
+                continue
+
             for _, member in inspect.getmembers(plugin_to_be_loaded):
                 command_kwargs: plugin.CommandKwargs | None
                 event_kwargs: plugin.EventKwargs | None
@@ -727,6 +731,9 @@ class TSBot:
         """
 
         for plugin_to_be_unloaded in plugins:
+            if plugin_to_be_unloaded not in self.plugins.values():
+                logger.warning("Plugin %r is not loaded", type(plugin_to_be_unloaded).__name__)
+                continue
 
             loaded_commands = plugin_to_be_unloaded.__ts_handlers__["commands"]
             while loaded_commands:
