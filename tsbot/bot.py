@@ -742,9 +742,8 @@ class TSBot:
         * :func:`~tsbot.plugin.once`
         * :func:`~tsbot.plugin.command`
 
-        .. note::
-            This method won't unload handlers that are registered dynamically.
-            Use :meth:`~tsbot.plugin.TSPlugin.on_unload` callback to unload such handlers.
+        Once the plugin is unloaded, the :meth:`~tsbot.plugin.TSPlugin.on_unload` callback is called.
+        You can override this method in your plugin to clean up side effects when the plugin is unloaded.
 
         :param plugins: Instances of :class:`~tsbot.plugins.TSPlugin` to be unloaded.
         """
