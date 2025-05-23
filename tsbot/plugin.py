@@ -43,6 +43,21 @@ class TSPlugin:
     """Base class for plugins"""
 
 
+    def on_load(self, bot: bot.TSBot) -> None:
+        """
+        TODO: Add docstring
+
+        Called when the plugin is loaded by the bot
+        """
+
+    def on_unload(self, bot: bot.TSBot) -> None:
+        """
+        TODO: Add docstring
+
+        Called when the plugin is unloaded by the bot
+        """
+
+
 @overload
 def command(
     *command: str,

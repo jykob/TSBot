@@ -15,6 +15,7 @@ from tsbot import (
     default_plugins,
     enums,
     events,
+    logging,
     plugin,
     query_builder,
     ratelimiter,
@@ -29,6 +30,9 @@ if TYPE_CHECKING:
 _Ts = TypeVarTuple("_Ts")
 
 _DEFAULT_PORTS = {"ssh": 10022, "raw": 10011}
+
+
+logger = logging.get_logger(__name__)
 
 
 class BotInfo(NamedTuple):
@@ -707,6 +711,11 @@ class TSBot:
                 elif once_kwargs := getattr(member, plugin.ONCE_ATTR, None):
                     event_handler = self.register_once_handler(handler=member, **once_kwargs)
 
+            plugin_to_be_loaded.on_load(self)
+
+            self.plugins[type(plugin_to_be_loaded).__name__] = plugin_to_be_loaded
+            logger.debug("Plugin %r loaded", type(plugin_to_be_loaded).__name__)
+
     def unload_plugin(self, *plugins: plugin.TSPlugin) -> None:
         """
         Unloads a plugin from the bot
@@ -714,6 +723,12 @@ class TSBot:
         :param plugins: Instances of :class:`~tsbot.plugins.TSPlugin` to be unloaded.
         """
 
+        for plugin_to_be_unloaded in plugins:
+
+            plugin_to_be_unloaded.on_unload(self)
+
+            self.plugins.pop(type(plugin_to_be_unloaded).__name__, None)
+            logger.debug("Plugin %r unloaded", type(plugin_to_be_unloaded).__name__)
 
     def get_plugin(self, plugin_name: str) -> plugin.TSPlugin | None:
         """Get a plugin by its name"""
