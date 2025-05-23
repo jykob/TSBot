@@ -728,6 +728,15 @@ class TSBot:
 
         for plugin_to_be_unloaded in plugins:
 
+            loaded_commands = plugin_to_be_unloaded.__ts_handlers__["commands"]
+            while loaded_commands:
+                self.remove_command(loaded_commands.pop())
+
+            loaded_events = plugin_to_be_unloaded.__ts_handlers__["events"]
+            while loaded_events:
+                with contextlib.suppress(ValueError):
+                    self.remove_event_handler(loaded_events.pop())
+
             plugin_to_be_unloaded.on_unload(self)
 
             self.plugins.pop(type(plugin_to_be_unloaded).__name__, None)
