@@ -687,9 +687,10 @@ class TSBot:
         Loads :class:`~tsbot.plugins.TSPlugin` instances into the bot.
 
         This method loads all the event handlers and commands defined with the following decorators:
-        * `:meth:`~tsbot.plugin.TSPlugin.once`
-        * `:meth:`~tsbot.plugin.TSPlugin.command`
-        * `:meth:`~tsbot.plugin.TSPlugin.on`
+
+        * :func:`~tsbot.plugin.on`
+        * :func:`~tsbot.plugin.once`
+        * :func:`~tsbot.plugin.command`
 
         Once the plugin is loaded, the :meth:`~tsbot.plugin.TSPlugin.on_load` callback is called.
         You can override this method in your plugin to do side effects when the plugin is loaded by the bot.
@@ -736,9 +737,10 @@ class TSBot:
         Unloads :class:`~tsbot.plugins.TSPlugin` instances from the bot.
 
         This method unloads all the event handlers and commands defined with the following decorators:
-        * `:meth:`~tsbot.plugin.TSPlugin.once`
-        * `:meth:`~tsbot.plugin.TSPlugin.command`
-        * `:meth:`~tsbot.plugin.TSPlugin.on`
+
+        * :func:`~tsbot.plugin.on`
+        * :func:`~tsbot.plugin.once`
+        * :func:`~tsbot.plugin.command`
 
         .. note::
             This method won't unload handlers that are registered dynamically.
