@@ -3,12 +3,12 @@ from __future__ import annotations
 from collections.abc import Callable, Coroutine, Sequence
 from typing import TYPE_CHECKING, Any, Literal, TypedDict, TypeVar, overload
 
-from typing_extensions import Concatenate  # noqa: UP035
+from typing_extensions import Concatenate, Self  # noqa: UP035
 
 if TYPE_CHECKING:
     from tsbot import bot, context
-    from tsbot.commands import CommandHandler
-    from tsbot.events import event_types
+    from tsbot.commands import CommandHandler, TSCommand
+    from tsbot.events import TSEventHandler, event_types
 
 _TP = TypeVar("_TP", bound="TSPlugin", contravariant=True)
 _TC = TypeVar("_TC", contravariant=True)
@@ -34,6 +34,11 @@ class EventKwargs(TypedDict):
     event_type: str
 
 
+class PluginHandlerInstances(TypedDict):
+    commands: list[TSCommand]
+    events: list[TSEventHandler]
+
+
 COMMAND_ATTR = "__ts_command__"
 EVENT_ATTR = "__ts_event__"
 ONCE_ATTR = "__ts_once__"
@@ -42,6 +47,13 @@ ONCE_ATTR = "__ts_once__"
 class TSPlugin:
     """Base class for plugins"""
 
+    __ts_handlers__: PluginHandlerInstances
+
+    def __new__(cls) -> Self:
+        instance = super().__new__(cls)
+        instance.__ts_handlers__ = PluginHandlerInstances(commands=[], events=[])
+
+        return instance
 
     def on_load(self, bot: bot.TSBot) -> None:
         """

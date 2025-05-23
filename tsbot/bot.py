@@ -704,12 +704,15 @@ class TSBot:
                         hidden=command_kwargs["hidden"],
                         checks=command_kwargs["checks"],
                     )
+                    plugin_to_be_loaded.__ts_handlers__["commands"].append(command)
 
                 elif event_kwargs := getattr(member, plugin.EVENT_ATTR, None):
                     event_handler = self.register_event_handler(handler=member, **event_kwargs)
+                    plugin_to_be_loaded.__ts_handlers__["events"].append(event_handler)
 
                 elif once_kwargs := getattr(member, plugin.ONCE_ATTR, None):
                     event_handler = self.register_once_handler(handler=member, **once_kwargs)
+                    plugin_to_be_loaded.__ts_handlers__["events"].append(event_handler)
 
             plugin_to_be_loaded.on_load(self)
 
@@ -718,7 +721,7 @@ class TSBot:
 
     def unload_plugin(self, *plugins: plugin.TSPlugin) -> None:
         """
-        Unloads a plugin from the bot
+        Unloads a plugin from the bot.
 
         :param plugins: Instances of :class:`~tsbot.plugins.TSPlugin` to be unloaded.
         """
