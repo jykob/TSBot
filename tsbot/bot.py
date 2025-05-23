@@ -4,7 +4,7 @@ import asyncio
 import contextlib
 import inspect
 from collections.abc import Callable, Iterable, Sequence
-from typing import TYPE_CHECKING, Any, Literal, NamedTuple, cast, overload
+from typing import TYPE_CHECKING, Any, Literal, NamedTuple, overload
 
 from typing_extensions import TypeVarTuple, Unpack
 
@@ -687,10 +687,12 @@ class TSBot:
 
         for plugin_to_be_loaded in plugins:
             for _, member in inspect.getmembers(plugin_to_be_loaded):
-                if command_kwargs := cast(
-                    plugin.CommandKwargs | None, getattr(member, plugin.COMMAND_ATTR, None)
-                ):
-                    self.register_command(
+                command_kwargs: plugin.CommandKwargs | None
+                event_kwargs: plugin.EventKwargs | None
+                once_kwargs: plugin.EventKwargs | None
+
+                if command_kwargs := getattr(member, plugin.COMMAND_ATTR, None):
+                    command = self.register_command(
                         command=command_kwargs["command"],
                         handler=member,
                         help_text=command_kwargs["help_text"],
@@ -700,16 +702,10 @@ class TSBot:
                     )
 
                 elif event_kwargs := getattr(member, plugin.EVENT_ATTR, None):
-                    self.register_event_handler(
-                        handler=member, **cast(plugin.EventKwargs, event_kwargs)
-                    )
+                    event_handler = self.register_event_handler(handler=member, **event_kwargs)
 
                 elif once_kwargs := getattr(member, plugin.ONCE_ATTR, None):
-                    self.register_once_handler(
-                        handler=member, **cast(plugin.EventKwargs, once_kwargs)
-                    )
-
-            self.plugins[plugin_to_be_loaded.__class__.__name__] = plugin_to_be_loaded
+                    event_handler = self.register_once_handler(handler=member, **once_kwargs)
 
     async def respond(self, ctx: context.TSCtx, message: str) -> None:
         """
