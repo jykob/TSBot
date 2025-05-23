@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, TypeVar
@@ -35,6 +36,7 @@ class TSEventOnceHandler(TSEventHandler):
             return
 
         self._has_run = True
-        self.remove_event_handler_func(self)
+        with contextlib.suppress(ValueError):
+            self.remove_event_handler_func(self)
 
         await self.handler(bot, event.ctx)

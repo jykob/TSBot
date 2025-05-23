@@ -12,6 +12,20 @@ This example is taken from [examples/plugin_example.py](https://github.com/jykob
 
 ---
 
+## Callbacks
+
+TSBot plugins can define callbacks that are called when the plugin is loaded or unloaded.
+
+You can override the [`TSPlugin.on_load()`](tsbot.plugin.TSPlugin.on_load) and [`TSPlugin.on_unload()`](tsbot.plugin.TSPlugin.on_unload)
+methods in your plugin class to do side effects when the plugin is loaded or unloaded.
+
+```{literalinclude} ../../examples/plugin_callbacks.py
+:language: python
+
+```
+
+---
+
 ## Default plugins
 
 TSBot comes with a few useful default plugins. These include:
