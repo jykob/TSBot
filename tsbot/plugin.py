@@ -57,16 +57,22 @@ class TSPlugin:
 
     def on_load(self, bot: bot.TSBot) -> None:
         """
-        TODO: Add docstring
+        Callback called when the plugin is loaded to the bot.
 
-        Called when the plugin is loaded by the bot
+        This method can be overridden and used to do side effects when the plugin is loaded.
+        For example, registering event handlers, commands, etc.
+
+        :param bot: Instance of :class:`~tsbot.bot.TSBot` that loaded the plugin.
         """
 
     def on_unload(self, bot: bot.TSBot) -> None:
         """
-        TODO: Add docstring
+        Callback called when the plugin is unloaded from the bot.
 
-        Called when the plugin is unloaded by the bot
+        This method can be overridden and used to clean up side effects when the plugin is unloaded.
+        For example, removing event handlers, commands, etc.
+
+        :param bot: Instance of :class:`~tsbot.bot.TSBot` that unloaded the plugin.
         """
 
 

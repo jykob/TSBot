@@ -686,6 +686,14 @@ class TSBot:
         """
         Loads :class:`~tsbot.plugins.TSPlugin` instances into the bot.
 
+        This method loads all the event handlers and commands defined with the following decorators:
+        * `:meth:`~tsbot.plugin.TSPlugin.once`
+        * `:meth:`~tsbot.plugin.TSPlugin.command`
+        * `:meth:`~tsbot.plugin.TSPlugin.on`
+
+        Once the plugin is loaded, the :meth:`~tsbot.plugin.TSPlugin.on_load` callback is called.
+        You can override this method in your plugin to do side effects when the plugin is loaded by the bot.
+
         :param plugins: Instances of :class:`~tsbot.plugins.TSPlugin` to be loaded.
         """
 
@@ -725,7 +733,16 @@ class TSBot:
 
     def unload_plugin(self, *plugins: plugin.TSPlugin) -> None:
         """
-        Unloads a plugin from the bot.
+        Unloads :class:`~tsbot.plugins.TSPlugin` instances from the bot.
+
+        This method unloads all the event handlers and commands defined with the following decorators:
+        * `:meth:`~tsbot.plugin.TSPlugin.once`
+        * `:meth:`~tsbot.plugin.TSPlugin.command`
+        * `:meth:`~tsbot.plugin.TSPlugin.on`
+
+        .. note::
+            This method won't unload handlers that are registered dynamically.
+            Use :meth:`~tsbot.plugin.TSPlugin.on_unload` callback to unload such handlers.
 
         :param plugins: Instances of :class:`~tsbot.plugins.TSPlugin` to be unloaded.
         """
@@ -750,7 +767,12 @@ class TSBot:
             logger.debug("Plugin %r unloaded", type(plugin_to_be_unloaded).__name__)
 
     def get_plugin(self, plugin_name: str) -> plugin.TSPlugin | None:
-        """Get a plugin by its name"""
+        """
+        Get a loaded plugin by its name.
+
+        :param plugin_name: Name of the plugin.
+        :return: Instance of the :class:`~tsbot.plugins.TSPlugin` if found.
+        """
         return self.plugins.get(plugin_name)
 
     async def respond(self, ctx: context.TSCtx, message: str) -> None:
