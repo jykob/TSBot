@@ -707,6 +707,18 @@ class TSBot:
                 elif once_kwargs := getattr(member, plugin.ONCE_ATTR, None):
                     event_handler = self.register_once_handler(handler=member, **once_kwargs)
 
+    def unload_plugin(self, *plugins: plugin.TSPlugin) -> None:
+        """
+        Unloads a plugin from the bot
+
+        :param plugins: Instances of :class:`~tsbot.plugins.TSPlugin` to be unloaded.
+        """
+
+
+    def get_plugin(self, plugin_name: str) -> plugin.TSPlugin | None:
+        """Get a plugin by its name"""
+        return self.plugins.get(plugin_name)
+
     async def respond(self, ctx: context.TSCtx, message: str) -> None:
         """
         Sends a message to the same text channel where the `ctx` was created.
