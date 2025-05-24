@@ -6,9 +6,8 @@ from typing import TYPE_CHECKING, Any, Literal, TypedDict, TypeVar, overload
 from typing_extensions import Concatenate, Self  # noqa: UP035
 
 if TYPE_CHECKING:
-    from tsbot import bot, context
-    from tsbot.commands import CommandHandler, TSCommand
-    from tsbot.events import TSEventHandler, event_types
+    from tsbot import bot, commands, context, events
+    from tsbot.events import event_types
 
 _TP = TypeVar("_TP", bound="TSPlugin", contravariant=True)
 _TC = TypeVar("_TC", contravariant=True)
@@ -27,7 +26,7 @@ class CommandKwargs(TypedDict):
     help_text: str
     raw: bool
     hidden: bool
-    checks: Sequence[CommandHandler]
+    checks: Sequence[commands.CommandHandler]
 
 
 class EventKwargs(TypedDict):
@@ -35,8 +34,8 @@ class EventKwargs(TypedDict):
 
 
 class PluginHandlerInstances(TypedDict):
-    commands: list[TSCommand]
-    events: list[TSEventHandler]
+    commands: list[commands.TSCommand]
+    events: list[events.TSEventHandler]
 
 
 COMMAND_ATTR = "__ts_command__"
@@ -82,7 +81,7 @@ def command(
     help_text: str = "",
     raw: Literal[True],
     hidden: bool = False,
-    checks: Sequence[CommandHandler] = (),
+    checks: Sequence[commands.CommandHandler] = (),
 ) -> Callable[[PluginRawCommandHandler[_TP]], PluginRawCommandHandler[_TP]]: ...
 
 
@@ -92,7 +91,7 @@ def command(
     help_text: str = "",
     raw: Literal[False] = False,
     hidden: bool = False,
-    checks: Sequence[CommandHandler] = (),
+    checks: Sequence[commands.CommandHandler] = (),
 ) -> Callable[[PluginCommandHandler[_TP]], PluginCommandHandler[_TP]]: ...
 
 
@@ -101,7 +100,7 @@ def command(
     help_text: str = "",
     raw: bool = False,
     hidden: bool = False,
-    checks: Sequence[CommandHandler] = (),
+    checks: Sequence[commands.CommandHandler] = (),
 ) -> Callable[[PluginCommandHandler[_TP]], PluginCommandHandler[_TP]]:
     """
     Decorator to register plugin commands
