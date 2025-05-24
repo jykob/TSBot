@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-from tsbot import TSBot, TSCtx, plugin
+from tsbot import TSBot, TSCtx, commands, plugin
 
 """
 Example how to use callbacks to do side effects when the plugin is loaded or unloaded.
@@ -16,7 +16,7 @@ You need to manually remove dynamically registered event handlers and commands u
 
 
 class CallbackPlugin(plugin.TSPlugin):
-    hello_command: plugin.TSCommand
+    hello_command: commands.TSCommand
 
     async def plugin_hello(self, bot: TSBot, ctx: TSCtx):
         await bot.respond(ctx, "This command will be unloaded!")
