@@ -106,7 +106,7 @@ class TSBot:
         self._event_manager = events.EventManager()
         self._command_manager = commands.CommandManager(invoker)
 
-        self.plugins: dict[str, plugin.TSPlugin] = {}
+        self.plugins: set[plugin.TSPlugin] = set()
 
         self._bot_info = BotInfo()
         self._closing = asyncio.Event()
@@ -699,7 +699,7 @@ class TSBot:
         """
 
         for plugin_to_be_loaded in plugins:
-            if plugin_to_be_loaded in self.plugins.values():
+            if plugin_to_be_loaded in self.plugins:
                 logger.warning("Plugin %r is already loaded", type(plugin_to_be_loaded).__name__)
                 continue
 
@@ -729,7 +729,7 @@ class TSBot:
 
             plugin_to_be_loaded.on_load(self)
 
-            self.plugins[type(plugin_to_be_loaded).__name__] = plugin_to_be_loaded
+            self.plugins.add(plugin_to_be_loaded)
             logger.debug("Plugin %r loaded", type(plugin_to_be_loaded).__name__)
 
     def unload_plugin(self, *plugins: plugin.TSPlugin) -> None:
@@ -749,7 +749,7 @@ class TSBot:
         """
 
         for plugin_to_be_unloaded in plugins:
-            if plugin_to_be_unloaded not in self.plugins.values():
+            if plugin_to_be_unloaded not in self.plugins:
                 logger.warning("Plugin %r is not loaded", type(plugin_to_be_unloaded).__name__)
                 continue
 
@@ -764,17 +764,8 @@ class TSBot:
 
             plugin_to_be_unloaded.on_unload(self)
 
-            self.plugins.pop(type(plugin_to_be_unloaded).__name__, None)
+            self.plugins.discard(plugin_to_be_unloaded)
             logger.debug("Plugin %r unloaded", type(plugin_to_be_unloaded).__name__)
-
-    def get_plugin(self, plugin_name: str) -> plugin.TSPlugin | None:
-        """
-        Get a loaded plugin by its name.
-
-        :param plugin_name: Name of the plugin.
-        :return: Instance of the :class:`~tsbot.plugins.TSPlugin` if found.
-        """
-        return self.plugins.get(plugin_name)
 
     async def respond(self, ctx: context.TSCtx, message: str) -> None:
         """
