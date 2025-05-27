@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from tsbot import bot, commands, context, events
     from tsbot.events import event_types
 
+_T = TypeVar("_T")
 _TP = TypeVar("_TP", bound="TSPlugin", contravariant=True)
 _TC = TypeVar("_TC", contravariant=True)
 
@@ -33,11 +34,6 @@ class EventKwargs(TypedDict):
     event_type: str
 
 
-class PluginHandlerInstances(TypedDict):
-    commands: list[commands.TSCommand]
-    events: list[events.TSEventHandler]
-
-
 COMMAND_ATTR = "__ts_command__"
 EVENT_ATTR = "__ts_event__"
 ONCE_ATTR = "__ts_once__"
@@ -46,11 +42,13 @@ ONCE_ATTR = "__ts_once__"
 class TSPlugin:
     """Base class for plugins"""
 
-    __ts_handlers__: PluginHandlerInstances
+    __ts_event_instances__: list[events.TSEventHandler]
+    __ts_command_instances__: list[commands.TSCommand]
 
     def __new__(cls) -> Self:
         instance = super().__new__(cls)
-        instance.__ts_handlers__ = PluginHandlerInstances(commands=[], events=[])
+        instance.__ts_event_instances__ = []
+        instance.__ts_command_instances__ = []
 
         return instance
 

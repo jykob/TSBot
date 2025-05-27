@@ -717,15 +717,15 @@ class TSBot:
                         hidden=command_kwargs["hidden"],
                         checks=command_kwargs["checks"],
                     )
-                    plugin_to_be_loaded.__ts_handlers__["commands"].append(command)
+                    plugin_to_be_loaded.__ts_command_instances__.append(command)
 
                 elif event_kwargs := getattr(member, plugin.EVENT_ATTR, None):
                     event_handler = self.register_event_handler(handler=member, **event_kwargs)
-                    plugin_to_be_loaded.__ts_handlers__["events"].append(event_handler)
+                    plugin_to_be_loaded.__ts_event_instances__.append(event_handler)
 
                 elif once_kwargs := getattr(member, plugin.ONCE_ATTR, None):
                     event_handler = self.register_once_handler(handler=member, **once_kwargs)
-                    plugin_to_be_loaded.__ts_handlers__["events"].append(event_handler)
+                    plugin_to_be_loaded.__ts_event_instances__.append(event_handler)
 
             plugin_to_be_loaded.on_load(self)
 
@@ -753,14 +753,14 @@ class TSBot:
                 logger.warning("Plugin %r is not loaded", type(plugin_to_be_unloaded).__name__)
                 continue
 
-            loaded_commands = plugin_to_be_unloaded.__ts_handlers__["commands"]
-            while loaded_commands:
-                self.remove_command(loaded_commands.pop())
+            command_instances = plugin_to_be_unloaded.__ts_command_instances__
+            while command_instances:
+                self.remove_command(command_instances.pop())
 
-            loaded_events = plugin_to_be_unloaded.__ts_handlers__["events"]
-            while loaded_events:
+            event_instances = plugin_to_be_unloaded.__ts_event_instances__
+            while event_instances:
                 with contextlib.suppress(ValueError):
-                    self.remove_event_handler(loaded_events.pop())
+                    self.remove_event_handler(event_instances.pop())
 
             plugin_to_be_unloaded.on_unload(self)
 
