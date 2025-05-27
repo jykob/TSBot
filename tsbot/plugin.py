@@ -9,7 +9,6 @@ if TYPE_CHECKING:
     from tsbot import bot, commands, context, events
     from tsbot.events import event_types
 
-_T = TypeVar("_T")
 _TP = TypeVar("_TP", bound="TSPlugin", contravariant=True)
 _TC = TypeVar("_TC", contravariant=True)
 
