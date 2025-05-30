@@ -85,6 +85,7 @@
 
 ```{eval-rst}
 .. autoclass:: tsbot.plugin.TSPlugin
+    :members:
 ```
 
 ### Handlers

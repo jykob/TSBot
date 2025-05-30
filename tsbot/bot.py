@@ -4,7 +4,7 @@ import asyncio
 import contextlib
 import inspect
 from collections.abc import Callable, Iterable, Sequence
-from typing import TYPE_CHECKING, Any, Literal, NamedTuple, cast, overload
+from typing import TYPE_CHECKING, Any, Literal, NamedTuple, overload
 
 from typing_extensions import TypeVarTuple, Unpack
 
@@ -15,6 +15,7 @@ from tsbot import (
     default_plugins,
     enums,
     events,
+    logging,
     plugin,
     query_builder,
     ratelimiter,
@@ -29,6 +30,9 @@ if TYPE_CHECKING:
 _Ts = TypeVarTuple("_Ts")
 
 _DEFAULT_PORTS = {"ssh": 10022, "raw": 10011}
+
+
+logger = logging.get_logger(__name__)
 
 
 class BotInfo(NamedTuple):
@@ -102,7 +106,7 @@ class TSBot:
         self._event_manager = events.EventManager()
         self._command_manager = commands.CommandManager(invoker)
 
-        self.plugins: dict[str, plugin.TSPlugin] = {}
+        self.plugins: set[plugin.TSPlugin] = set()
 
         self._bot_info = BotInfo()
         self._closing = asyncio.Event()
@@ -682,15 +686,30 @@ class TSBot:
         """
         Loads :class:`~tsbot.plugins.TSPlugin` instances into the bot.
 
+        This method loads all the event handlers and commands defined with the following decorators:
+
+        * :func:`~tsbot.plugin.on`
+        * :func:`~tsbot.plugin.once`
+        * :func:`~tsbot.plugin.command`
+
+        Once the plugin is loaded, the :meth:`~tsbot.plugin.TSPlugin.on_load` callback is called.
+        You can override this method in your plugin to do side effects when the plugin is loaded by the bot.
+
         :param plugins: Instances of :class:`~tsbot.plugins.TSPlugin` to be loaded.
         """
 
         for plugin_to_be_loaded in plugins:
+            if plugin_to_be_loaded in self.plugins:
+                logger.warning("Plugin %r is already loaded", type(plugin_to_be_loaded).__name__)
+                continue
+
             for _, member in inspect.getmembers(plugin_to_be_loaded):
-                if command_kwargs := cast(
-                    plugin.CommandKwargs | None, getattr(member, plugin.COMMAND_ATTR, None)
-                ):
-                    self.register_command(
+                command_kwargs: plugin.CommandKwargs | None
+                event_kwargs: plugin.EventKwargs | None
+                once_kwargs: plugin.EventKwargs | None
+
+                if command_kwargs := getattr(member, plugin.COMMAND_ATTR, None):
+                    command = self.register_command(
                         command=command_kwargs["command"],
                         handler=member,
                         help_text=command_kwargs["help_text"],
@@ -698,18 +717,55 @@ class TSBot:
                         hidden=command_kwargs["hidden"],
                         checks=command_kwargs["checks"],
                     )
+                    plugin_to_be_loaded.__ts_command_instances__.append(command)
 
                 elif event_kwargs := getattr(member, plugin.EVENT_ATTR, None):
-                    self.register_event_handler(
-                        handler=member, **cast(plugin.EventKwargs, event_kwargs)
-                    )
+                    event_handler = self.register_event_handler(handler=member, **event_kwargs)
+                    plugin_to_be_loaded.__ts_event_instances__.append(event_handler)
 
                 elif once_kwargs := getattr(member, plugin.ONCE_ATTR, None):
-                    self.register_once_handler(
-                        handler=member, **cast(plugin.EventKwargs, once_kwargs)
-                    )
+                    event_handler = self.register_once_handler(handler=member, **once_kwargs)
+                    plugin_to_be_loaded.__ts_event_instances__.append(event_handler)
 
-            self.plugins[plugin_to_be_loaded.__class__.__name__] = plugin_to_be_loaded
+            plugin_to_be_loaded.on_load(self)
+
+            self.plugins.add(plugin_to_be_loaded)
+            logger.debug("Plugin %r loaded", type(plugin_to_be_loaded).__name__)
+
+    def unload_plugin(self, *plugins: plugin.TSPlugin) -> None:
+        """
+        Unloads :class:`~tsbot.plugins.TSPlugin` instances from the bot.
+
+        This method unloads all the event handlers and commands defined with the following decorators:
+
+        * :func:`~tsbot.plugin.on`
+        * :func:`~tsbot.plugin.once`
+        * :func:`~tsbot.plugin.command`
+
+        Once the plugin is unloaded, the :meth:`~tsbot.plugin.TSPlugin.on_unload` callback is called.
+        You can override this method in your plugin to clean up side effects when the plugin is unloaded.
+
+        :param plugins: Instances of :class:`~tsbot.plugins.TSPlugin` to be unloaded.
+        """
+
+        for plugin_to_be_unloaded in plugins:
+            if plugin_to_be_unloaded not in self.plugins:
+                logger.warning("Plugin %r is not loaded", type(plugin_to_be_unloaded).__name__)
+                continue
+
+            command_instances = plugin_to_be_unloaded.__ts_command_instances__
+            while command_instances:
+                self.remove_command(command_instances.pop())
+
+            event_instances = plugin_to_be_unloaded.__ts_event_instances__
+            while event_instances:
+                with contextlib.suppress(ValueError):
+                    self.remove_event_handler(event_instances.pop())
+
+            plugin_to_be_unloaded.on_unload(self)
+
+            self.plugins.discard(plugin_to_be_unloaded)
+            logger.debug("Plugin %r unloaded", type(plugin_to_be_unloaded).__name__)
 
     async def respond(self, ctx: context.TSCtx, message: str) -> None:
         """

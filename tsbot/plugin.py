@@ -3,11 +3,10 @@ from __future__ import annotations
 from collections.abc import Callable, Coroutine, Sequence
 from typing import TYPE_CHECKING, Any, Literal, TypedDict, TypeVar, overload
 
-from typing_extensions import Concatenate  # noqa: UP035
+from typing_extensions import Concatenate, Self  # noqa: UP035
 
 if TYPE_CHECKING:
-    from tsbot import bot, context
-    from tsbot.commands import CommandHandler
+    from tsbot import bot, commands, context, events
     from tsbot.events import event_types
 
 _TP = TypeVar("_TP", bound="TSPlugin", contravariant=True)
@@ -27,7 +26,7 @@ class CommandKwargs(TypedDict):
     help_text: str
     raw: bool
     hidden: bool
-    checks: Sequence[CommandHandler]
+    checks: Sequence[commands.CommandHandler]
 
 
 class EventKwargs(TypedDict):
@@ -42,6 +41,36 @@ ONCE_ATTR = "__ts_once__"
 class TSPlugin:
     """Base class for plugins"""
 
+    __ts_event_instances__: list[events.TSEventHandler]
+    __ts_command_instances__: list[commands.TSCommand]
+
+    def __new__(cls) -> Self:
+        instance = super().__new__(cls)
+        instance.__ts_event_instances__ = []
+        instance.__ts_command_instances__ = []
+
+        return instance
+
+    def on_load(self, bot: bot.TSBot) -> None:
+        """
+        Callback called when the plugin is loaded to the bot.
+
+        This method can be overridden and used to do side effects when the plugin is loaded.
+        For example, registering event handlers, commands, etc.
+
+        :param bot: Instance of :class:`~tsbot.bot.TSBot` that loaded the plugin.
+        """
+
+    def on_unload(self, bot: bot.TSBot) -> None:
+        """
+        Callback called when the plugin is unloaded from the bot.
+
+        This method can be overridden and used to clean up side effects when the plugin is unloaded.
+        For example, removing event handlers, commands, etc.
+
+        :param bot: Instance of :class:`~tsbot.bot.TSBot` that unloaded the plugin.
+        """
+
 
 @overload
 def command(
@@ -49,7 +78,7 @@ def command(
     help_text: str = "",
     raw: Literal[True],
     hidden: bool = False,
-    checks: Sequence[CommandHandler] = (),
+    checks: Sequence[commands.CommandHandler] = (),
 ) -> Callable[[PluginRawCommandHandler[_TP]], PluginRawCommandHandler[_TP]]: ...
 
 
@@ -59,7 +88,7 @@ def command(
     help_text: str = "",
     raw: Literal[False] = False,
     hidden: bool = False,
-    checks: Sequence[CommandHandler] = (),
+    checks: Sequence[commands.CommandHandler] = (),
 ) -> Callable[[PluginCommandHandler[_TP]], PluginCommandHandler[_TP]]: ...
 
 
@@ -68,7 +97,7 @@ def command(
     help_text: str = "",
     raw: bool = False,
     hidden: bool = False,
-    checks: Sequence[CommandHandler] = (),
+    checks: Sequence[commands.CommandHandler] = (),
 ) -> Callable[[PluginCommandHandler[_TP]], PluginCommandHandler[_TP]]:
     """
     Decorator to register plugin commands
