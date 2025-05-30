@@ -24,8 +24,7 @@ from tsbot import (
 )
 
 if TYPE_CHECKING:
-    from tsbot.commands import CommandHandler, RawCommandHandler
-    from tsbot.events import EventHandler, event_types
+    from tsbot.events import event_types
 
 _Ts = TypeVarTuple("_Ts")
 
@@ -166,22 +165,24 @@ class TSBot:
     @overload
     def on(
         self, event_type: event_types.BUILTIN_EVENTS
-    ) -> Callable[[EventHandler[context.TSCtx]], EventHandler[context.TSCtx]]: ...
+    ) -> Callable[[events.EventHandler[context.TSCtx]], events.EventHandler[context.TSCtx]]: ...
 
     @overload
     def on(
         self, event_type: event_types.BUILTIN_NO_CTX_EVENTS
-    ) -> Callable[[EventHandler[None]], EventHandler[None]]: ...
+    ) -> Callable[[events.EventHandler[None]], events.EventHandler[None]]: ...
 
     @overload
     def on(
         self, event_type: event_types.TS_EVENTS
-    ) -> Callable[[EventHandler[context.TSCtx]], EventHandler[context.TSCtx]]: ...
+    ) -> Callable[[events.EventHandler[context.TSCtx]], events.EventHandler[context.TSCtx]]: ...
 
     @overload
-    def on(self, event_type: str) -> Callable[[EventHandler[Any]], EventHandler[Any]]: ...
+    def on(
+        self, event_type: str
+    ) -> Callable[[events.EventHandler[Any]], events.EventHandler[Any]]: ...
 
-    def on(self, event_type: str) -> Callable[[EventHandler[Any]], EventHandler[Any]]:
+    def on(self, event_type: str) -> Callable[[events.EventHandler[Any]], events.EventHandler[Any]]:
         """
         Decorator to register event handlers.
 
@@ -193,7 +194,7 @@ class TSBot:
         :param event_type: Name of the event.
         """
 
-        def event_decorator(func: EventHandler[Any]) -> EventHandler[Any]:
+        def event_decorator(func: events.EventHandler[Any]) -> events.EventHandler[Any]:
             self.register_event_handler(event_type, func)
             return func
 
@@ -201,26 +202,26 @@ class TSBot:
 
     @overload
     def register_event_handler(
-        self, event_type: event_types.BUILTIN_EVENTS, handler: EventHandler[context.TSCtx]
+        self, event_type: event_types.BUILTIN_EVENTS, handler: events.EventHandler[context.TSCtx]
     ) -> events.TSEventHandler: ...
 
     @overload
     def register_event_handler(
-        self, event_type: event_types.BUILTIN_NO_CTX_EVENTS, handler: EventHandler[None]
+        self, event_type: event_types.BUILTIN_NO_CTX_EVENTS, handler: events.EventHandler[None]
     ) -> events.TSEventHandler: ...
 
     @overload
     def register_event_handler(
-        self, event_type: event_types.TS_EVENTS, handler: EventHandler[context.TSCtx]
+        self, event_type: event_types.TS_EVENTS, handler: events.EventHandler[context.TSCtx]
     ) -> events.TSEventHandler: ...
 
     @overload
     def register_event_handler(
-        self, event_type: str, handler: EventHandler[Any]
+        self, event_type: str, handler: events.EventHandler[Any]
     ) -> events.TSEventHandler: ...
 
     def register_event_handler(
-        self, event_type: str, handler: EventHandler[Any]
+        self, event_type: str, handler: events.EventHandler[Any]
     ) -> events.TSEventHandler:
         """
         Register an event handler.
@@ -242,22 +243,26 @@ class TSBot:
     @overload
     def once(
         self, event_type: event_types.BUILTIN_EVENTS
-    ) -> Callable[[EventHandler[context.TSCtx]], EventHandler[context.TSCtx]]: ...
+    ) -> Callable[[events.EventHandler[context.TSCtx]], events.EventHandler[context.TSCtx]]: ...
 
     @overload
     def once(
         self, event_type: event_types.BUILTIN_NO_CTX_EVENTS
-    ) -> Callable[[EventHandler[None]], EventHandler[None]]: ...
+    ) -> Callable[[events.EventHandler[None]], events.EventHandler[None]]: ...
 
     @overload
     def once(
         self, event_type: event_types.TS_EVENTS
-    ) -> Callable[[EventHandler[context.TSCtx]], EventHandler[context.TSCtx]]: ...
+    ) -> Callable[[events.EventHandler[context.TSCtx]], events.EventHandler[context.TSCtx]]: ...
 
     @overload
-    def once(self, event_type: str) -> Callable[[EventHandler[Any]], EventHandler[Any]]: ...
+    def once(
+        self, event_type: str
+    ) -> Callable[[events.EventHandler[Any]], events.EventHandler[Any]]: ...
 
-    def once(self, event_type: str) -> Callable[[EventHandler[Any]], EventHandler[Any]]:
+    def once(
+        self, event_type: str
+    ) -> Callable[[events.EventHandler[Any]], events.EventHandler[Any]]:
         """
         Decorator to register once event handlers.
 
@@ -271,7 +276,7 @@ class TSBot:
         :param event_type: Name of the event.
         """
 
-        def once_decorator(func: EventHandler[Any]) -> EventHandler[Any]:
+        def once_decorator(func: events.EventHandler[Any]) -> events.EventHandler[Any]:
             self.register_once_handler(event_type, func)
             return func
 
@@ -279,26 +284,26 @@ class TSBot:
 
     @overload
     def register_once_handler(
-        self, event_type: event_types.BUILTIN_EVENTS, handler: EventHandler[context.TSCtx]
+        self, event_type: event_types.BUILTIN_EVENTS, handler: events.EventHandler[context.TSCtx]
     ) -> events.TSEventOnceHandler: ...
 
     @overload
     def register_once_handler(
-        self, event_type: event_types.BUILTIN_NO_CTX_EVENTS, handler: EventHandler[None]
+        self, event_type: event_types.BUILTIN_NO_CTX_EVENTS, handler: events.EventHandler[None]
     ) -> events.TSEventOnceHandler: ...
 
     @overload
     def register_once_handler(
-        self, event_type: event_types.TS_EVENTS, handler: EventHandler[context.TSCtx]
+        self, event_type: event_types.TS_EVENTS, handler: events.EventHandler[context.TSCtx]
     ) -> events.TSEventOnceHandler: ...
 
     @overload
     def register_once_handler(
-        self, event_type: str, handler: EventHandler[Any]
+        self, event_type: str, handler: events.EventHandler[Any]
     ) -> events.TSEventOnceHandler: ...
 
     def register_once_handler(
-        self, event_type: str, handler: EventHandler[Any]
+        self, event_type: str, handler: events.EventHandler[Any]
     ) -> events.TSEventOnceHandler:
         """
         Register an event handler to be ran once on an event, and remove it afterwards.
@@ -338,8 +343,8 @@ class TSBot:
         help_text: str = "",
         raw: Literal[True],
         hidden: bool = False,
-        checks: Sequence[CommandHandler] = (),
-    ) -> Callable[[RawCommandHandler], RawCommandHandler]: ...
+        checks: Sequence[commands.CommandHandler] = (),
+    ) -> Callable[[commands.RawCommandHandler], commands.RawCommandHandler]: ...
 
     @overload
     def command(
@@ -348,8 +353,8 @@ class TSBot:
         help_text: str = "",
         raw: Literal[False] = False,
         hidden: bool = False,
-        checks: Sequence[CommandHandler] = (),
-    ) -> Callable[[CommandHandler], CommandHandler]: ...
+        checks: Sequence[commands.CommandHandler] = (),
+    ) -> Callable[[commands.CommandHandler], commands.CommandHandler]: ...
 
     def command(
         self,
@@ -357,8 +362,8 @@ class TSBot:
         help_text: str = "",
         raw: bool = False,
         hidden: bool = False,
-        checks: Sequence[CommandHandler] = (),
-    ) -> Callable[[CommandHandler], CommandHandler]:
+        checks: Sequence[commands.CommandHandler] = (),
+    ) -> Callable[[commands.CommandHandler], commands.CommandHandler]:
         """
         Decorator to register command handlers.
 
@@ -375,7 +380,7 @@ class TSBot:
         :param checks: List of async functions to be called before the command is executed.
         """
 
-        def command_decorator(func: CommandHandler) -> CommandHandler:
+        def command_decorator(func: commands.CommandHandler) -> commands.CommandHandler:
             self.register_command(
                 command=command,
                 handler=func,
@@ -392,35 +397,35 @@ class TSBot:
     def register_command(
         self,
         command: str | tuple[str, ...],
-        handler: RawCommandHandler,
+        handler: commands.RawCommandHandler,
         *,
         help_text: str = "",
         raw: Literal[True],
         hidden: bool = False,
-        checks: Sequence[CommandHandler] = (),
+        checks: Sequence[commands.CommandHandler] = (),
     ) -> commands.TSCommand: ...
 
     @overload
     def register_command(
         self,
         command: str | tuple[str, ...],
-        handler: CommandHandler,
+        handler: commands.CommandHandler,
         *,
         help_text: str = "",
         raw: Literal[False] = False,
         hidden: bool = False,
-        checks: Sequence[CommandHandler] = (),
+        checks: Sequence[commands.CommandHandler] = (),
     ) -> commands.TSCommand: ...
 
     def register_command(
         self,
         command: str | tuple[str, ...],
-        handler: CommandHandler | RawCommandHandler,
+        handler: commands.CommandHandler | commands.RawCommandHandler,
         *,
         help_text: str = "",
         raw: bool = False,
         hidden: bool = False,
-        checks: Sequence[CommandHandler] = (),
+        checks: Sequence[commands.CommandHandler] = (),
     ) -> commands.TSCommand:
         """
         Register a command.
