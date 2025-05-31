@@ -23,7 +23,6 @@ async def spam_chat(bot: TSBot, ctx: TSCtx):
     When going over the allowed amount of calls during the period,
     the bot will automatically throttle the amount of calls
     """
-
     for _ in range(20):
         await bot.respond(ctx, "SPAM")
 

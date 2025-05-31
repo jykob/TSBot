@@ -16,7 +16,7 @@ ALLOWED_UIDS = ("v8t+Jw6+qNDl1KHuDfS7zVjKSws=",)
 
 
 async def check_uid(bot: TSBot, ctx: TSCtx, *args: str, **kwargs: str) -> None:
-    """Checks for UIDs. If uid not in given list, raise TSPermissionError"""
+    """Checks for UIDs. If uid not in given list, raise `TSPermissionError`."""
     if ctx.get("invokeruid") not in ALLOWED_UIDS:
         raise TSPermissionError("User not allowed to run this command")
 

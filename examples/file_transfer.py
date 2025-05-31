@@ -42,6 +42,7 @@ async def upload(
 ) -> int:
     """
     Uploads a file to the TeamSpeak server.
+
     If no channel id (cid) provided, will use the default channel.
 
     :return: Number of bytes uploaded.
@@ -86,6 +87,7 @@ async def download(
 ) -> int:
     """
     Downloads a file from the TeamSpeak server.
+
     If no channel id (cid) provided, will use the default channel.
 
     :return: Number of bytes downloaded.

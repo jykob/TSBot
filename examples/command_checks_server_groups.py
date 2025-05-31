@@ -19,8 +19,7 @@ bot = TSBot(
 
 
 async def check_server_groups(bot: TSBot, ctx: TSCtx, *args: str, **kwargs: str):
-    """Check if client has allowed server group. If not, raise permission error"""
-
+    """Check if client has allowed server group. If not, raise permission error."""
     ids = await bot.send(GET_DATABASE_ID_QUERY.params(cluid=ctx["invokeruid"]))
     groups = await bot.send(SERVER_GROUPS_BY_ID_QUERY.params(cldbid=ids["cldbid"]))
 
