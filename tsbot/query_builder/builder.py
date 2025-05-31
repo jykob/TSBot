@@ -25,9 +25,7 @@ def _format_parameters(params: Mapping[str, Stringable]) -> str:
 
 
 class TSQuery:
-    """
-    Class to represent query commands to the TeamSpeak server.
-    """
+    """Class to represent query commands to the TeamSpeak server."""
 
     __slots__ = (
         "_cached_query",
@@ -49,7 +47,7 @@ class TSQuery:
         :param options: Options attached to the query.
         :param parameters: Parameters attached to the query.
         :param parameter_blocks: Parameter blocks attached to the query.
-        """
+        """  # noqa: D205
         self._command: Final = command
         self._cached_query: str | None = None
 
@@ -67,7 +65,6 @@ class TSQuery:
         :param args: Tuple of options to be attached.
         :return: New :class:`tsbot.query_builder.TSQuery` instance with added params
         """
-
         return type(self)(
             self._command,
             self._options + args,
@@ -77,12 +74,11 @@ class TSQuery:
 
     def params(self, **kwargs: Stringable) -> Self:
         """
-        Add parameters to the command eg. ``cldbid=12``.
+        Add parameters to the command eg. `cldbid=12`.
 
         :param kwargs: Keyword to be attached.
         :return: New :class:`tsbot.query_builder.TSQuery` instance with added parameters
         """
-
         return type(self)(
             self._command,
             self._options,
@@ -94,15 +90,15 @@ class TSQuery:
         self, blocks: Iterable[Mapping[str, Stringable]] | None = None, /, **kwargs: Stringable
     ) -> Self:
         """
-        Add parameter blocks eg. ``clid=1 | clid=2 | clid=3`` to the command.
-        Takes in either an iterable of parameters in form of dict[str, Stringable]
+        Add parameter blocks eg. `clid=1 | clid=2 | clid=3` to the command.
+
+        Takes in either an iterable of parameters in form of `dict[str, Stringable]`
         or **one** block at a time.
 
         :param blocks: Iterable of parameter blocks to be attached.
         :param kwargs: Parameters to be attached to single block.
         :return: New :class:`tsbot.query_builder.TSQuery` instance with added parameter blocks
         """
-
         param_blocks: tuple[dict[str, Stringable], ...] = (
             tuple(map(dict, blocks)) if blocks else (kwargs,)
         )
@@ -120,7 +116,6 @@ class TSQuery:
 
         :return: The compiled query command.
         """
-
         if self._cached_query:
             return self._cached_query
 

@@ -44,7 +44,7 @@ class SSHConnection(abc.Connection):
 
     @override
     async def authenticate(self) -> None:
-        """Teamspeak SSH query clients are already authenticated on connect"""
+        """Teamspeak SSH query clients are already authenticated on connect."""
 
     @override
     def close(self) -> None:

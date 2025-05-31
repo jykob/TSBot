@@ -25,7 +25,7 @@ class TSTask:
     task: asyncio.Task[None] | None = None
 
     def cancel(self) -> None:
-        """Cancel the the underlying task"""
+        """Cancel the the underlying task."""
         if self.task:
             self.task.cancel()
 

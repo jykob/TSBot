@@ -39,7 +39,7 @@ ONCE_ATTR = "__ts_once__"
 
 
 class TSPlugin:
-    """Base class for plugins"""
+    """Base class for plugins."""
 
     __ts_event_instances__: list[events.TSEventHandler]
     __ts_command_instances__: list[commands.TSCommand]
@@ -100,7 +100,7 @@ def command(
     checks: Sequence[commands.CommandHandler] = (),
 ) -> Callable[[PluginCommandHandler[_TP]], PluginCommandHandler[_TP]]:
     """
-    Decorator to register plugin commands
+    Decorator to register plugin commands.
 
     :param command: Name(s) of the command.
     :param help_text: Text to be displayed when using **!help**.
@@ -154,7 +154,7 @@ def on(
     event_type: str,
 ) -> Callable[[PluginEventHandler[_TP, Any]], PluginEventHandler[_TP, Any]]:
     """
-    Decorator to register plugin events
+    Decorator to register plugin events.
 
     :param event_type: Name of the event.
     """
@@ -194,7 +194,7 @@ def once(
     event_type: str,
 ) -> Callable[[PluginEventHandler[_TP, Any]], PluginEventHandler[_TP, Any]]:
     """
-    Decorator to register plugin events to be ran only once
+    Decorator to register plugin events to be ran only once.
 
     :param event_type: Name of the event.
     """

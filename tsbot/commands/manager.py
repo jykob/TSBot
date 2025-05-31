@@ -46,8 +46,7 @@ class CommandManager:
             del self._commands[c]
 
     async def handle_command_event(self, bot: bot.TSBot, ctx: context.TSCtx) -> None:
-        """Logic to handle commands"""
-
+        """Logic to handle commands."""
         # If sender is the bot, return
         if ctx.get("invokerid") == bot.clid:
             return

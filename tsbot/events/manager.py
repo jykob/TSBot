@@ -51,14 +51,12 @@ class EventManager:
 
     async def handle_events_task(self, bot: bot.TSBot) -> None:
         """Task to run events put into the event queue."""
-
         with utils.set_event(self._running):
             while True:
                 self.handle_event(bot, await self._event_queue.get())
 
     def register_event_handler(self, event_handler: events.TSEventHandler) -> None:
         """Registers event handlers that will be called when given event happens."""
-
         self._event_handlers[event_handler.event].append(event_handler)
 
         logger.debug(

@@ -36,7 +36,7 @@ class KeepAlive(plugin.TSPlugin):
 
     async def _keep_alive_task(self, bot: bot.TSBot) -> None:
         """
-        Task to keep connection alive with the TeamSpeak server
+        Task to keep connection alive with the TeamSpeak server.
 
         Normally TeamSpeak server cuts the connection to the query client
         after 5 minutes of inactivity. If the bot doesn't send any commands

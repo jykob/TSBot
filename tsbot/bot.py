@@ -74,8 +74,7 @@ class TSBot:
         :param ratelimit_calls: Calls per period.
         :param ratelimit_period: Period interval.
         :param query_timeout: Timeout for each query command in seconds.
-        """
-
+        """  # noqa: D205
         if nickname is not None and not nickname:
             raise TypeError("Bot nickname cannot be empty")
 
@@ -113,22 +112,22 @@ class TSBot:
 
     @property
     def uid(self) -> str:
-        """Bots UID"""
+        """Bots UID."""
         return self._bot_info.uid
 
     @property
     def clid(self) -> str:
-        """Bots current client id"""
+        """Bots current client id."""
         return self._bot_info.clid
 
     @property
     def cldbid(self) -> str:
-        """Bots client database id"""
+        """Bots client database id."""
         return self._bot_info.cldbid
 
     @property
     def connected(self) -> bool:
-        """Is the bot currently connected to a server"""
+        """Is the bot currently connected to a server."""
         return self._connection.connected
 
     def _init(self) -> None:
@@ -235,7 +234,6 @@ class TSBot:
         :param handler: Async function to handle the event.
         :return: The instance of :class:`~tsbot.events.TSEventHandler` created.
         """
-
         event_handler = events.TSEventHandler(event_type, handler)
         self._event_manager.register_event_handler(event_handler)
         return event_handler
@@ -316,7 +314,6 @@ class TSBot:
         :param handler: Async function to handle the event.
         :return: The instance of :class:`~tsbot.events.TSEventOnceHandler` created.
         """
-
         event_handler = events.TSEventOnceHandler(event_type, handler, self.remove_event_handler)
         self._event_manager.register_event_handler(event_handler)
         return event_handler
@@ -333,7 +330,6 @@ class TSBot:
 
         :param event_handler: Instance of the :class:`~tsbot.events.TSEventHandler` to be removed.
         """
-
         self._event_manager.remove_event_handler(event_handler)
 
     @overload
@@ -474,7 +470,7 @@ class TSBot:
 
     def get_command_handler(self, command: str) -> commands.TSCommand | None:
         """
-        Get :class:`~tsbot.commands.TSCommand` instance associated with a given `command`
+        Get :class:`~tsbot.commands.TSCommand` instance associated with a given `command`.
 
         :param command: Command that invokes :class:`~tsbot.commands.TSCommand`
         :return: :class:`~tsbot.commands.TSCommand` associated with `command` if found.
@@ -505,7 +501,6 @@ class TSBot:
         :param name: Name of the task.
         :return: Instance of :class:`~tsbot.tasks.TSTask` created.
         """
-
         task = tasks.TSTask(
             handler=handler,  # type: ignore
             args=args,
@@ -598,7 +593,6 @@ class TSBot:
 
         :param queries: Iterable of :class:`~tsbot.query_builder.TSQuery` instances to be send to the server.
         """
-
         await self._connection.send_batched(queries)
 
     async def send_batched_raw(self, raw_queries: Iterable[str]) -> None:
@@ -611,7 +605,6 @@ class TSBot:
 
         :param raw_queries: Iterable of raw query commands to be send to the server.
         """
-
         await self._connection.send_batched_raw(raw_queries)
 
     def close(self) -> None:
@@ -625,7 +618,6 @@ class TSBot:
         * The bot will handle all the events still in the queue.
         * If the connection is still open, the bot will send a quit command.
         """
-
         self._closing.set()
 
     async def _wait_closed(self) -> None:
@@ -644,7 +636,7 @@ class TSBot:
         await self._update_bot_info()
 
     async def _update_bot_info(self) -> None:
-        """Update useful information about the bot instance"""
+        """Update useful information about the bot instance."""
         info = await self.send_raw("whoami")
 
         self._bot_info = BotInfo(
@@ -665,7 +657,6 @@ class TSBot:
 
         Awaits until the bot is closed or the connection is lost.
         """
-
         self._closing.clear()
         self._task_manager.start(self)
 
@@ -702,7 +693,6 @@ class TSBot:
 
         :param plugins: Instances of :class:`~tsbot.plugins.TSPlugin` to be loaded.
         """
-
         for plugin_to_be_loaded in plugins:
             if plugin_to_be_loaded in self.plugins:
                 logger.warning("Plugin %r is already loaded", type(plugin_to_be_loaded).__name__)
@@ -752,7 +742,6 @@ class TSBot:
 
         :param plugins: Instances of :class:`~tsbot.plugins.TSPlugin` to be unloaded.
         """
-
         for plugin_to_be_unloaded in plugins:
             if plugin_to_be_unloaded not in self.plugins:
                 logger.warning("Plugin %r is not loaded", type(plugin_to_be_unloaded).__name__)
@@ -801,6 +790,7 @@ class TSBot:
     async def respond_to_client(self, ctx: context.TSCtx, message: str) -> None:
         """
         Sends a message to the client that invoked the message.
+
         The message will be sent to the client with a direct message.
 
         This method can be used to respond to command invocations.
@@ -815,7 +805,6 @@ class TSBot:
         :param ctx: Context of the `textmessage` event.
         :param message: Message to be sent.
         """
-
         if target := ctx.get("invokerid"):
             await self.send(
                 query_builder.TSQuery(

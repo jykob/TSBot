@@ -18,14 +18,14 @@ ESCAPE_MAP = (
 
 
 def escape(input_str: str) -> str:
-    """Escapes characters that need escaping according to ESCAPE_MAP"""
+    """Escapes all the characters that need to be escaped."""
     for char, replacement in ESCAPE_MAP:
         input_str = input_str.replace(char, replacement)
     return input_str
 
 
 def unescape(input_str: str) -> str:
-    """Undo escaping of characters according to ESCAPE_MAP"""
+    """Unescape all the special characters sent by the server."""
     for replacement, char in ESCAPE_MAP:
         input_str = input_str.replace(char, replacement)
     return input_str
