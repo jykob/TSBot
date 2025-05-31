@@ -14,9 +14,7 @@ _DECORATOR_FACTORIES = {
 
 
 class DecoratorFactoryMethodDocumenter(MethodDocumenter):
-    """
-    Specialized Documenter subclass for decorator factory methods.
-    """
+    """Specialized Documenter subclass for decorator factory methods."""
 
     objtype = "decoratorfactorymethod"
     directivetype = "decoratormethod"
