@@ -44,7 +44,7 @@ class TSPlugin:
     __ts_event_instances__: list[events.TSEventHandler]
     __ts_command_instances__: list[commands.TSCommand]
 
-    def __new__(cls) -> Self:
+    def __new__(cls, *args: Any, **kwargs: Any) -> Self:
         instance = super().__new__(cls)
         instance.__ts_event_instances__ = []
         instance.__ts_command_instances__ = []
