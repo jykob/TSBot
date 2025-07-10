@@ -60,3 +60,52 @@ or by passing `-format detailed` as a keyword argument.
 If no command were found or the command is `hidden`, the `help` command raises
 [TSCommandError](tsbot.exceptions.TSCommandError) telling that no command was found.
 ```
+
+---
+
+### Customizing default plugins
+
+You can customize the default plugins by overriding them in your bot.
+
+For example, if you want to remove the `Help` plugin from the default plugins, you can do it like this:
+
+```python
+from tsbot import DEFAULT_PLUGINS, TSBot
+
+bot = TSBot(
+    ...
+    default_plugins=DEFAULT_PLUGINS.remove(DEFAULT_PLUGINS.help),
+)
+```
+
+This will remove the `Help` plugin from the default plugins.
+
+You can also add your own plugins to default plugins. For example, if you want to add a custom plugin
+to the default plugins, you can do it like this:
+
+```python
+from tsbot import DEFAULT_PLUGINS, TSBot, plugin
+
+class CustomPlugin(plugin.TSPlugin):
+    @plugin.command("custom")
+    async def custom_command(self, bot: TSBot, ctx: TSCtx):
+        await bot.respond(ctx, "Custom command")
+
+bot = TSBot(
+    ...
+    default_plugins=(*DEFAULT_PLUGINS, CustomPlugin()),
+)
+```
+
+This will load the `CustomPlugin` plugin instance along with the default plugins.
+
+You can also disable all the default plugins by passing an empty tuple to the `default_plugins` parameter.
+
+```python
+from tsbot import TSBot
+
+bot = TSBot(
+    ...
+    default_plugins=(),
+)
+```
