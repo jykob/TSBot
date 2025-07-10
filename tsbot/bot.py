@@ -58,6 +58,7 @@ class TSBot:
         ratelimit_calls: int = 10,
         ratelimit_period: float = 3,
         query_timeout: float = 5,
+        default_plugins: Iterable[plugin.TSPlugin] = default_plugins.DEFAULT_PLUGINS,
     ) -> None:
         """
         :param username: Login name of the query account.
@@ -74,6 +75,7 @@ class TSBot:
         :param ratelimit_calls: Calls per period.
         :param ratelimit_period: Period interval.
         :param query_timeout: Timeout for each query command in seconds.
+        :param default_plugins: Plugins that will be loaded by default.
         """  # noqa: D205
         if nickname is not None and not nickname:
             raise TypeError("Bot nickname cannot be empty")
@@ -112,7 +114,7 @@ class TSBot:
         self.register_event_handler("connect", self._on_connect)
         self.register_event_handler("textmessage", self._command_manager.handle_command_event)
 
-        self.load_plugin(default_plugins.Help(), default_plugins.KeepAlive())
+        self.load_plugin(*default_plugins)
 
     @property
     def uid(self) -> str:
