@@ -46,12 +46,12 @@ class AFKPlugin(plugin.TSPlugin):
 
     @plugin.on("connect")
     async def start_task(self, bot: TSBot, ctx: None):
-        """Start the checking task on connect"""
+        """Start the checking task on connect."""
         self._task = bot.register_every_task(self.CHECK_PERIOD, self.check_afk_clients)
 
     @plugin.on("disconnect")
     async def cancel_task(self, bot: TSBot, ctx: None):
-        """Cleanup task on disconnect"""
+        """Cleanup task on disconnect."""
         self._task.cancel()
 
 

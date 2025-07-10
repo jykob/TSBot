@@ -17,10 +17,7 @@ class TSResponseError(TSException):
 
 
 class TSResponsePermissionError(TSResponseError):
-    """
-    Raised when a response has error_id of '2568', indicating that the client
-    doesn't have the proper permissions to execute this query.
-    """
+    """Raised when a response has error_id of '2568', indicating that the client doesn't have the proper permissions to execute this query."""
 
     def __init__(self, msg: str, error_id: int, perm_id: int) -> None:
         super().__init__(msg, error_id)
@@ -31,22 +28,12 @@ class TSResponsePermissionError(TSResponseError):
 
 
 class TSCommandError(TSException):
-    """
-    Command handlers can raise this exception to indicate
-    that something went wrong while running the handler.
-    """
+    """Command handlers can raise this exception to indicate that something went wrong while running the handler."""
 
 
 class TSPermissionError(TSException):
-    """
-    Command handlers can raise this exception to indicate
-    that the user running this command doesn't have the
-    proper permissions.
-    """
+    """Command handlers can raise this exception to indicate that the user running this command doesn't have the proper permissions."""
 
 
 class TSInvalidParameterError(TSException, TypeError):
-    """
-    Raised when a call to a command handler doesn't match the signature
-    of the handler.
-    """
+    """Raised when a call to a command handler doesn't match the signature of the handler."""

@@ -52,8 +52,8 @@ typeCheckingMode = "strict"
 line-length = 100
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "N", "UP", "ANN", "SIM", "RUF", "ASYNC"]
-ignore = ["E501", "ANN401", "ANN1"]
+select = ["D", "E", "F", "I", "N", "UP", "ANN", "SIM", "RUF", "ASYNC"]
+ignore = ["D1", "D212", "D203", "D401", "E501", "ANN401", "ANN1"]
 
 [tool.ruff.lint.isort]
 required-imports = ["from __future__ import annotations"]

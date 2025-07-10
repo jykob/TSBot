@@ -63,7 +63,7 @@ def _parse_arg(unparsed: str) -> tuple[str, str]:
 
 
 def _parse_kwarg(unparsed: str) -> tuple[str, str, str]:
-    """Parse an key-value argument"""
+    """Parse an key-value argument."""
     key, unparsed = _parse_arg(unparsed[len(KWARG_INDICATOR) :])
 
     if unparsed.startswith(KWARG_INDICATOR):
@@ -76,8 +76,7 @@ def _parse_kwarg(unparsed: str) -> tuple[str, str, str]:
 
 
 def parse_args_kwargs(msg: str) -> tuple[tuple[str, ...], dict[str, str]]:
-    """Parses a message in to arguments and keyword arguments"""
-
+    """Parses a message in to arguments and keyword arguments."""
     args: list[str] = []
     kwargs: dict[str, str] = {}
 
@@ -117,8 +116,7 @@ def split_ensure_splits(
     maxsplit: int = -1,
     fill: str = "",
 ) -> tuple[str, ...]:
-    """Splits a string at least maxsplit times, filling the rest with fill value"""
-
+    """Splits a string at least maxsplit times, filling the rest with fill value."""
     return (
         *(result := string.split(sep, maxsplit)),
         *itertools.repeat(fill, maxsplit - len(result) + 1),

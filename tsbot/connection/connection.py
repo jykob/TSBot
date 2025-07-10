@@ -126,7 +126,7 @@ class TSConnection:
                 await asyncio.sleep(self._retry_interval)
 
         async def select_server() -> None:
-            """Set current virtual server and sets nickname if specified"""
+            """Set current virtual server and sets nickname if specified."""
             select_query = query_builder.TSQuery("use", parameters={"sid": self._server_id})
 
             if self._nickname is not None:
@@ -135,7 +135,7 @@ class TSConnection:
             await self.send(select_query)
 
         async def register_notifications() -> None:
-            """Register server to send events to the bot"""
+            """Register server to send events to the bot."""
             notify_query = query_builder.TSQuery("servernotifyregister")
 
             await self.send(notify_query.params(event="channel", id=0))

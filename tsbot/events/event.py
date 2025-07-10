@@ -14,7 +14,7 @@ class TSEvent(NamedTuple):
     @classmethod
     def from_server_notification(cls, raw_data: str) -> Self:
         """
-        Creates a TSEvent instance from server notify
+        Creates a TSEvent instance from server notify.
 
         Will remove the 'notify' from the beginning of the 'event'
         """
