@@ -108,7 +108,11 @@ class TSBot:
 
         self._bot_info = BotInfo()
         self._closing = asyncio.Event()
-        self._init()
+
+        self.register_event_handler("connect", self._on_connect)
+        self.register_event_handler("textmessage", self._command_manager.handle_command_event)
+
+        self.load_plugin(default_plugins.Help(), default_plugins.KeepAlive())
 
     @property
     def uid(self) -> str:
@@ -129,12 +133,6 @@ class TSBot:
     def connected(self) -> bool:
         """Is the bot currently connected to a server."""
         return self._connection.connected
-
-    def _init(self) -> None:
-        self.register_event_handler("connect", self._on_connect)
-        self.register_event_handler("textmessage", self._command_manager.handle_command_event)
-
-        self.load_plugin(default_plugins.Help(), default_plugins.KeepAlive())
 
     def emit(self, event_name: str, ctx: Any | None = None) -> None:
         """
