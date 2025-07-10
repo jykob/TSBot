@@ -102,6 +102,8 @@ This will load the `CustomPlugin` plugin instance along with the default plugins
 You can also disable all the default plugins by passing an empty tuple to the `default_plugins` parameter.
 
 ```python
+from tsbot import TSBot
+
 bot = TSBot(
     ...
     default_plugins=(),
