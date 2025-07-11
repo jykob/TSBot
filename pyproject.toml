@@ -25,11 +25,13 @@ urls = { repository = "https://github.com/jykob/tsbot", documentation = "https:/
 
 [dependency-groups]
 dev = [
-    "ruff >= 0.4.4",
-    "pyright >= 1.1.362",
+    { include-group = "lint" },
+    { include-group = "typecheck" },
     "sphinx-autobuild >= 2024.4.16",
     "python-dotenv >= 1.0.1",
 ]
+lint = ["ruff >= 0.4.4"]
+typecheck = ["pyright >= 1.1.362"]
 tests = ["pytest == 8.3.3", "pytest-asyncio == 0.24.0"]
 docs = ["sphinx >= 7.3.7", "myst-parser >= 2.0.0", "sphinx_rtd_theme >= 2.0.0"]
 
