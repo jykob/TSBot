@@ -35,13 +35,13 @@ docs = ["sphinx >= 7.3.7", "myst-parser >= 2.0.0", "sphinx_rtd_theme >= 2.0.0"]
 
 
 [build-system]
-requires = ["setuptools >= 69.5.1", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["uv_build>=0.7.20,<0.8.0"]
+build-backend = "uv_build"
 
 
-[tool.setuptools]
-packages = { find = { include = ["tsbot*"] } }
-package-data = { tsbot = ["py.typed"] }
+[tool.uv.build-backend]
+module-name = "tsbot"
+module-root = ""
 
 
 [tool.pyright]
