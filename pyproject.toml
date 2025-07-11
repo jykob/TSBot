@@ -23,7 +23,7 @@ license = { file = "LICENSE" }
 urls = { repository = "https://github.com/jykob/tsbot", documentation = "https://tsbot.readthedocs.io/" }
 
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "ruff >= 0.4.4",
     "pyright >= 1.1.362",
