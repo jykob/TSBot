@@ -50,6 +50,10 @@ module-root = ""
 typeCheckingMode = "strict"
 
 
+[tool.uv]
+default-groups = []
+
+
 [tool.ruff]
 line-length = 100
 
