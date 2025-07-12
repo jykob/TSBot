@@ -55,8 +55,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check with Ruff
-        uses: astral-sh/ruff-action@v3
+      - name: Install uv and Setup Python 3.13
+        uses: astral-sh/setup-uv@v6
         with:
-          src: "./tsbot"
-          version-file: "pyproject.toml"
+          python-version: "3.13"
+          enable-cache: true
+
+      - name: Install the project
+        run: uv sync --group lint
+
+      - name: Check with Ruff
+        run: uv run ruff check tsbot
