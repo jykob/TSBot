@@ -6,13 +6,13 @@ import contextlib
 from collections.abc import AsyncGenerator, Callable
 from typing import TYPE_CHECKING, Any
 
-from tsbot import logging
+import tsbot.logging
 
 if TYPE_CHECKING:
     from tsbot import connection
 
 
-logger = logging.get_logger(__name__)
+logger = tsbot.logging.get_logger(__name__)
 
 
 class _ResponseBuffer:

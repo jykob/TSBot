@@ -3,13 +3,14 @@ from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING
 
-from tsbot import logging, plugin
+import tsbot.logging
+from tsbot import plugin
 
 if TYPE_CHECKING:
     from tsbot import bot, context, tasks
 
 
-logger = logging.get_logger(__name__)
+logger = tsbot.logging.get_logger(__name__)
 
 
 class KeepAlive(plugin.TSPlugin):

@@ -3,9 +3,9 @@ from __future__ import annotations
 import asyncio
 import time
 
-from tsbot import logging
+import tsbot.logging
 
-logger = logging.get_logger(__name__)
+logger = tsbot.logging.get_logger(__name__)
 
 
 class RateLimiter:
