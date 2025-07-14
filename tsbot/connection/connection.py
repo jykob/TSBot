@@ -7,14 +7,15 @@ import logging
 from collections.abc import Callable, Iterable
 from typing import TYPE_CHECKING, Any
 
-from tsbot import context, events, exceptions, logging_, query_builder, response, utils
+import tsbot.logging
+from tsbot import context, events, exceptions, query_builder, response, utils
 from tsbot.connection import reader, writer
 
 if TYPE_CHECKING:
     from tsbot import connection, ratelimiter
 
 
-logger = logging_.get_logger(__name__)
+logger = tsbot.logging.get_logger(__name__)
 
 
 class TSConnection:

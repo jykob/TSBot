@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, Literal, NamedTuple, overload
 
 from typing_extensions import TypeVarTuple, Unpack
 
+import tsbot.logging
 from tsbot import (
     commands,
     connection,
@@ -15,7 +16,6 @@ from tsbot import (
     default_plugins,
     enums,
     events,
-    logging_,
     plugin,
     query_builder,
     ratelimiter,
@@ -31,7 +31,7 @@ _Ts = TypeVarTuple("_Ts")
 _DEFAULT_PORTS = {"ssh": 10022, "raw": 10011}
 
 
-logger = logging_.get_logger(__name__)
+logger = tsbot.logging.get_logger(__name__)
 
 
 class BotInfo(NamedTuple):
