@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from tsbot import context, enums, exceptions, logging, parsers
+from tsbot import context, enums, exceptions, logging_, parsers
 
 if TYPE_CHECKING:
     from tsbot import bot, commands
 
 
-logger = logging.get_logger(__name__)
+logger = logging_.get_logger(__name__)
 
 
 _ERROR_EVENT_MAP: dict[type[exceptions.TSException], str] = {

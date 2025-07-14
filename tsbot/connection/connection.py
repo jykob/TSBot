@@ -3,17 +3,18 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import itertools
+import logging
 from collections.abc import Callable, Iterable
 from typing import TYPE_CHECKING, Any
 
-from tsbot import context, events, exceptions, logging, query_builder, response, utils
+from tsbot import context, events, exceptions, logging_, query_builder, response, utils
 from tsbot.connection import reader, writer
 
 if TYPE_CHECKING:
     from tsbot import connection, ratelimiter
 
 
-logger = logging.get_logger(__name__)
+logger = logging_.get_logger(__name__)
 
 
 class TSConnection:

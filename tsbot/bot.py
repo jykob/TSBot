@@ -15,7 +15,7 @@ from tsbot import (
     default_plugins,
     enums,
     events,
-    logging,
+    logging_,
     plugin,
     query_builder,
     ratelimiter,
@@ -31,7 +31,7 @@ _Ts = TypeVarTuple("_Ts")
 _DEFAULT_PORTS = {"ssh": 10022, "raw": 10011}
 
 
-logger = logging.get_logger(__name__)
+logger = logging_.get_logger(__name__)
 
 
 class BotInfo(NamedTuple):

@@ -4,12 +4,12 @@ import asyncio
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
-from tsbot import events, logging, utils
+from tsbot import events, logging_, utils
 
 if TYPE_CHECKING:
     from tsbot import bot
 
-logger = logging.get_logger(__name__)
+logger = logging_.get_logger(__name__)
 
 
 class EventManager:

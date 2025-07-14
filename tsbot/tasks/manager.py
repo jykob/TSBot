@@ -5,13 +5,13 @@ import contextlib
 from collections.abc import Generator
 from typing import TYPE_CHECKING
 
-from tsbot import logging
+from tsbot import logging_
 
 if TYPE_CHECKING:
     from tsbot import bot, tasks
 
 
-logger = logging.get_logger(__name__)
+logger = logging_.get_logger(__name__)
 
 
 class TaskList:

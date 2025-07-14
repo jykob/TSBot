@@ -4,13 +4,13 @@ import asyncio
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-from tsbot import logging
+from tsbot import logging_
 
 if TYPE_CHECKING:
     from tsbot import connection, ratelimiter
 
 
-logger = logging.get_logger(__name__)
+logger = logging_.get_logger(__name__)
 
 
 class Writer:
