@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 from collections.abc import MutableMapping
-from logging import CRITICAL, DEBUG, ERROR, INFO, WARNING
 from typing import TYPE_CHECKING, Any, TypedDict, cast
 
 # TODO: Python 3.10 compat. Remove when 3.10 EOL
@@ -10,9 +9,6 @@ if TYPE_CHECKING:
     _LoggerAdapter = logging.LoggerAdapter[logging.Logger]
 else:
     _LoggerAdapter = logging.LoggerAdapter
-
-
-__all__ = ("CRITICAL", "DEBUG", "ERROR", "INFO", "WARNING", "get_logger", "set_debug")
 
 
 _logger = logging.getLogger(__package__ or "tsbot")
@@ -36,7 +32,7 @@ class TSBotLogger(_LoggerAdapter):
         self, msg: str, kwargs: MutableMapping[str, Any]
     ) -> tuple[str, MutableMapping[str, Any]]:
         if self._debug:
-            msg = f"[{cast(LoggerExtra,self.extra)['from_module']}] {msg}"
+            msg = f"[{cast(LoggerExtra, self.extra)['from_module']}] {msg}"
 
         return super().process(msg, kwargs)
 
