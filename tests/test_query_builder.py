@@ -138,3 +138,46 @@ def test_cache_invalid():
 )
 def test_boolean_params(q: TSQuery, includes: str):
     assert includes in q.compile()
+
+
+@pytest.mark.parametrize(
+    ("q1", "q2"),
+    (
+        pytest.param(
+            query("whoami"),
+            query("whoami"),
+            id="test_same_query_hash_command",
+        ),
+        pytest.param(
+            query("serverlist").option("uid"),
+            query("serverlist").option("uid"),
+            id="test_same_query_hash_options",
+        ),
+        pytest.param(
+            query("channeldelete").params(cid=1, force=False),
+            query("channeldelete").params(cid=1, force=False),
+            id="test_same_query_hash_params",
+        ),
+        pytest.param(
+            query("servergroupaddperm").param_block(
+                permid=17276, permvalue=50, permnegated=0, permskip=0
+            ),
+            query("servergroupaddperm").param_block(
+                permid=17276, permvalue=50, permnegated=0, permskip=0
+            ),
+            id="test_same_query_hash_param_blocks",
+        ),
+        pytest.param(
+            query("clientkick").params(reasonid=5, reasonmsg="Go away!").param_block(clid=1),
+            query("clientkick").params(reasonid=5, reasonmsg="Go away!").param_block(clid=1),
+            id="test_same_query_hash_param_blocks_multiple",
+        ),
+        pytest.param(
+            query("serverlist").option("uid"),
+            query("serverlist").option("uid").compile(),
+            id="test_same_query_hash_compiled",
+        ),
+    ),
+)
+def test_query_hash(q1: TSQuery, q2: TSQuery) -> None:
+    assert hash(q1) == hash(q2)
