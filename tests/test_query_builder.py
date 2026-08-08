@@ -146,17 +146,17 @@ def test_boolean_params(q: TSQuery, includes: str):
         pytest.param(
             query("whoami"),
             query("whoami"),
-            id="test_same_query_hash_command",
+            id="test_query_hash_same_command",
         ),
         pytest.param(
             query("serverlist").option("uid"),
             query("serverlist").option("uid"),
-            id="test_same_query_hash_options",
+            id="test_query_hash_same_options",
         ),
         pytest.param(
             query("channeldelete").params(cid=1, force=False),
             query("channeldelete").params(cid=1, force=False),
-            id="test_same_query_hash_params",
+            id="test_query_hash_same_params",
         ),
         pytest.param(
             query("servergroupaddperm").param_block(
@@ -165,19 +165,82 @@ def test_boolean_params(q: TSQuery, includes: str):
             query("servergroupaddperm").param_block(
                 permid=17276, permvalue=50, permnegated=0, permskip=0
             ),
-            id="test_same_query_hash_param_blocks",
+            id="test_query_hash_same_param_blocks",
         ),
         pytest.param(
-            query("clientkick").params(reasonid=5, reasonmsg="Go away!").param_block(clid=1),
-            query("clientkick").params(reasonid=5, reasonmsg="Go away!").param_block(clid=1),
-            id="test_same_query_hash_param_blocks_multiple",
-        ),
-        pytest.param(
-            query("serverlist").option("uid"),
-            query("serverlist").option("uid").compile(),
-            id="test_same_query_hash_compiled",
+            query("clientkick")
+            .params(reasonid=5, reasonmsg="Go away!")
+            .param_block(clid=1)
+            .param_block(clid=2)
+            .param_block(clid=3),
+            query("clientkick")
+            .params(reasonid=5, reasonmsg="Go away!")
+            .param_block(clid=1)
+            .param_block(clid=2)
+            .param_block(clid=3),
+            id="test_query_hash_same_param_blocks_multiple",
         ),
     ),
 )
 def test_query_hash(q1: TSQuery, q2: TSQuery) -> None:
     assert hash(q1) == hash(q2)
+
+
+def test_query_hash_same_compiled():
+    a = query("clientkick").params(reasonid=5, reasonmsg="Go away!").param_block(clid=1)
+    b = query("clientkick").params(reasonid=5, reasonmsg="Go away!").param_block(clid=1)
+
+    b.compile()
+
+    assert hash(a) == hash(b)
+
+
+@pytest.mark.parametrize(
+    ("q1", "q2"),
+    (
+        pytest.param(
+            query("whoami"),
+            query("version"),
+            id="test_query_hash_different_command",
+        ),
+        pytest.param(
+            query("serverlist").option("uid"),
+            query("serverlist").option("all"),
+            id="test_query_hash_different_options",
+        ),
+        pytest.param(
+            query("channeldelete").params(cid=1, force=False),
+            query("channeldelete").params(cid=1, force=True),
+            id="test_query_hash_different_params",
+        ),
+        pytest.param(
+            query("servergroupaddperm").param_block(
+                permid=17276, permvalue=50, permnegated=0, permskip=0
+            ),
+            query("servergroupaddperm").param_block(
+                permid=17276, permvalue=50, permnegated=0, permskip=1
+            ),
+            id="test_query_hash_different_param_blocks",
+        ),
+        pytest.param(
+            query("clientkick")
+            .params(reasonid=5, reasonmsg="Go away!")
+            .param_block(clid=1)
+            .param_block(clid=2)
+            .param_block(clid=3),
+            query("clientkick")
+            .params(reasonid=5, reasonmsg="Go away!")
+            .param_block(clid=1)
+            .param_block(clid=2)
+            .param_block(clid=999),
+            id="test_query_hash_different_param_blocks_multiple",
+        ),
+        pytest.param(
+            query("channelmove").params(order=1).params(cid=16).params(cpid=1),
+            query("channelmove").params(cid=16).params(cpid=1).params(order=0),
+            id="test_query_hash_different_params_order",
+        ),
+    ),
+)
+def test_query_hash_not_same(q1: TSQuery, q2: TSQuery):
+    assert hash(q1) != hash(q2)
