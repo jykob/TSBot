@@ -59,7 +59,7 @@ class TSQuery:
         return f"{self.__class__.__qualname__}({self._command!r})"
 
     def __hash__(self) -> int:
-        return hash((self._command, self._options, self._parameters, self._parameter_blocks))
+        return hash(self.compile())
 
     def option(self, *args: Stringable) -> Self:
         """
