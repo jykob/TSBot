@@ -58,6 +58,9 @@ class TSQuery:
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}({self._command!r})"
 
+    def __hash__(self) -> int:
+        return hash(self.compile())
+
     def option(self, *args: Stringable) -> Self:
         """
         Add options to the command eg. ``-groups``.
