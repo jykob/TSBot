@@ -196,7 +196,13 @@ class TSConnection:
             raise BrokenPipeError("Connection to the TeamSpeak server is closed")
 
         await self._writer.write(raw_query)
-        response_data = await self._reader.read_response()
+
+        try:
+            response_data = await self._reader.read_response()
+        except BaseException:
+            self._reader.skip_response()
+            raise
+
         return response.TSResponse.from_server_response(response_data)
 
     async def send_batched(self, queries: Iterable[query_builder.TSQuery]) -> None:

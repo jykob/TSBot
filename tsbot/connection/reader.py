@@ -134,10 +134,4 @@ class Reader:
             await self._response_buffer.discard(self._skipped_responses)
             self._skipped_responses = 0
 
-        try:
-            response = await asyncio.wait_for(self._get_response(), timeout=self._read_timeout)
-        except asyncio.TimeoutError:
-            self.skip_response()
-            raise
-
-        return response
+        return await asyncio.wait_for(self._get_response(), timeout=self._read_timeout)
