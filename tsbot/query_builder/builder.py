@@ -61,6 +61,17 @@ class TSQuery:
     def __hash__(self) -> int:
         return hash(self.compile())
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+
+        return (
+            self._command == other._command
+            and self._options == other._options
+            and self._parameters == other._parameters
+            and self._parameter_blocks == other._parameter_blocks
+        )
+
     def option(self, *args: Stringable) -> Self:
         """
         Add options to the command eg. ``-groups``.
